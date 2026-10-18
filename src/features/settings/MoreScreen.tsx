@@ -1,0 +1,45 @@
+import { View } from 'react-native';
+
+import { LinkCard } from '@/components/Card';
+import { Icon } from '@/components/Icon';
+import { NAV_ITEMS } from '@/components/shell/navigation';
+import { PageHeader, Screen } from '@/components/Screen';
+import { Text } from '@/components/Text';
+import { useTheme } from '@/theme/ThemeProvider';
+import { spacing } from '@/theme/tokens';
+
+const DESCRIPTIONS: Record<string, string> = {
+  revision: 'Spaced-repetition reviews that are due today.',
+  'jvm-lab': 'Step through stack frames, the heap, class loading and GC.',
+  'bug-hunter': 'Diagnose broken code and production incidents.',
+  projects: 'Build real applications milestone by milestone.',
+  progress: 'Tiers, achievements and mastery by dimension.',
+  settings: 'Study schedule, theme, code execution and account.',
+};
+
+/** Phone-only menu for destinations that do not fit in the bottom bar. */
+export function MoreScreen() {
+  const { colors } = useTheme();
+  const items = NAV_ITEMS.filter((n) => !n.primaryMobile && n.name !== 'more');
+  return (
+    <Screen>
+      <PageHeader title="More" />
+      <View style={{ gap: spacing.sm }}>
+        {items.map((item) => (
+          <LinkCard key={item.name} href={item.href as never} accessibilityLabel={item.label}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+              <Icon name={item.icon} color={colors.primary} />
+              <View style={{ flex: 1 }}>
+                <Text variant="heading">{item.label}</Text>
+                <Text variant="small" color="textMuted">
+                  {DESCRIPTIONS[item.name] ?? ''}
+                </Text>
+              </View>
+              <Icon name="chevronRight" size={18} />
+            </View>
+          </LinkCard>
+        ))}
+      </View>
+    </Screen>
+  );
+}
