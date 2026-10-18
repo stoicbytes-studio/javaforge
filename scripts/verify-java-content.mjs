@@ -9,8 +9,10 @@
  *  - coding challenges: the reference solution must pass every test, and the
  *    starter code must compile but NOT pass every test
  *
- * Usage: node scripts/verify-java-content.mjs [filter]
- * Requires `javac` and `java` (JDK 21+) on PATH. Content files under
+ * Usage: node scripts/verify-java-content.mjs [filter] [--executor http://localhost:8080]
+ * Requires `javac` and `java` (JDK 21+) on PATH. With --executor, programs
+ * are run through the JavaForge execution service API instead, which checks
+ * that the service grades content exactly like a local JDK. Content files under
  * src/content must only use type-only imports so Node can load them directly.
  */
 import { spawn } from 'node:child_process';
@@ -21,7 +23,10 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const contentDir = join(root, 'src', 'content');
-const filter = process.argv[2];
+const argv = process.argv.slice(2);
+const executorFlag = argv.indexOf('--executor');
+const executorUrl = executorFlag >= 0 ? argv[executorFlag + 1] : undefined;
+const filter = argv.find((a, i) => !a.startsWith('--') && i !== executorFlag + 1);
 
 function walk(dir) {
   return readdirSync(dir).flatMap((name) => {
@@ -59,7 +64,27 @@ async function compile(source) {
   return promise;
 }
 
+async function executeRemote(source, stdin) {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const res = await fetch(`${executorUrl}/api/v1/executions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ files: [{ name: 'Main.java', content: source }], mainClass: 'Main', stdin }),
+    });
+    if (res.status === 429) {
+      await new Promise((r) => setTimeout(r, 2000 * (attempt + 1)));
+      continue;
+    }
+    const body = await res.json();
+    if (!res.ok) return { compileError: `HTTP ${res.status}: ${body.message}` };
+    if (!body.compile.success) return { compileError: body.compile.diagnostics.map((d) => `${d.line}: ${d.message}`).join('\n') };
+    return { stdout: body.run.stdout, stderr: body.run.stderr, code: body.run.exitCode };
+  }
+  return { compileError: 'rate limited by executor' };
+}
+
 async function execute(source, stdin = '') {
+  if (executorUrl) return executeRemote(source, stdin);
   const c = await compile(source);
   if (!c.ok) return { compileError: c.errors };
   const res = await run('java', ['-Xss8m', '-cp', c.dir, 'Main'], { cwd: c.dir, input: stdin });
@@ -149,8 +174,8 @@ function collect(value, file) {
           const hit = new RegExp(sc.pattern).test(value.solution);
           if (hit !== sc.mustMatch) return `solution violates static check ${sc.id}`;
         }
-        const starter = await compile(value.starterCode);
-        if (!starter.ok) return `starter code does not compile:\n${starter.errors}`;
+        const starter = executorUrl ? await execute(value.starterCode, value.tests[0]?.stdin ?? '') : await compile(value.starterCode);
+        if (starter.compileError || starter.ok === false) return `starter code does not compile:\n${starter.compileError ?? starter.errors}`;
         let allPass = true;
         for (const t of value.tests) {
           const r = await execute(value.starterCode, t.stdin);
@@ -223,7 +248,8 @@ async function main() {
     console.error(`\n${failed} of ${selected.length} items failed.`);
     process.exit(1);
   }
-  console.log(`All ${selected.length} items verified against ${(await run('java', ['-version'])).stderr.split('\n')[0]}`);
+  const target = executorUrl ? `execution service ${executorUrl}` : (await run('java', ['-version'])).stderr.split('\n')[0];
+  console.log(`All ${selected.length} items verified against ${target}`);
 }
 
 main();

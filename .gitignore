@@ -48,3 +48,4 @@ test-results/
 playwright-report/
 executor/target/
 .env
+executor/target/

@@ -1,0 +1,28 @@
+server:
+  port: ${PORT:8080}
+  # Bodies are limited to sources + tests; reject anything much larger early.
+  tomcat:
+    max-swallow-size: 1MB
+    max-http-form-post-size: 1MB
+
+spring:
+  application:
+    name: javaforge-executor
+  threads:
+    virtual:
+      enabled: true
+
+executor:
+  # docker (isolated, production) | local-unsafe (development only, no isolation)
+  mode: ${EXECUTOR_MODE:docker}
+  image: ${EXECUTOR_IMAGE:eclipse-temurin:21-jdk}
+  compile-timeout: 20s
+  run-timeout: 5s
+  container-memory-mb: 512
+  heap-mb: 128
+  cpus: 1.0
+  pids-limit: 128
+  max-output-bytes: 65536
+  max-concurrent-executions: ${EXECUTOR_MAX_CONCURRENT:4}
+  requests-per-minute-per-client: ${EXECUTOR_RATE_LIMIT:30}
+  allowed-origins: ${EXECUTOR_ALLOWED_ORIGINS:*}
