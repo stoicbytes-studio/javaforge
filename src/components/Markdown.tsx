@@ -78,7 +78,7 @@ export function parseBlocks(source: string): Block[] {
 
 export function Inline({ text, variant = 'body', color }: { text: string; variant?: TextVariant; color?: 'text' | 'textMuted' }) {
   const { colors } = useTheme();
-  const parts = useMemo(() => text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g).filter(Boolean), [text]);
+  const parts = useMemo(() => text.split(/(\*\*[^*]+\*\*|`[^`]+`|\*[^*\s][^*]*\*)/g).filter(Boolean), [text]);
   return (
     <Text variant={variant} color={color}>
       {parts.map((part, i) => {
@@ -86,6 +86,13 @@ export function Inline({ text, variant = 'body', color }: { text: string; varian
           return (
             <Text key={i} variant={variant} weight="700" color={color}>
               {part.slice(2, -2)}
+            </Text>
+          );
+        }
+        if (part.length > 2 && part.startsWith('*') && part.endsWith('*')) {
+          return (
+            <Text key={i} variant={variant} color={color} style={{ fontStyle: 'italic' }}>
+              {part.slice(1, -1)}
             </Text>
           );
         }

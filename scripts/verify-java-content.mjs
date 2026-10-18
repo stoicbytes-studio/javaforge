@@ -71,6 +71,9 @@ export function normalize(s) {
   return s.replace(/\r\n/g, '\n').split('\n').map((l) => l.trimEnd()).join('\n').replace(/\n+$/, '');
 }
 
+// Console encodings differ between JVMs and sandboxes, so expected output must be ASCII.
+const NON_ASCII = /[^\x00-\x7F]/;
+
 const jobs = [];
 const seenIds = new Map();
 function track(kind, id, file) {
@@ -95,6 +98,7 @@ function collect(value, file) {
           const r = await execute(ex.code, ex.stdin ?? '');
           if (r.compileError) return `does not compile:\n${r.compileError}`;
           if (r.code !== 0 && ex.expectedOutput === undefined) return `exit ${r.code}: ${r.stderr}`;
+          if (ex.expectedOutput !== undefined && NON_ASCII.test(ex.expectedOutput)) return 'expectedOutput contains non-ASCII characters';
           if (ex.expectedOutput !== undefined && normalize(r.stdout) !== normalize(ex.expectedOutput)) {
             return `output mismatch\n--- expected\n${ex.expectedOutput}\n--- actual\n${r.stdout}${r.stderr}`;
           }
@@ -132,6 +136,7 @@ function collect(value, file) {
       file,
       fn: async () => {
         const failures = [];
+        if (value.tests.some((t) => NON_ASCII.test(t.expectedStdout))) return 'a test expects non-ASCII output';
         for (const t of value.tests) {
           const r = await execute(value.solution, t.stdin);
           if (r.compileError) return `solution does not compile:\n${r.compileError}`;
@@ -171,6 +176,7 @@ function collect(value, file) {
 async function verifyOutputQuestion(q) {
   const correct = q.options.find((o) => o.id === q.correctOptionId);
   if (!correct) return 'correctOptionId not among options';
+  if (!q.expectCompileError && NON_ASCII.test(correct.text)) return 'correct option contains non-ASCII characters';
   const r = await execute(q.code);
   if (q.expectCompileError) {
     return r.compileError ? undefined : `expected a compile error but it compiled and printed:\n${r.stdout}`;

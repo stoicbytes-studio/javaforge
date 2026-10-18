@@ -118,6 +118,17 @@ describe('curriculum integrity', () => {
     }
   });
 
+  it('uses only the supported Markdown subset (no tables)', () => {
+    const prose = [
+      ...LESSONS.flatMap((l) => [l.plainEnglish, l.technical, l.whyItExists, l.realWorld.scenario]),
+      ...CHALLENGES.map((c) => c.description),
+    ];
+    for (const text of prose) {
+      const outsideCode = text.split('```').filter((_, i) => i % 2 === 0).join('\n');
+      expect(outsideCode).not.toMatch(/^\s*\|.*\|\s*$/m);
+    }
+  });
+
   it('closes every fenced code block in lesson prose', () => {
     for (const l of LESSONS) {
       for (const text of [l.plainEnglish, l.technical, l.whyItExists, l.realWorld.scenario]) {
