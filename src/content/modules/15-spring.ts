@@ -8,7 +8,6 @@ export const springModule: CurriculumModule = {
   summary: 'Dependency injection and Boot auto-configuration, production-quality REST APIs, persistence with JPA and transactions, and securing endpoints with Spring Security.',
   level: 'advanced',
   prerequisites: ['jdbc', 'testing'],
-  plannedTopics: ['Testing Spring Boot applications (slices, MockMvc, Testcontainers)'],
   lessons: [
     // -----------------------------------------------------------------------
     {

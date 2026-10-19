@@ -18,6 +18,12 @@ import { dsaConcepts } from './14-dsa';
 import { springConcepts } from './15-spring';
 import { performanceConcepts } from './16-performance';
 import { productionConcepts } from './17-production';
+import { asyncParallelConcepts } from './extra-async-parallel';
+import { immutabilityBuildConcepts } from './extra-immutability-build';
+import { numbersTimeConcepts } from './extra-numbers-time';
+import { qualitySpringTestingConcepts } from './extra-quality-spring-testing';
+import { regexReflectionConcepts } from './extra-regex-reflection';
+import { serializationNioConcepts } from './extra-serialization-nio';
 
 /** Concept pages for every lesson, keyed by lesson id. */
 export const CONCEPTS: Record<string, LessonConcepts> = {
@@ -39,4 +45,10 @@ export const CONCEPTS: Record<string, LessonConcepts> = {
   ...springConcepts,
   ...performanceConcepts,
   ...productionConcepts,
+  ...numbersTimeConcepts,
+  ...regexReflectionConcepts,
+  ...immutabilityBuildConcepts,
+  ...serializationNioConcepts,
+  ...asyncParallelConcepts,
+  ...qualitySpringTestingConcepts,
 };

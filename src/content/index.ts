@@ -19,6 +19,7 @@ import { fundamentalsModule } from './modules/01-fundamentals';
 import { platformModule } from './modules/02-platform';
 import { oopModule as oopCore } from './modules/03-oop';
 import { oopMoreLessons } from './modules/03-oop-more';
+import { EXTRA_LESSONS } from './modules/extra';
 import { typesModule } from './modules/04-types';
 import { exceptionsModule } from './modules/05-exceptions';
 import { functionalModule } from './modules/07-functional';
@@ -55,7 +56,9 @@ const WRITTEN_MODULES: CurriculumModule[] = [fundamentalsModule, platformModule,
 /** Attaches each lesson's concept page (interview definition, mnemonic, diagrams...). */
 const withConcepts = (m: CurriculumModule): CurriculumModule => ({
   ...m,
-  lessons: m.lessons.map((l) => (CONCEPTS[l.id] ? { ...l, concepts: CONCEPTS[l.id] } : l)),
+  lessons: [...m.lessons, ...EXTRA_LESSONS.filter((l) => l.moduleId === m.id)].map((l) =>
+    CONCEPTS[l.id] ? { ...l, concepts: CONCEPTS[l.id] } : l,
+  ),
 });
 
 const writtenIds = new Set(WRITTEN_MODULES.map((m) => m.id));

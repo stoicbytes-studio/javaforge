@@ -1,0 +1,432 @@
+import type { LessonConcepts } from '@/types/curriculum';
+
+/** Concept pages for the extra lessons ts-code-quality (module 12) and sp-testing (module 15). */
+export const qualitySpringTestingConcepts: Record<string, LessonConcepts> = {
+  'ts-code-quality': {
+    interviewDefinition:
+      'Code quality tooling is a layered net that finds defects tests were never written for. **Formatters** remove style debate; **compiler lints** and **static analysers** (Error Prone, SpotBugs, PMD, Checkstyle, SonarQube) match known bug patterns without running code; **coverage** (JaCoCo) shows what tests executed; **mutation testing** (PIT) shows whether they actually verify it; and **code review** judges design. A CI **quality gate** enforces thresholds on every change, ideally on new code so legacy debt shrinks gradually.',
+    interviewFollowUps: [
+      {
+        question: 'Your team has 95% coverage. Are the tests good?',
+        answer: 'Not necessarily. Coverage measures execution, not assertions: tests without asserts and untested boundaries both count as covered. I would look at branch coverage, run PIT on critical packages and read a sample of tests. A high mutation score is much stronger evidence.',
+      },
+      {
+        question: 'What is the difference between SpotBugs and Error Prone?',
+        answer: 'Error Prone is a javac plugin: it runs during compilation on the typed syntax tree and can fail the build immediately. SpotBugs analyses compiled bytecode after the fact. Their rule sets overlap (ignored return values, unrelated equals), and Error Prone also offers suggested fixes.',
+      },
+      {
+        question: 'How would you introduce static analysis to a large legacy codebase?',
+        answer: 'Start with a small set of high-confidence bug rules, record a baseline of existing findings, and fail the build only on new ones. Apply coverage and issue thresholds to new code, then widen the rules as the noise drops. A big-bang "fix 5,000 warnings" plan usually ends with the tool disabled.',
+      },
+      {
+        question: 'What is cyclomatic complexity and why do tools cap it?',
+        answer: 'Decision points plus one — the number of independent paths through a method. It is a lower bound on the tests needed for branch coverage, so a method at 25 is hard to test and review. Caps of about 10 to 15 nudge people to extract methods or replace conditionals with polymorphism.',
+      },
+    ],
+    mnemonic: {
+      device: '"Fix Little Slips, Catch More Real bugs": F-L-S-C-M-R',
+      expansion: [
+        { key: 'F', meaning: 'Format — google-java-format via Spotless; no style debates' },
+        { key: 'L', meaning: 'Lint — javac -Xlint:all -Werror' },
+        { key: 'S', meaning: 'Static analysis — Error Prone, SpotBugs, PMD, Checkstyle, SonarQube' },
+        { key: 'C', meaning: 'Coverage — JaCoCo shows what ran (lines, branches)' },
+        { key: 'M', meaning: 'Mutation — PIT shows what is actually checked' },
+        { key: 'R', meaning: 'Review — humans judge design, naming and intent' },
+      ],
+      visual: 'Picture six sieves stacked over a bucket labelled "production". Each has a different mesh: the coarse top sieves (formatter, lint) are cheap and automatic, the fine bottom one (human review) catches what the machines cannot.',
+    },
+    breakdown: [
+      {
+        kind: 'analogy',
+        title: 'Coverage is a list of rooms you walked through',
+        body: 'A building inspector who walks through every room has 100% "room coverage". Whether they checked the wiring is another question. JaCoCo records that a test walked through a line; mutation testing is the inspector who flips a breaker to see whether anyone notices.',
+      },
+      {
+        kind: 'insight',
+        title: 'Analysers know which methods are pure',
+        body: 'Error Prone and SpotBugs ship lists of methods whose only effect is their return value: `String.replace`, `BigDecimal.add`, `LocalDate.plusDays`, `Stream.map`. Calling one as a statement can only be a mistake. Annotating your own pure methods with `@CheckReturnValue` extends the same protection to your APIs.',
+      },
+      {
+        kind: 'real-world',
+        title: 'Google runs analysis at compile time',
+        body: 'Google built Error Prone so that serious bug patterns fail the compile instead of appearing in a report nobody reads. Their published experience: checks are only effective when they are shown to the developer at the moment of writing, with a low false-positive rate. That is why many teams prefer compile-time and pull-request feedback over nightly dashboards.',
+      },
+      {
+        kind: 'angle',
+        title: 'A quality gate is a ratchet, not a wall',
+        body: 'A gate that demands 90% overall coverage on a 30% codebase blocks everyone and gets switched off. A gate that demands 80% on **changed lines** passes on day one and moves the codebase upward with every merge. Choose metrics people can meet on every pull request.',
+      },
+      {
+        kind: 'insight',
+        title: 'Complexity predicts test count',
+        body: 'A method with cyclomatic complexity 11 needs at least 11 test cases to exercise every independent path. When a method needs that many tests, the cheapest fix is usually structural (Extract Method, Replace Conditional with Polymorphism), not more tests.',
+      },
+    ],
+    diagrams: [
+      {
+        id: 'ts4-quality-net',
+        kind: 'concept',
+        title: 'The quality net: each layer catches different defects',
+        caption: 'Defects fall from top to bottom. Cheap automated layers come first so humans spend review time on design; what slips through every layer reaches production.',
+        cols: 3,
+        rows: 4,
+        nodes: [
+          { id: 'fmt', label: 'Formatter', detail: 'layout, imports', col: 0, row: 0, tone: 'neutral' },
+          { id: 'lint', label: 'javac -Xlint', detail: 'unchecked, fallthrough', col: 1, row: 0, tone: 'neutral' },
+          { id: 'sa', label: 'Static analysis', detail: 'bug patterns, smells', col: 2, row: 0, tone: 'primary' },
+          { id: 'tests', label: 'Tests', detail: 'behaviour you specified', col: 2, row: 1, tone: 'primary' },
+          { id: 'cov', label: 'Coverage', detail: 'what ran: gaps', col: 1, row: 1, tone: 'accent' },
+          { id: 'mut', label: 'Mutation testing', detail: 'what is really checked', col: 0, row: 1, tone: 'accent' },
+          { id: 'review', label: 'Code review', detail: 'design, intent, naming', col: 0, row: 2, span: 3, tone: 'success' },
+          { id: 'prod', label: 'Production', detail: 'whatever slipped through', col: 1, row: 3, shape: 'pill', tone: 'danger' },
+        ],
+        edges: [
+          { from: 'fmt', to: 'lint' },
+          { from: 'lint', to: 'sa' },
+          { from: 'sa', to: 'tests' },
+          { from: 'tests', to: 'cov', label: 'measured by' },
+          { from: 'cov', to: 'mut', label: 'strength?' },
+          { from: 'mut', to: 'review' },
+          { from: 'review', to: 'prod', dashed: true, label: 'escaped defects' },
+        ],
+        groups: [
+          { label: 'Automated, every commit', fromCol: 0, toCol: 2, fromRow: 0, toRow: 1, tone: 'primary' },
+        ],
+      },
+      {
+        id: 'ts4-ci-gate',
+        kind: 'flow',
+        title: 'A CI quality gate on a pull request',
+        caption: 'Fast, cheap checks run first and fail early. The gate decides on new code only, so a legacy codebase can adopt it without fixing everything at once.',
+        cols: 4,
+        rows: 3,
+        nodes: [
+          { id: 'pr', label: 'Pull request', detail: 'small change', col: 0, row: 0, shape: 'note' },
+          { id: 'compile', label: 'Compile', detail: '-Xlint -Werror + Error Prone', col: 1, row: 0, tone: 'primary' },
+          { id: 'spot', label: 'spotlessCheck', detail: 'formatting', col: 2, row: 0, tone: 'primary' },
+          { id: 'test', label: 'Tests + JaCoCo', detail: 'coverage report', col: 3, row: 0, tone: 'primary' },
+          { id: 'sb', label: 'SpotBugs / PMD', detail: 'bytecode + source rules', col: 3, row: 1, tone: 'primary' },
+          { id: 'gate', label: 'Quality gate', detail: 'thresholds on new code', col: 2, row: 1, tone: 'warning' },
+          { id: 'block', label: 'Merge blocked', detail: 'fix and push again', col: 1, row: 1, shape: 'pill', tone: 'danger' },
+          { id: 'human', label: 'Human review', detail: 'design and intent', col: 2, row: 2, tone: 'success' },
+          { id: 'merge', label: 'Merge', col: 3, row: 2, shape: 'pill', tone: 'success' },
+        ],
+        edges: [
+          { from: 'pr', to: 'compile' },
+          { from: 'compile', to: 'spot' },
+          { from: 'spot', to: 'test' },
+          { from: 'test', to: 'sb' },
+          { from: 'sb', to: 'gate' },
+          { from: 'gate', to: 'block', label: 'fails', dashed: true },
+          { from: 'gate', to: 'human', label: 'passes' },
+          { from: 'human', to: 'merge', label: 'approved' },
+        ],
+        groups: [{ label: 'Automated pipeline', fromCol: 1, toCol: 3, fromRow: 0, toRow: 1, tone: 'neutral' }],
+      },
+      {
+        id: 'ts4-coverage-vs-mutation',
+        kind: 'concept',
+        title: 'Full coverage, surviving mutant',
+        caption: 'Tests at ages 30 and 5 execute both outcomes of age >= 18, so coverage is 100%. PIT\'s boundary mutant (>) gives the same answers for 30 and 5 and survives; only a test at exactly 18 kills it.',
+        cols: 3,
+        rows: 3,
+        nodes: [
+          { id: 'code', label: 'return age >= 18;', detail: 'production code', col: 1, row: 0, shape: 'note', tone: 'accent' },
+          { id: 'weak', label: 'Tests: 30, 5', detail: '100% line + branch', col: 0, row: 1, tone: 'primary' },
+          { id: 'mutant', label: 'Mutant: age > 18', detail: 'conditionals boundary', col: 1, row: 1, tone: 'warning' },
+          { id: 'strong', label: 'Tests: 30, 5, 18', detail: 'boundary included', col: 2, row: 1, tone: 'primary' },
+          { id: 'survived', label: 'SURVIVED', detail: 'weak tests', col: 0, row: 2, shape: 'pill', tone: 'danger' },
+          { id: 'killed', label: 'KILLED', detail: 'canBuy(18) fails', col: 2, row: 2, shape: 'pill', tone: 'success' },
+        ],
+        edges: [
+          { from: 'code', to: 'mutant', label: 'PIT mutates' },
+          { from: 'weak', to: 'survived', label: 'all still pass' },
+          { from: 'strong', to: 'killed', label: 'one test fails' },
+          { from: 'mutant', to: 'weak', dashed: true },
+          { from: 'mutant', to: 'strong', dashed: true },
+        ],
+      },
+    ],
+    variants: [
+      {
+        title: 'Types of static-analysis tool',
+        intro: 'They overlap, but each works at a different level and is best at a different class of problem.',
+        items: [
+          { name: 'Compiler lints (javac -Xlint)', summary: 'Built into the JDK. Conservative warnings: unchecked and raw types, deprecation and removal, fallthrough, divzero, this-escape (21+). Add -Werror so they cannot accumulate.', support: 'supported', code: 'javac -Xlint:all -Werror Main.java' },
+          { name: 'Compile-time bug checkers (Error Prone)', summary: 'javac plugin with the full type information of the compiler. Reports bug patterns as compile errors, often with suggested fixes; NullAway adds null checking on top.', support: 'partial', note: 'Third-party plugin, not part of the JDK.' },
+          { name: 'Bytecode analysers (SpotBugs)', summary: 'Inspect compiled .class files for bug patterns: null dereferences, ignored return values, unrelated equals, resource leaks, bad synchronisation. FindSecBugs adds security rules.', support: 'partial', note: 'Third-party.' },
+          { name: 'Source rule engines (PMD)', summary: 'Rules over the source AST: unused code, empty catch blocks, complexity limits, error-prone idioms. Its CPD module finds copy-pasted blocks.', support: 'partial', note: 'Third-party.' },
+          { name: 'Style checkers (Checkstyle)', summary: 'Naming, Javadoc, import order, line length, brace placement. Enforces conventions; finds few real bugs.', support: 'partial', note: 'Third-party; a formatter removes most layout rules.' },
+          { name: 'Quality platforms (SonarQube / SonarCloud)', summary: 'Run their own analysers, import coverage and other reports, track issues and duplication over time, and evaluate quality gates on new code.', support: 'partial', note: 'Third-party server or SaaS.' },
+          { name: 'Formatters (google-java-format, Spotless)', summary: 'Not analysers: they rewrite code into one canonical layout. Spotless runs a formatter in the build and fails CI on unformatted files.', support: 'partial', note: 'Third-party.' },
+        ],
+      },
+      {
+        title: 'Coverage and test-strength metrics',
+        items: [
+          { name: 'Line coverage', summary: 'Share of executable lines run by at least one test. Easy to read, but one line can hide several branches.', code: 'return a && b; // 1 line, 4 branch outcomes' },
+          { name: 'Branch coverage', summary: 'Share of decision outcomes (if/else, switch cases, &&, ||, ?:) taken. A stronger floor than lines; JaCoCo reports partly covered lines in yellow.' },
+          { name: 'Instruction coverage', summary: 'JaCoCo\'s finest counter: executed bytecode instructions. Independent of formatting and of how code is split across lines.' },
+          { name: 'Method and class coverage', summary: 'Coarse counters: was the method or class entered at all. Useful only to spot completely untested areas.' },
+          { name: 'Mutation score', summary: 'Killed mutants divided by all mutants (PIT). Measures whether tests detect small behaviour changes — test strength rather than execution.', note: 'Slower; run on changed code or important packages.' },
+        ],
+      },
+      {
+        title: 'Common code smells and their refactorings',
+        intro: 'Names from Martin Fowler\'s *Refactoring*. A smell is a hint to look closer, not proof of a bug.',
+        items: [
+          { name: 'Long Method', summary: 'Many responsibilities in one body, high complexity. Refactor with Extract Method until each part has a name.' },
+          { name: 'Large Class', summary: 'Too many fields and reasons to change. Refactor with Extract Class along responsibilities.' },
+          { name: 'Repeated Switches / type conditionals', summary: 'The same if/switch on a type code appears in several places. Refactor with Replace Conditional with Polymorphism (subclasses, enum constants with bodies, or sealed types).', code: 'enum Zone { HOME { double baseRate(double kg) { return kg < 1 ? 4 : 7; } }; abstract double baseRate(double kg); }' },
+          { name: 'Duplicated Code', summary: 'The same logic copied in several places, so fixes are missed. Extract Method or pull up to a shared type; PMD CPD and SonarQube detect it.' },
+          { name: 'Long Parameter List / Data Clumps', summary: 'The same group of values travels together. Introduce a Parameter Object, often a record.', code: 'record DateRange(LocalDate from, LocalDate to) {}' },
+          { name: 'Primitive Obsession', summary: 'Strings and ints stand in for domain concepts (email, money, IDs). Replace with small value types that validate themselves.' },
+          { name: 'Feature Envy', summary: 'A method uses another object\'s data more than its own. Move Method to where the data lives.' },
+          { name: 'Shotgun Surgery', summary: 'One change requires edits in many classes. Move related behaviour together.' },
+        ],
+      },
+    ],
+    deepDive: [
+      {
+        title: 'Why the compiler stays quiet: soundness versus usefulness',
+        body: 'javac must accept every program the JLS calls legal, so it can only warn — and warnings with false positives train people to ignore them. That is why `-Xlint` categories are narrow and why `sku.replace("-", "")` compiles silently: discarding a return value is legal Java. Bug-pattern tools trade completeness for precision: they encode specific mistakes (Error Prone\'s `ReturnValueIgnored`, SpotBugs\' `RV_RETURN_VALUE_IGNORED`) with low false-positive rates, and can go further because they are allowed to be opinionated. Static analysis can never be both complete and exact for all programs (Rice\'s theorem), so every tool chooses a point between noise and missed bugs.',
+        sources: [
+          { label: 'javac command reference: -Xlint keys', url: 'https://docs.oracle.com/en/java/javase/21/docs/specs/man/javac.html' },
+          { label: 'Error Prone bug patterns', url: 'https://errorprone.info/bugpatterns' },
+          { label: 'SpotBugs bug descriptions', url: 'https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html' },
+        ],
+      },
+      {
+        title: 'How JaCoCo counts, and why branch coverage beats line coverage',
+        body: 'JaCoCo instruments bytecode (normally on the fly via a Java agent) with probes, then maps executed instructions back to lines using debug information. A line is *fully* covered when all its instructions ran and *partly* covered when only some did. Branches are counted at bytecode conditional jumps and switches, so `a && b` contributes branches even on one line. JaCoCo filters compiler-generated code (for example synthetic methods, parts of try-with-resources and enum `values()`), so the numbers reflect code you wrote. It also reports a complexity counter per method, derived from branches, which makes "untested complex methods" easy to rank.',
+        sources: [{ label: 'JaCoCo documentation: Coverage Counters', url: 'https://www.jacoco.org/jacoco/trunk/doc/counters.html' }],
+      },
+      {
+        title: 'Mutation testing: the competent programmer and coupling effect',
+        body: 'Mutation testing rests on two hypotheses from the late 1970s: programmers write code that is *almost* right (so realistic bugs are small syntactic changes), and tests that catch simple mutants also catch most complex faults (the coupling effect). PIT makes this practical on the JVM by mutating bytecode in memory and only rerunning the tests that cover each mutated line. Its default mutators include conditionals boundary, negate conditionals, math, increments, void method calls and several return-value mutators. Watch for **equivalent mutants** — changes that do not alter behaviour, such as a boundary that can never be reached — which no test can kill; they cap the achievable score below 100%.',
+        sources: [
+          { label: 'PIT mutation testing: mutators', url: 'https://pitest.org/quickstart/mutators/' },
+          { label: 'Martin Fowler, *Refactoring* (2nd edition): code smells and refactorings catalogue' },
+        ],
+      },
+      {
+        title: 'Cyclomatic versus cognitive complexity',
+        body: 'McCabe defined cyclomatic complexity in 1976 from the control-flow graph as E − N + 2P (edges, nodes, connected components), which for a single method equals decision points + 1. It treats a flat `switch` with ten cases the same as ten nested `if`s, although the nested version is far harder to read. SonarSource\'s *cognitive complexity* (2017) adds increments for nesting and for breaks in linear flow, and ignores shorthand that does not hurt readability. Use cyclomatic complexity for "how many tests do I need?" and cognitive complexity for "how hard is this to understand?".',
+        sources: [
+          { label: 'T. J. McCabe, "A Complexity Measure", IEEE Transactions on Software Engineering, 1976' },
+          { label: 'Google engineering practices: code review guide', url: 'https://google.github.io/eng-practices/review/' },
+        ],
+      },
+    ],
+  },
+  'sp-testing': {
+    interviewDefinition:
+      'Testing a Spring Boot app means choosing the smallest scope that can catch the bug. Business rules get **plain unit tests**: constructor injection lets you `new` a service with fakes. **Test slices** (`@WebMvcTest`, `@DataJpaTest`, `@JsonTest`, `@RestClientTest`) start one layer; `@SpringBootTest` starts everything, ideally against real dependencies via **Testcontainers** and `@ServiceConnection`. `@MockitoBean` replaces beans with mocks, and the TestContext framework **caches** contexts by configuration, so consistent setups keep suites fast.',
+    interviewFollowUps: [
+      {
+        question: 'When would you use @WebMvcTest instead of @SpringBootTest?',
+        answer: 'When the thing under test is the web contract — mappings, validation, status codes, JSON, exception handlers, security rules. @WebMvcTest starts only the MVC layer, so it is fast and isolates the controller; services are supplied with @MockitoBean. @SpringBootTest is for checking that the layers work together.',
+      },
+      {
+        question: 'Why is my Spring test suite slow, and how do you fix it?',
+        answer: 'Usually too many application contexts. Each distinct configuration — profiles, properties, @MockitoBean sets, @DynamicPropertySource — is a separate cache entry, and @DirtiesContext forces rebuilds. Fix it by moving logic tests to plain unit tests, using slices, and putting integration tests behind one shared base configuration.',
+      },
+      {
+        question: 'What replaced @MockBean?',
+        answer: '@MockitoBean and @MockitoSpyBean in spring-test, added in Spring Framework 6.2 as part of a general bean-override mechanism. Spring Boot deprecated @MockBean and @SpyBean in 3.4 and removed them in Boot 4.',
+      },
+      {
+        question: 'Does @Transactional on a @SpringBootTest roll back data created through HTTP calls?',
+        answer: 'Only in the MOCK web environment, where MockMvc runs the request on the test thread. With RANDOM_PORT the request runs on a server thread in its own transaction, which commits, so the test must clean up explicitly.',
+      },
+    ],
+    mnemonic: {
+      device: '"Unit, Slice, Boot — then Cache the loot"',
+      expansion: [
+        { key: 'Unit', meaning: 'Plain Java: new the service with fakes through its constructor; most tests live here' },
+        { key: 'Slice', meaning: 'One layer: @WebMvcTest, @DataJpaTest, @JsonTest, @RestClientTest' },
+        { key: 'Boot', meaning: 'Whole app: @SpringBootTest, real dependencies via Testcontainers + @ServiceConnection' },
+        { key: 'Cache', meaning: 'Contexts are reused per configuration; keep setups identical and avoid @DirtiesContext' },
+      ],
+      visual: 'Picture a loaf of bread: you taste one crumb (unit), cut a single slice (slice test), or serve the whole loaf (Boot) — and you keep the loaf in the bread bin (context cache) instead of baking a new one for every guest.',
+    },
+    breakdown: [
+      {
+        kind: 'analogy',
+        title: 'Slices are a stage rehearsal with stand-ins',
+        body: 'To rehearse the lighting cues you do not need the whole cast: the lighting crew works the real rig while stand-ins take the actors\' marks. `@WebMvcTest` runs the real DispatcherServlet, converters and validation (the rig) while `@MockitoBean` services are the stand-ins. Opening night — `@SpringBootTest` — is when everyone is on stage.',
+      },
+      {
+        kind: 'insight',
+        title: 'Testability is a side effect of constructor injection',
+        body: 'Spring creates a bean by calling its constructor with other beans. A test can make exactly the same call with fakes, which is why constructor injection needs no framework in unit tests. Field injection hides the dependencies and pushes people towards starting Spring — or reflection — just to fill a field.',
+      },
+      {
+        kind: 'real-world',
+        title: 'Counting contexts is the first performance fix',
+        body: 'Spring logs each context start-up, and the TestContext framework can log cache statistics (enable DEBUG for `org.springframework.test.context.cache`). Teams that check this routinely find dozens of contexts caused by one-off properties and mock combinations. Collapsing them into a few shared base classes commonly cuts CI time by more than half without deleting a single test.',
+      },
+      {
+        kind: 'angle',
+        title: 'A slice test can fail for the right reason',
+        body: 'If `@WebMvcTest` fails with `NoSuchBeanDefinitionException`, the slice is telling you the controller depends on something outside the web layer. That is useful design feedback: a controller that needs ten collaborators probably holds business logic that belongs in a service.',
+      },
+      {
+        kind: 'insight',
+        title: 'Real databases find real bugs',
+        body: 'H2 in "PostgreSQL mode" still differs in types, functions, locking and constraint error codes. Testcontainers gives every developer and CI job the same database engine and version as production, and `@ServiceConnection` removes the property plumbing that used to make that painful.',
+      },
+    ],
+    diagrams: [
+      {
+        id: 'sp5-slices',
+        kind: 'concept',
+        title: 'What each test type starts',
+        caption: 'Each test starts only the boxes in its column. A unit test starts no Spring at all; slices start one layer plus its infrastructure; @SpringBootTest starts everything.',
+        cols: 4,
+        rows: 4,
+        nodes: [
+          { id: 'h-unit', label: 'Plain unit test', detail: 'new Service(fakes)', col: 0, row: 0, shape: 'pill', tone: 'success' },
+          { id: 'h-mvc', label: '@WebMvcTest', col: 1, row: 0, shape: 'pill', tone: 'primary' },
+          { id: 'h-jpa', label: '@DataJpaTest', col: 2, row: 0, shape: 'pill', tone: 'primary' },
+          { id: 'h-boot', label: '@SpringBootTest', col: 3, row: 0, shape: 'pill', tone: 'warning' },
+          { id: 'u-svc', label: 'Service class', detail: 'no Spring context', col: 0, row: 1, tone: 'success' },
+          { id: 'm-web', label: 'Controllers + MVC', detail: 'MockMvc, Jackson, advice', col: 1, row: 1, tone: 'primary' },
+          { id: 'm-mock', label: 'Services', detail: '@MockitoBean mocks', col: 1, row: 2, tone: 'neutral' },
+          { id: 'j-repo', label: 'Repositories + JPA', detail: 'rolled back per test', col: 2, row: 1, tone: 'primary' },
+          { id: 'j-db', label: 'Database', detail: 'embedded or container', col: 2, row: 2, shape: 'cylinder', tone: 'accent' },
+          { id: 'b-all', label: 'Every bean', detail: 'web, services, data', col: 3, row: 1, tone: 'warning' },
+          { id: 'b-db', label: 'Real database', detail: 'Testcontainers', col: 3, row: 2, shape: 'cylinder', tone: 'accent' },
+          { id: 'speed', label: 'Faster, narrower', detail: 'milliseconds', col: 0, row: 3, tone: 'success' },
+          { id: 'slow', label: 'Slower, broader', detail: 'seconds per new context', col: 3, row: 3, tone: 'danger' },
+        ],
+        edges: [
+          { from: 'h-unit', to: 'u-svc' },
+          { from: 'h-mvc', to: 'm-web' },
+          { from: 'm-web', to: 'm-mock', label: 'calls' },
+          { from: 'h-jpa', to: 'j-repo' },
+          { from: 'j-repo', to: 'j-db' },
+          { from: 'h-boot', to: 'b-all' },
+          { from: 'b-all', to: 'b-db' },
+          { from: 'speed', to: 'slow', both: true, label: 'trade-off' },
+        ],
+      },
+      {
+        id: 'sp5-levels',
+        kind: 'architecture',
+        title: 'Testing levels mapped onto a Spring app',
+        caption: 'Each layer of the application has a natural test tool. External systems you do not control are mocked; the database you own is real.',
+        cols: 3,
+        rows: 4,
+        nodes: [
+          { id: 'client', label: 'HTTP client', detail: 'MockMvc / RestTestClient', col: 0, row: 0, shape: 'pill', tone: 'neutral' },
+          { id: 'ctrl', label: 'Controller', detail: '@RestController', col: 1, row: 0, tone: 'primary' },
+          { id: 't-ctrl', label: '@WebMvcTest', detail: 'mapping, JSON, 400/404', col: 2, row: 0, shape: 'note', tone: 'accent' },
+          { id: 'svc', label: 'Service', detail: 'business rules', col: 1, row: 1, tone: 'primary' },
+          { id: 't-svc', label: 'Plain unit test', detail: 'fakes via constructor', col: 2, row: 1, shape: 'note', tone: 'success' },
+          { id: 'ext', label: 'Payment API', detail: 'external system', col: 0, row: 1, tone: 'neutral' },
+          { id: 'repo', label: 'Repository', detail: 'Spring Data JPA', col: 1, row: 2, tone: 'primary' },
+          { id: 't-repo', label: '@DataJpaTest', detail: 'queries, mappings', col: 2, row: 2, shape: 'note', tone: 'accent' },
+          { id: 'db', label: 'PostgreSQL', detail: 'Testcontainers', col: 1, row: 3, shape: 'cylinder', tone: 'accent' },
+          { id: 't-full', label: '@SpringBootTest', detail: 'a few end-to-end paths', col: 0, row: 3, shape: 'note', tone: 'warning' },
+        ],
+        edges: [
+          { from: 'client', to: 'ctrl', label: 'request' },
+          { from: 'ctrl', to: 'svc' },
+          { from: 'svc', to: 'ext', label: '@MockitoBean', dashed: true },
+          { from: 'svc', to: 'repo' },
+          { from: 'repo', to: 'db', label: '@ServiceConnection' },
+          { from: 't-ctrl', to: 'ctrl', dashed: true },
+          { from: 't-svc', to: 'svc', dashed: true },
+          { from: 't-repo', to: 'repo', dashed: true },
+          { from: 't-full', to: 'db', dashed: true, label: 'whole stack' },
+        ],
+        groups: [{ label: 'Application', fromCol: 1, toCol: 1, fromRow: 0, toRow: 3, tone: 'primary' }],
+      },
+      {
+        id: 'sp5-context-cache',
+        kind: 'flow',
+        title: 'How the TestContext cache serves a test class',
+        caption: 'The merged configuration is the cache key. A hit costs nothing; a miss costs a full start-up. @DirtiesContext removes the entry, so the next class with that key starts again.',
+        cols: 4,
+        rows: 3,
+        nodes: [
+          { id: 'cls', label: 'Test class', detail: 'annotations + base class', col: 0, row: 0, shape: 'note' },
+          { id: 'key', label: 'Build cache key', detail: 'config, profiles, props', col: 1, row: 0, tone: 'primary' },
+          { id: 'hit', label: 'In cache?', detail: 'default max 32 (LRU)', col: 2, row: 0, tone: 'warning' },
+          { id: 'reuse', label: 'Reuse context', detail: 'milliseconds', col: 3, row: 0, shape: 'pill', tone: 'success' },
+          { id: 'start', label: 'Start new context', detail: 'seconds, then cache it', col: 2, row: 1, tone: 'danger' },
+          { id: 'run', label: 'Run the tests', detail: 'mocks reset after each', col: 3, row: 1, tone: 'primary' },
+          { id: 'dirty', label: '@DirtiesContext?', detail: 'close and evict', col: 3, row: 2, tone: 'warning' },
+          { id: 'next', label: 'Next test class', col: 1, row: 2, shape: 'pill', tone: 'neutral' },
+        ],
+        edges: [
+          { from: 'cls', to: 'key' },
+          { from: 'key', to: 'hit' },
+          { from: 'hit', to: 'reuse', label: 'yes' },
+          { from: 'hit', to: 'start', label: 'no' },
+          { from: 'start', to: 'run' },
+          { from: 'reuse', to: 'run' },
+          { from: 'run', to: 'dirty' },
+          { from: 'dirty', to: 'next', label: 'evicted or kept' },
+        ],
+      },
+    ],
+    variants: [
+      {
+        title: 'Spring Boot test slice annotations',
+        intro: 'Each slice auto-configures one layer and restricts component scanning. Spring Boot 4 moved them into per-technology test modules (new packages); the behaviour is the same.',
+        items: [
+          { name: '@WebMvcTest', summary: 'Spring MVC controllers, @ControllerAdvice, Jackson, converters, filters, WebMvcConfigurer and a MockMvc bean. Services and repositories must be supplied with @MockitoBean.', support: 'supported', code: '@WebMvcTest(BookController.class)' },
+          { name: '@WebFluxTest', summary: 'The reactive equivalent: WebFlux controllers with a WebTestClient.', support: 'supported' },
+          { name: '@DataJpaTest', summary: 'JPA entities, Spring Data repositories, TestEntityManager, Flyway/Liquibase; transactional with rollback per test; embedded database unless told otherwise.', support: 'supported', code: '@DataJpaTest\n@AutoConfigureTestDatabase(replace = Replace.NONE)' },
+          { name: '@JdbcTest / @DataJdbcTest', summary: 'JdbcTemplate or Spring Data JDBC repositories without JPA; also transactional.', support: 'supported' },
+          { name: '@JsonTest', summary: 'Jackson (or Gson/JSON-B) configuration and JacksonTester for asserting exact JSON serialisation and deserialisation.', support: 'supported', code: '@Autowired JacksonTester<BookDto> json;' },
+          { name: '@RestClientTest', summary: 'RestClient.Builder / RestTemplateBuilder with MockRestServiceServer, for code that calls other HTTP services.', support: 'supported', code: 'server.expect(requestTo("/rates")).andRespond(withSuccess(body, APPLICATION_JSON));' },
+          { name: '@DataMongoTest, @DataRedisTest, …', summary: 'Store-specific slices for other Spring Data modules.', support: 'supported' },
+        ],
+      },
+      {
+        title: 'Testing levels in a Spring application',
+        items: [
+          { name: 'Plain unit test', summary: 'new the class with fakes or Mockito mocks; no Spring. Business rules, calculations, decisions. Milliseconds each; the bulk of the suite.', support: 'supported' },
+          { name: 'Slice test', summary: 'One layer of real Spring infrastructure: web contract, JSON shape, repository queries, outbound HTTP. Hundreds of milliseconds once the context is cached.', support: 'supported' },
+          { name: 'Integration test (@SpringBootTest)', summary: 'The full context, usually with real infrastructure through Testcontainers and only external third parties mocked. Proves wiring, configuration and transactions.', support: 'supported' },
+          { name: 'End-to-end / contract test', summary: 'The packaged application tested over the network, or consumer-driven contracts (for example Spring Cloud Contract or Pact) between services. Few and slow; run in a pipeline stage.', support: 'partial', note: 'Needs extra tooling beyond spring-boot-starter-test.' },
+        ],
+      },
+    ],
+    deepDive: [
+      {
+        title: 'What is in the context cache key',
+        body: 'The TestContext framework builds a `MergedContextConfiguration` for each test class: configuration locations and classes, context initializers, **context customizers** (Boot uses these for slice settings, `@MockitoBean` overrides, `@DynamicPropertySource` and `@ServiceConnection` details), active profiles, property sources, the parent configuration and the context loader. Its `equals`/`hashCode` is the cache key. The cache is static within one JVM, holds 32 contexts by default (`spring.test.context.cache.maxSize`) and evicts the least recently used. Because Gradle and Maven can fork several test JVMs, each fork has its own cache — another reason to keep the number of distinct configurations small.',
+        sources: [
+          { label: 'Spring Framework reference: Context Caching', url: 'https://docs.spring.io/spring-framework/reference/testing/testcontext-framework/ctx-management/caching.html' },
+        ],
+      },
+      {
+        title: 'From @MockBean to bean overriding in spring-test',
+        body: 'Boot\'s `@MockBean` was implemented as a Boot-specific context customizer. Spring Framework 6.2 introduced a general **bean override** mechanism in spring-test with `@MockitoBean`, `@MockitoSpyBean` and `@TestBean` (a static factory method supplies the replacement). Overrides are part of the cache key, and mocks are reset after each test method by default. A practical consequence: putting `@MockitoBean` fields in a shared base class keeps one cache entry, while declaring different ones per class multiplies contexts.',
+        sources: [
+          { label: 'Spring Framework reference: @MockitoBean and @MockitoSpyBean', url: 'https://docs.spring.io/spring-framework/reference/testing/annotations/integration-spring/annotation-mockitobean.html' },
+        ],
+      },
+      {
+        title: '@ServiceConnection and ConnectionDetails',
+        body: 'Spring Boot 3.1 introduced `ConnectionDetails` abstractions (for example `JdbcConnectionDetails`) that auto-configuration consults before `spring.datasource.*` properties. `@ServiceConnection` on a Testcontainers container — a static field or a `@Bean` method — registers such a bean from the running container. The same mechanism powers Docker Compose support and lets `main`-style test applications (`SpringApplication.from(App::main).with(TestcontainersConfig.class)`) run the app locally against containers. Declaring containers as `@Bean`s in a shared `@TestConfiguration` ties their lifecycle to the cached context, so one container serves every test class that shares it.',
+        sources: [
+          { label: 'Spring Boot reference: Testcontainers', url: 'https://docs.spring.io/spring-boot/reference/testing/testcontainers.html' },
+          { label: 'Testcontainers for Java documentation', url: 'https://java.testcontainers.org/' },
+        ],
+      },
+      {
+        title: 'Transactions in tests: rollback, flushing and threads',
+        body: 'Test-managed transactions (from `@Transactional` on the test, which `@DataJpaTest` includes) roll back by default. Two traps follow. First, JPA may never send SQL before the rollback: without `flush()` a constraint violation or a broken mapping can go unnoticed, so flush or query inside the test. Second, the transaction is bound to the test thread; code running on other threads — a RANDOM_PORT server, `@Async` methods, message listeners — uses its own transactions that commit. Those tests need explicit cleanup.',
+        sources: [
+          { label: 'Spring Framework reference: Transaction Management in tests', url: 'https://docs.spring.io/spring-framework/reference/testing/testcontext-framework/tx.html' },
+          { label: 'Spring Boot reference: Testing', url: 'https://docs.spring.io/spring-boot/reference/testing/index.html' },
+        ],
+      },
+    ],
+  },
+};

@@ -8,7 +8,6 @@ export const ioModule: CurriculumModule = {
   summary: 'Reading and writing files safely with java.nio.file, explicit character encodings, and calling HTTP services with java.net.http.HttpClient.',
   level: 'advanced',
   prerequisites: ['exceptions'],
-  plannedTopics: ['Raw sockets and ServerSocket', 'NIO channels, buffers and selectors'],
   lessons: [
     {
       id: 'io-files',

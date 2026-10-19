@@ -8,7 +8,6 @@ export const concurrencyModule: CurriculumModule = {
   summary: 'Threads, executors and futures, virtual threads, race conditions, locks, visibility, deadlocks and the concurrent toolkit.',
   level: 'advanced',
   prerequisites: ['jvm-runtime'],
-  plannedTopics: ['Fork/join and parallel streams'],
   bossChallengeId: 'boss-concurrent-ledger',
   lessons: [
     {

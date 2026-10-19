@@ -8,7 +8,6 @@ export const testingModule: CurriculumModule = {
   summary: 'JUnit 5, test design, test doubles and Mockito, designing code for testability, where integration tests fit, and systematic debugging.',
   level: 'advanced',
   prerequisites: ['oop'],
-  plannedTopics: ['Static analysis and code quality tools'],
   lessons: [
     {
       id: 'ts-junit',
