@@ -144,6 +144,8 @@ function Workspace({ challenge, initialStdin }: { challenge?: CodingChallenge; i
   };
 
   const reset = () => {
+    // A pending debounced save would otherwise restore the old code as the draft.
+    clearTimeout(saveTimer.current);
     setCode(starter);
     clearDraft(draftKey);
     setResponse(undefined);

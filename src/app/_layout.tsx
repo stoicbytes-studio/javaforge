@@ -9,7 +9,7 @@ import { useLearnerModel } from '@/features/progress/useLearnerModel';
 import { decideAccess } from '@/services/accessGuard';
 import { AuthProvider, useAuth } from '@/services/auth';
 import { useAutoSync } from '@/services/sync';
-import { useHasHydrated } from '@/store/learningStore';
+import { useHasHydrated, useLearningStore } from '@/store/learningStore';
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
 
 /** Mirrors local progress to Supabase while signed in (no-op in local-only mode). */
@@ -36,6 +36,25 @@ function AccessGate() {
   return null;
 }
 
+/**
+ * Keeps progress on this device tied to one account. Anonymous progress is
+ * claimed by the first account that signs in (and merged by sync); if another
+ * account signs in, or the owner signs out, local progress is cleared so it can
+ * never be shown to, or uploaded under, someone else.
+ */
+function AccountScope() {
+  const { configured, loading, session } = useAuth();
+  const userId = session?.user.id;
+  useEffect(() => {
+    if (!configured || loading) return;
+    const { ownerUserId, resetProgress, setOwner } = useLearningStore.getState();
+    if (userId && ownerUserId && ownerUserId !== userId) resetProgress();
+    if (!userId && ownerUserId) resetProgress();
+    if (userId) setOwner(userId);
+  }, [configured, loading, userId]);
+  return null;
+}
+
 function ThemedStack() {
   const { colors, scheme } = useTheme();
   const { configured, loading, session, recovering } = useAuth();
@@ -56,6 +75,7 @@ function ThemedStack() {
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
       {session ? <SyncManager /> : null}
       <AccessGate />
+      <AccountScope />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }} />
       {/* Covers the screens until the stored session is known and any redirect has happened,
           so a signed-out visitor never sees a flash of the learning portal. */}

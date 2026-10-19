@@ -8,7 +8,6 @@ export const jvmRuntimeModule: CurriculumModule = {
   summary: 'Runtime data areas, how the JIT optimises, how garbage collectors work, and how to recognise and fix memory leaks.',
   level: 'advanced',
   prerequisites: ['oop', 'collections'],
-  plannedTopics: ['JIT compiler internals'],
   lessons: [
     {
       id: 'r-memory-areas',

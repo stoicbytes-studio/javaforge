@@ -66,7 +66,7 @@ export function DashboardScreen() {
         <View style={{ gap: spacing.sm }}>
           {rest.length === 0 ? (
             <Text variant="small" color="textMuted">
-              Your recommended mission fills today's time budget.
+              Your recommended mission fills today’s time budget.
             </Text>
           ) : (
             rest.map((m) => <MissionRow key={m.id} mission={m} />)

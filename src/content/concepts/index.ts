@@ -20,6 +20,7 @@ import { performanceConcepts } from './16-performance';
 import { productionConcepts } from './17-production';
 import { asyncParallelConcepts } from './extra-async-parallel';
 import { immutabilityBuildConcepts } from './extra-immutability-build';
+import { jitConcepts } from './extra-jit';
 import { numbersTimeConcepts } from './extra-numbers-time';
 import { qualitySpringTestingConcepts } from './extra-quality-spring-testing';
 import { regexReflectionConcepts } from './extra-regex-reflection';
@@ -49,6 +50,7 @@ export const CONCEPTS: Record<string, LessonConcepts> = {
   ...regexReflectionConcepts,
   ...immutabilityBuildConcepts,
   ...serializationNioConcepts,
+  ...jitConcepts,
   ...asyncParallelConcepts,
   ...qualitySpringTestingConcepts,
 };

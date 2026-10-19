@@ -1,4 +1,4 @@
-import Editor, { loader } from '@monaco-editor/react';
+import { Editor, loader } from '@monaco-editor/react';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 

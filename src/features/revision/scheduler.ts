@@ -12,6 +12,8 @@ import type { RevisionCard, RevisionGrade, RevisionSource } from '@/types/progre
 
 export const INITIAL_EASE = 2.5;
 export const MIN_EASE = 1.3;
+/** Upper bound, matching the revision_cards check constraint in the database. */
+export const MAX_EASE = 5;
 export const MAX_INTERVAL_DAYS = 180;
 export const RELEARN_DELAY_MS = 10 * MINUTE;
 
@@ -56,7 +58,7 @@ export function reviewCard(card: RevisionCard, grade: RevisionGrade, now: number
   } else if (grade === 'good') {
     interval = card.repetitions === 0 ? 1 : card.repetitions === 1 ? 3 : Math.round(card.intervalDays * ease);
   } else {
-    ease = ease + 0.15;
+    ease = Math.min(MAX_EASE, ease + 0.15);
     interval =
       card.repetitions === 0 ? 3 : card.repetitions === 1 ? 6 : Math.round(card.intervalDays * ease * 1.3);
   }

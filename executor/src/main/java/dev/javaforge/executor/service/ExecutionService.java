@@ -118,11 +118,17 @@ public class ExecutionService {
 
     private static Path writeSources(List<SourceFile> files) throws IOException {
         Path dir = Files.createTempDirectory("jf-exec-");
-        for (SourceFile f : files) {
-            Path target = dir.resolve(f.name()).normalize();
-            if (!target.getParent().equals(dir)) throw new InvalidRequestException("Invalid file name: " + f.name());
-            Files.writeString(target, f.content(), StandardCharsets.UTF_8);
-            makeWorldReadable(target, "rw-r--r--");
+        try {
+            for (SourceFile f : files) {
+                Path target = dir.resolve(f.name()).normalize();
+                if (!target.getParent().equals(dir)) throw new InvalidRequestException("Invalid file name: " + f.name());
+                Files.writeString(target, f.content(), StandardCharsets.UTF_8);
+                makeWorldReadable(target, "rw-r--r--");
+            }
+        } catch (IOException | RuntimeException e) {
+            // The caller only cleans up directories it received, so remove this one here.
+            deleteQuietly(dir);
+            throw e;
         }
         // The sandbox user ("nobody") must be able to read the mounted sources.
         makeWorldReadable(dir, "rwxr-xr-x");

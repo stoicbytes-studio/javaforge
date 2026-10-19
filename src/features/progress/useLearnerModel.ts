@@ -6,6 +6,7 @@ import { evaluateAchievements, type AchievementStatus } from '@/features/gamific
 import { computeStreak, weeklyGoals, type StreakInfo, type WeeklyGoal } from '@/features/gamification/streaks';
 import { computeTier, type TierProgress } from '@/features/gamification/tiers';
 import { computeXp, type XpBreakdown } from '@/features/gamification/xp';
+import { useNow } from '@/lib/useNow';
 import { useLearningStore } from '@/store/learningStore';
 import { computeMastery, type MasterySnapshot } from './mastery';
 import { buildDailyPlan, completedLessonIds, recommendMissions, weakConcepts, type Mission, type WeakConcept } from './recommendations';
@@ -42,8 +43,8 @@ export function useLearnerModel(): LearnerModel {
     })),
   );
 
+  const now = useNow();
   return useMemo(() => {
-    const now = Date.now();
     const cards = Object.values(cardsMap);
     const mastery = computeMastery(MODULES, CATALOG, attempts, cards);
     const xp = computeXp(attempts, xpBaseFor);
@@ -72,5 +73,5 @@ export function useLearnerModel(): LearnerModel {
       dueCount: cards.filter((c) => c.dueAt <= now).length,
       now,
     };
-  }, [attempts, cardsMap, incidentRuns, interviewSessions, dailyMinutes, lastLessonId]);
+  }, [attempts, cardsMap, incidentRuns, interviewSessions, dailyMinutes, lastLessonId, now]);
 }

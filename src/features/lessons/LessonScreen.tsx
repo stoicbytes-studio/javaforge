@@ -56,10 +56,13 @@ export function LessonScreen() {
     if (lesson && complete) scheduleLessonRevision(lesson);
   }, [lesson, complete, scheduleLessonRevision]);
 
-  useEffect(() => {
+  // Opening another lesson starts on its concept page again.
+  const [shownLessonId, setShownLessonId] = useState(lessonId);
+  if (shownLessonId !== lessonId) {
+    setShownLessonId(lessonId);
     setPane('concept');
     setMainPane('concept');
-  }, [lessonId]);
+  }
 
   if (!mod || !lesson) {
     return (
@@ -161,7 +164,7 @@ export function LessonScreen() {
               />
             </View>
             <ScrollView contentContainerStyle={styles.paneContent}>
-              {sidePane === 'practice' ? <PracticePanel lesson={lesson} /> : <NotesPanel lesson={lesson} />}
+              {sidePane === 'practice' ? <PracticePanel lesson={lesson} /> : <NotesPanel key={lesson.id} lesson={lesson} />}
             </ScrollView>
           </View>
         )}
@@ -205,7 +208,7 @@ function PaneBody({ pane, lesson }: { pane: Pane; lesson: Lesson }) {
     case 'practice':
       return <PracticePanel lesson={lesson} />;
     case 'notes':
-      return <NotesPanel lesson={lesson} />;
+      return <NotesPanel key={lesson.id} lesson={lesson} />;
   }
 }
 

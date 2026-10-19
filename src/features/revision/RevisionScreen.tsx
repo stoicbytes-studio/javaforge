@@ -10,7 +10,6 @@ import { findCheck, getLesson } from '@/content';
 import { CheckRunner } from '@/features/lessons/CheckRunner';
 import { addDays, DAY, formatRelativeDays, startOfDay } from '@/lib/time';
 import { useLearningStore } from '@/store/learningStore';
-import { useTheme } from '@/theme/ThemeProvider';
 import { spacing } from '@/theme/tokens';
 import type { RevisionCard, RevisionGrade } from '@/types/progress';
 import { dueCards, reviewCard } from './scheduler';
@@ -98,7 +97,7 @@ export function RevisionScreen() {
                 {GRADES.map((g) => (
                   <Button
                     key={g.grade}
-                    label={`${g.label} · ${intervalLabel(card, g.grade, Date.now())}`}
+                    label={`${g.label} · ${intervalLabel(card, g.grade, now)}`}
                     variant={g.variant}
                     size="sm"
                     onPress={() => grade(g.grade)}

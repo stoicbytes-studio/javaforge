@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
@@ -39,7 +39,22 @@ export interface LearningState {
   settings: Settings;
   /** Timestamp of the last successful cloud sync. */
   lastSyncedAt?: number;
+  /** The account this device's progress belongs to (undefined = not yet linked to an account). */
+  ownerUserId?: string;
+  /**
+   * Deletions not yet pushed to the cloud (id -> time deleted). Without them a
+   * removed bookmark, note or milestone would come back on the next merge.
+   */
+  tombstones: Tombstones;
 }
+
+export interface Tombstones {
+  bookmarks: Record<string, number>;
+  notes: Record<string, number>;
+  milestones: Record<string, number>;
+}
+
+const NO_TOMBSTONES: Tombstones = { bookmarks: {}, notes: {}, milestones: {} };
 
 export interface LearningActions {
   recordAttempt: (attempt: NewAttempt) => Attempt;
@@ -58,6 +73,10 @@ export interface LearningActions {
   updateSettings: (patch: Partial<Settings>) => void;
   mergeRemote: (remote: Partial<Pick<LearningState, 'attempts' | 'cards' | 'bookmarks' | 'notes' | 'milestones'>>) => void;
   markSynced: (at: number) => void;
+  /** Forgets deletions that have now been applied in the cloud. */
+  clearTombstones: (pushed: Tombstones) => void;
+  /** Links local progress to an account (see useAccountScope). */
+  setOwner: (userId: string | undefined) => void;
   resetProgress: () => void;
 }
 
@@ -80,6 +99,13 @@ const initialState: LearningState = {
   incidentRuns: [],
   milestones: {},
   settings: DEFAULT_SETTINGS,
+  tombstones: NO_TOMBSTONES,
+};
+
+const without = (record: Record<string, number>, key: string) => {
+  const next = { ...record };
+  delete next[key];
+  return next;
 };
 
 export const milestoneKey = (projectId: string, milestoneId: string) => `${projectId}/${milestoneId}`;
@@ -142,18 +168,31 @@ export const useLearningStore = create<LearningState & LearningActions>()(
         set((state) => ({ lastLessonId: lessonId, lessonVisits: { ...state.lessonVisits, [lessonId]: now } })),
 
       toggleBookmark: (lessonId) =>
-        set((state) => ({
-          bookmarks: state.bookmarks.includes(lessonId)
-            ? state.bookmarks.filter((id) => id !== lessonId)
-            : [...state.bookmarks, lessonId],
-        })),
+        set((state) => {
+          const removing = state.bookmarks.includes(lessonId);
+          return {
+            bookmarks: removing ? state.bookmarks.filter((id) => id !== lessonId) : [...state.bookmarks, lessonId],
+            tombstones: {
+              ...state.tombstones,
+              bookmarks: removing ? { ...state.tombstones.bookmarks, [lessonId]: Date.now() } : without(state.tombstones.bookmarks, lessonId),
+            },
+          };
+        }),
 
       saveNote: (lessonId, text) =>
         set((state) => {
           const notes = { ...state.notes };
-          if (text.trim().length === 0) delete notes[lessonId];
-          else notes[lessonId] = { text, updatedAt: Date.now() };
-          return { notes };
+          const now = Date.now();
+          const deleting = text.trim().length === 0;
+          if (deleting) delete notes[lessonId];
+          else notes[lessonId] = { text, updatedAt: now };
+          return {
+            notes,
+            tombstones: {
+              ...state.tombstones,
+              notes: deleting ? { ...state.tombstones.notes, [lessonId]: now } : without(state.tombstones.notes, lessonId),
+            },
+          };
         }),
 
       saveDraft: (challengeId, code) => set((state) => ({ drafts: { ...state.drafts, [challengeId]: code } })),
@@ -193,9 +232,16 @@ export const useLearningStore = create<LearningState & LearningActions>()(
         set((state) => {
           const key = milestoneKey(projectId, milestoneId);
           const milestones = { ...state.milestones };
-          if (milestones[key]) delete milestones[key];
+          const removing = !!milestones[key];
+          if (removing) delete milestones[key];
           else milestones[key] = Date.now();
-          return { milestones };
+          return {
+            milestones,
+            tombstones: {
+              ...state.tombstones,
+              milestones: removing ? { ...state.tombstones.milestones, [key]: Date.now() } : without(state.tombstones.milestones, key),
+            },
+          };
         }),
 
       updateSettings: (patch) => set((state) => ({ settings: { ...state.settings, ...patch } })),
@@ -214,23 +260,46 @@ export const useLearningStore = create<LearningState & LearningActions>()(
               cards[card.id] = card;
             }
           }
+          const { tombstones } = state;
           const notes = { ...state.notes };
           for (const [lessonId, note] of Object.entries(remote.notes ?? {})) {
             const local = notes[lessonId];
+            const deletedAt = tombstones.notes[lessonId];
+            // A note deleted here stays deleted unless it was edited elsewhere afterwards.
+            if (deletedAt !== undefined && note.updatedAt <= deletedAt) continue;
             if (!local || note.updatedAt > local.updatedAt) notes[lessonId] = note;
           }
+          const remoteMilestones = Object.fromEntries(Object.entries(remote.milestones ?? {}).filter(([key]) => tombstones.milestones[key] === undefined));
           return {
             attempts,
             cards,
             notes,
-            bookmarks: [...new Set([...state.bookmarks, ...(remote.bookmarks ?? [])])],
-            milestones: { ...remote.milestones, ...state.milestones },
+            bookmarks: [...new Set([...state.bookmarks, ...(remote.bookmarks ?? []).filter((id) => tombstones.bookmarks[id] === undefined)])],
+            milestones: { ...remoteMilestones, ...state.milestones },
           };
         }),
 
       markSynced: (at) => set({ lastSyncedAt: at }),
 
-      resetProgress: () => set({ ...initialState, settings: get().settings }),
+      clearTombstones: (pushed) =>
+        set((state) => {
+          // Keep any deletion made after the push started (its timestamp changed).
+          const prune = (current: Record<string, number>, done: Record<string, number>) =>
+            Object.fromEntries(Object.entries(current).filter(([key, at]) => done[key] !== at));
+          return {
+            tombstones: {
+              bookmarks: prune(state.tombstones.bookmarks, pushed.bookmarks),
+              notes: prune(state.tombstones.notes, pushed.notes),
+              milestones: prune(state.tombstones.milestones, pushed.milestones),
+            },
+          };
+        }),
+
+      setOwner: (userId) => set({ ownerUserId: userId }),
+
+      // Optional fields are cleared explicitly: spreading initialState would leave them as they were.
+      resetProgress: () =>
+        set({ ...initialState, settings: get().settings, lastSyncedAt: undefined, lastLessonId: undefined, ownerUserId: undefined }),
     }),
     {
       name: 'javaforge-learning-v1',
@@ -254,11 +323,9 @@ export const isInterviewPass = (score: number) => score >= INTERVIEW_PASS_SCORE;
 
 /** True once persisted state has been loaded from storage. */
 export function useHasHydrated(): boolean {
-  const [hydrated, setHydrated] = useState(() => useLearningStore.persist.hasHydrated());
-  useEffect(() => {
-    const unsubscribe = useLearningStore.persist.onFinishHydration(() => setHydrated(true));
-    setHydrated(useLearningStore.persist.hasHydrated());
-    return unsubscribe;
-  }, []);
-  return hydrated;
+  return useSyncExternalStore(
+    (onChange) => useLearningStore.persist.onFinishHydration(onChange),
+    () => useLearningStore.persist.hasHydrated(),
+    () => false,
+  );
 }

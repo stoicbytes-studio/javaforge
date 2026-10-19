@@ -2,6 +2,7 @@ import type { Lesson } from '@/types/curriculum';
 
 import { asyncParallelLessons } from './async-parallel';
 import { immutabilityBuildLessons } from './immutability-build';
+import { jitLessons } from './jit';
 import { numbersTimeLessons } from './numbers-time';
 import { qualitySpringTestingLessons } from './quality-spring-testing';
 import { regexReflectionLessons } from './regex-reflection';
@@ -13,6 +14,7 @@ export const EXTRA_LESSONS: Lesson[] = [
   ...regexReflectionLessons,
   ...immutabilityBuildLessons,
   ...serializationNioLessons,
+  ...jitLessons,
   ...asyncParallelLessons,
   ...qualitySpringTestingLessons,
 ];

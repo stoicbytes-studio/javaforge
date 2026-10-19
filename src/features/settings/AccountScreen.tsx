@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { BackLink } from '@/components/BackLink';
@@ -17,6 +18,38 @@ export function AccountScreen() {
   const model = useLearnerModel();
   const sync = useSync({ mastery: model.mastery, streak: model.streak, achievements: model.achievements });
   const lastSyncedAt = useLearningStore((s) => s.lastSyncedAt);
+  const [busy, setBusy] = useState<'reset' | 'signout'>();
+  const [notice, setNotice] = useState<{ tone: 'success' | 'danger'; text: string }>();
+
+  const changePassword = async () => {
+    const email = auth.session?.user.email;
+    if (!email) return;
+    setBusy('reset');
+    setNotice(undefined);
+    try {
+      await auth.requestPasswordReset(email);
+      setNotice({ tone: 'success', text: `We sent a link to ${email}. Open it to choose a new password.` });
+    } catch (e) {
+      setNotice({ tone: 'danger', text: (e as Error).message });
+    } finally {
+      setBusy(undefined);
+    }
+  };
+
+  // Upload unsynced progress before signing out: signing out clears this device's copy.
+  const signOut = async () => {
+    setBusy('signout');
+    try {
+      await sync.mutateAsync();
+    } catch {
+      // Best effort: signing out must still work offline.
+    }
+    try {
+      await auth.signOut();
+    } finally {
+      setBusy(undefined);
+    }
+  };
 
   return (
     <Screen maxWidth={640}>
@@ -44,9 +77,14 @@ export function AccountScreen() {
           ) : null}
           <View style={styles.row}>
             <Button label="Sync now" icon="refresh" loading={sync.isPending} onPress={() => sync.mutate()} />
-            <Button label="Change password" variant="secondary" onPress={() => router.push('/forgot-password')} />
-            <Button label="Sign out" variant="ghost" icon="logOut" onPress={() => auth.signOut()} />
+            <Button label="Change password" variant="secondary" loading={busy === 'reset'} onPress={changePassword} />
+            <Button label="Sign out" variant="ghost" icon="logOut" loading={busy === 'signout'} onPress={signOut} />
           </View>
+          {notice ? (
+            <Text variant="small" color={notice.tone}>
+              {notice.text}
+            </Text>
+          ) : null}
         </Card>
       ) : (
         <Card style={{ gap: spacing.md }}>

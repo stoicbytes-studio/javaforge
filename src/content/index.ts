@@ -3,6 +3,7 @@ import type { CodingChallenge, CurriculumModule, KnowledgeCheck, Lesson } from '
 import type { BugHunt, Incident, InterviewQuestion, JvmScenario, Project } from '@/types/practice';
 
 import { collectionsChallenges } from './challenges/collections';
+import { coreExtraChallenges } from './challenges/core-extra';
 import { concurrencyChallenges } from './challenges/concurrency';
 import { designChallenges } from './challenges/design';
 import { dsaChallenges } from './challenges/dsa';
@@ -12,6 +13,7 @@ import { functionalChallenges } from './challenges/functional';
 import { fundamentalsChallenges } from './challenges/fundamentals';
 import { oopChallenges } from './challenges/oop';
 import { platformChallenges } from './challenges/platform';
+import { runtimeIoJdbcChallenges } from './challenges/runtime-io-jdbc';
 import { productionChallenges } from './challenges/production';
 import { testingChallenges } from './challenges/testing';
 import { typesChallenges } from './challenges/types';
@@ -35,9 +37,12 @@ import { springModule } from './modules/15-spring';
 import { performanceModule } from './modules/16-performance';
 import { productionModule } from './modules/17-production';
 import { INTERVIEW_QUESTION_LIST } from './interview/questions';
+import { ADVANCED_QUESTIONS_A } from './interview/questions-advanced-a';
+import { ADVANCED_QUESTIONS_B } from './interview/questions-advanced-b';
 import { JVM_SCENARIO_LIST } from './jvm/scenarios';
 import { PLANNED_MODULES } from './modules/planned';
 import { BUG_HUNT_LIST } from './practice/bugHunts';
+import { BUG_HUNT_EXTRA_LIST } from './practice/bugHuntsExtra';
 import { INCIDENT_LIST } from './practice/incidents';
 import { PROJECT_LIST } from './practice/projects';
 import { CONCEPTS } from './concepts';
@@ -53,12 +58,21 @@ const oopModule: CurriculumModule = { ...oopCore, lessons: [...oopCore.lessons, 
 
 const WRITTEN_MODULES: CurriculumModule[] = [fundamentalsModule, platformModule, oopModule, typesModule, exceptionsModule, collectionsModule, functionalModule, jvmRuntimeModule, concurrencyModule, ioModule, jdbcModule, testingModule, designModule, dsaModule, springModule, performanceModule, productionModule];
 
-/** Attaches each lesson's concept page (interview definition, mnemonic, diagrams...). */
+export const CHALLENGES: CodingChallenge[] = [...fundamentalsChallenges, ...platformChallenges, ...oopChallenges, ...typesChallenges, ...exceptionsChallenges, ...collectionsChallenges, ...functionalChallenges, ...concurrencyChallenges, ...ioChallenges, ...testingChallenges, ...designChallenges, ...dsaChallenges, ...productionChallenges, ...coreExtraChallenges, ...runtimeIoJdbcChallenges];
+
+/**
+ * Completes each written module: appends lessons kept in modules/extra, attaches
+ * concept pages, links every challenge that names a lesson to that lesson, and
+ * uses the module's boss challenge when the module file does not name one.
+ */
 const withConcepts = (m: CurriculumModule): CurriculumModule => ({
   ...m,
-  lessons: [...m.lessons, ...EXTRA_LESSONS.filter((l) => l.moduleId === m.id)].map((l) =>
-    CONCEPTS[l.id] ? { ...l, concepts: CONCEPTS[l.id] } : l,
-  ),
+  bossChallengeId: m.bossChallengeId ?? CHALLENGES.find((c) => c.moduleId === m.id && c.kind === 'boss')?.id,
+  lessons: [...m.lessons, ...EXTRA_LESSONS.filter((l) => l.moduleId === m.id)].map((l) => ({
+    ...l,
+    challengeIds: [...new Set([...l.challengeIds, ...CHALLENGES.filter((c) => c.lessonId === l.id).map((c) => c.id)])],
+    ...(CONCEPTS[l.id] ? { concepts: CONCEPTS[l.id] } : {}),
+  })),
 });
 
 const writtenIds = new Set(WRITTEN_MODULES.map((m) => m.id));
@@ -67,9 +81,8 @@ export const MODULES: CurriculumModule[] = [
   ...PLANNED_MODULES.filter((m) => !writtenIds.has(m.id)),
 ].sort((a, b) => a.order - b.order);
 
-export const CHALLENGES: CodingChallenge[] = [...fundamentalsChallenges, ...platformChallenges, ...oopChallenges, ...typesChallenges, ...exceptionsChallenges, ...collectionsChallenges, ...functionalChallenges, ...concurrencyChallenges, ...ioChallenges, ...testingChallenges, ...designChallenges, ...dsaChallenges, ...productionChallenges];
-export const INTERVIEW_QUESTIONS: InterviewQuestion[] = INTERVIEW_QUESTION_LIST;
-export const BUG_HUNTS: BugHunt[] = BUG_HUNT_LIST;
+export const INTERVIEW_QUESTIONS: InterviewQuestion[] = [...INTERVIEW_QUESTION_LIST, ...ADVANCED_QUESTIONS_A, ...ADVANCED_QUESTIONS_B];
+export const BUG_HUNTS: BugHunt[] = [...BUG_HUNT_LIST, ...BUG_HUNT_EXTRA_LIST];
 export const INCIDENTS: Incident[] = INCIDENT_LIST;
 export const PROJECTS: Project[] = PROJECT_LIST;
 export const JVM_SCENARIOS: JvmScenario[] = JVM_SCENARIO_LIST;

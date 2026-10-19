@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Badge } from '@/components/Card';
@@ -30,13 +30,16 @@ export function OutputPanel({
   const { colors } = useTheme();
   const diagnostics = response?.compile.diagnostics ?? [];
   const [tab, setTab] = useState<Tab>('output');
-
-  useEffect(() => {
-    if (!response) return;
-    if (!response.compile.success || (response.mode === 'simulation' && diagnostics.length > 0)) setTab('problems');
-    else if (response.tests) setTab('tests');
-    else setTab('output');
-  }, [response, diagnostics.length]);
+  // Each new run opens the most relevant tab: problems, then tests, then output.
+  const [shownResponse, setShownResponse] = useState(response);
+  if (response !== shownResponse) {
+    setShownResponse(response);
+    if (response) {
+      if (!response.compile.success || (response.mode === 'simulation' && diagnostics.length > 0)) setTab('problems');
+      else if (response.tests) setTab('tests');
+      else setTab('output');
+    }
+  }
 
   if (error) {
     return (
@@ -52,7 +55,7 @@ export function OutputPanel({
     return (
       <View style={[styles.box, { borderColor: colors.border }]}>
         <Text variant="small" color="textMuted">
-          Run your code to see output here. "Run tests" checks every test case, including hidden ones.
+          Run your code to see output here. “Run tests” checks every test case, including hidden ones.
         </Text>
       </View>
     );

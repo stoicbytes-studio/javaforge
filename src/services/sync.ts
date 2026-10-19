@@ -103,9 +103,24 @@ export async function pushProgress(userId: string, state: LearningState, derived
   const cards = Object.values(state.cards);
   if (cards.length) await check(db.from('revision_cards').upsert(cards.map((c) => toCardRow(userId, c)), { onConflict: 'user_id,card_id' }));
 
-  await check(db.from('bookmarks').delete().eq('user_id', userId));
+  // Deletions first, so a removed bookmark/note/milestone does not come back.
+  const { tombstones } = state;
+  const removedBookmarks = Object.keys(tombstones.bookmarks);
+  if (removedBookmarks.length) await check(db.from('bookmarks').delete().eq('user_id', userId).in('lesson_id', removedBookmarks));
+  const removedNotes = Object.keys(tombstones.notes);
+  if (removedNotes.length) await check(db.from('notes').delete().eq('user_id', userId).in('lesson_id', removedNotes));
+  for (const key of Object.keys(tombstones.milestones)) {
+    const [projectId, milestoneId] = key.split('/');
+    await check(db.from('user_project_milestones').delete().eq('user_id', userId).eq('project_id', projectId).eq('milestone_id', milestoneId));
+  }
   if (state.bookmarks.length) {
-    await check(db.from('bookmarks').insert(state.bookmarks.map((lessonId) => ({ user_id: userId, lesson_id: lessonId }))));
+    // Upsert, not insert: two overlapping syncs must not collide on the primary key.
+    await check(
+      db.from('bookmarks').upsert(
+        state.bookmarks.map((lessonId) => ({ user_id: userId, lesson_id: lessonId })),
+        { onConflict: 'user_id,lesson_id', ignoreDuplicates: true },
+      ),
+    );
   }
   const notes = Object.entries(state.notes);
   if (notes.length) {
@@ -182,16 +197,29 @@ export async function pullProgress(userId: string): Promise<RemoteProgress> {
   };
 }
 
+let inFlight: Promise<void> | undefined;
+
 export function useSync(derived?: DerivedSnapshot) {
   const { session } = useAuth();
   const userId = session?.user.id;
   return useMutation({
-    mutationFn: async () => {
-      if (!userId) throw new Error('Sign in to sync your progress.');
-      const remote = await pullProgress(userId);
-      useLearningStore.getState().mergeRemote(remote);
-      await pushProgress(userId, useLearningStore.getState(), derived);
-      useLearningStore.getState().markSynced(Date.now());
+    mutationFn: () => {
+      if (!userId) return Promise.reject(new Error('Sign in to sync your progress.'));
+      // One sync at a time: a manual "Sync now" during an automatic sync joins it.
+      inFlight ??= (async () => {
+        // Anything recorded after this moment is pushed by the next sync.
+        const startedAt = Date.now();
+        const remote = await pullProgress(userId);
+        useLearningStore.getState().mergeRemote(remote);
+        const state = useLearningStore.getState();
+        const pushedTombstones = state.tombstones;
+        await pushProgress(userId, state, derived);
+        useLearningStore.getState().clearTombstones(pushedTombstones);
+        useLearningStore.getState().markSynced(startedAt);
+      })().finally(() => {
+        inFlight = undefined;
+      });
+      return inFlight;
     },
   });
 }

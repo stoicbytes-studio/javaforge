@@ -1,5 +1,4 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { StyleSheet, TextInput, View } from 'react-native';
 import { z } from 'zod';
@@ -22,20 +21,15 @@ export function NotesPanel({ lesson }: { lesson: Lesson }) {
   const { colors } = useTheme();
   const note = useLearningStore((s) => s.notes[lesson.id]);
   const saveNote = useLearningStore((s) => s.saveNote);
-  const [savedAt, setSavedAt] = useState<number | undefined>(note?.updatedAt);
   const { control, handleSubmit, formState, reset } = useForm<NoteForm>({
     resolver: zodResolver(noteSchema),
     defaultValues: { text: note?.text ?? '' },
   });
 
-  useEffect(() => {
-    reset({ text: note?.text ?? '' });
-    // Only when switching lessons; typing must not be overwritten.
-  }, [lesson.id]);
-
+  // The parent renders this panel with key={lesson.id}, so switching lessons
+  // remounts it with that lesson's note; typing is never overwritten.
   const onSave = handleSubmit(({ text }) => {
     saveNote(lesson.id, text);
-    setSavedAt(Date.now());
     reset({ text });
   });
 
@@ -67,7 +61,7 @@ export function NotesPanel({ lesson }: { lesson: Lesson }) {
         ) : null}
         <View style={styles.rowBetween}>
           <Text variant="small" color="textSubtle">
-            {formState.isDirty ? 'Unsaved changes' : savedAt ? `Saved ${new Date(savedAt).toLocaleString()}` : 'Stored on this device'}
+            {formState.isDirty ? 'Unsaved changes' : note?.updatedAt ? `Saved ${new Date(note.updatedAt).toLocaleString()}` : 'Stored on this device'}
           </Text>
           <Button label="Save notes" size="sm" icon="check" onPress={() => onSave()} disabled={!formState.isDirty} />
         </View>

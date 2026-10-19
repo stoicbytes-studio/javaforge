@@ -42,10 +42,10 @@ export const ACHIEVEMENTS: Achievement[] = [
   {
     id: 'unaided-five',
     title: 'No Hints Needed',
-    requirement: 'Solve 5 different coding challenges without using a hint.',
+    requirement: 'Solve 5 different coding challenges on a real Java runtime without using a hint.',
     category: 'coding',
     progress: (ctx) => ({
-      current: distinctCorrect(ctx, (a) => a.itemType === 'challenge' && a.hintsUsed === 0),
+      current: distinctCorrect(ctx, (a) => a.itemType === 'challenge' && a.hintsUsed === 0 && a.verified),
       target: 5,
     }),
   },

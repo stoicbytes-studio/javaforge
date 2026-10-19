@@ -99,15 +99,13 @@ function Player({ scenario }: { scenario: JvmScenario }) {
   const step = scenario.steps[index]!;
   const last = scenario.steps.length - 1;
 
+  // Playback stops by itself at the last step.
+  const isPlaying = playing && index < last;
   useEffect(() => {
-    if (!playing) return;
-    if (index >= last) {
-      setPlaying(false);
-      return;
-    }
+    if (!isPlaying) return;
     const t = setTimeout(() => setIndex((i) => Math.min(last, i + 1)), SPEEDS[speed]);
     return () => clearTimeout(t);
-  }, [playing, index, last, speed]);
+  }, [isPlaying, index, last, speed]);
 
   const ref = { highlight, onHighlight: setHighlight };
   const phaseIndex = PHASES.findIndex((p) => p.id === step.phase);
@@ -116,7 +114,7 @@ function Player({ scenario }: { scenario: JvmScenario }) {
     <View style={[styles.controls, { borderColor: colors.border, backgroundColor: colors.surface }]}>
       <IconButton icon="rotate" label="Reset to first step" onPress={() => { setPlaying(false); setIndex(0); }} disabled={index === 0} />
       <IconButton icon="stepBack" label="Step backward" onPress={() => { setPlaying(false); setIndex((i) => Math.max(0, i - 1)); }} disabled={index === 0} />
-      <IconButton icon={playing ? 'pause' : 'play'} label={playing ? 'Pause' : 'Play'} active={playing} onPress={() => setPlaying((p) => !p)} disabled={index >= last && !playing} />
+      <IconButton icon={isPlaying ? 'pause' : 'play'} label={isPlaying ? 'Pause' : 'Play'} active={isPlaying} onPress={() => setPlaying(!isPlaying)} disabled={index >= last} />
       <IconButton icon="stepForward" label="Step forward" onPress={() => { setPlaying(false); setIndex((i) => Math.min(last, i + 1)); }} disabled={index >= last} />
       <Text variant="small" color="textMuted" style={{ marginHorizontal: spacing.sm }} accessibilityLiveRegion="polite">
         Step {index + 1}/{scenario.steps.length}
