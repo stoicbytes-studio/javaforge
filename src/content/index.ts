@@ -47,6 +47,7 @@ import { BUG_HUNT_EXTRA_LIST } from './practice/bugHuntsExtra';
 import { INCIDENT_LIST } from './practice/incidents';
 import { PROJECT_LIST } from './practice/projects';
 import { CONCEPTS } from './concepts';
+import { MEMORY } from './memory';
 
 /**
  * Public curriculum content. Lives in the app bundle so the learning journey
@@ -73,6 +74,7 @@ const withConcepts = (m: CurriculumModule): CurriculumModule => ({
     ...l,
     challengeIds: [...new Set([...l.challengeIds, ...CHALLENGES.filter((c) => c.lessonId === l.id).map((c) => c.id)])],
     ...(CONCEPTS[l.id] ? { concepts: CONCEPTS[l.id] } : {}),
+    ...(MEMORY[l.id] ? { memory: MEMORY[l.id] } : {}),
   })),
 });
 

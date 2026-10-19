@@ -129,6 +129,7 @@ function lessonDocs(m: CurriculumModule, l: Lesson): SearchDoc[] {
         ...l.objectives,
         c?.interviewDefinition ?? '',
         c?.mnemonic.device ?? '',
+        l.memory?.oneLiner ?? '',
         ...(c?.breakdown.map((b) => b.title) ?? []),
         ...(c?.variants?.map((v) => v.title) ?? []),
         ...(c?.diagrams.map((d) => d.title) ?? []),

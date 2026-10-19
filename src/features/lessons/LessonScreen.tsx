@@ -131,7 +131,7 @@ export function LessonScreen() {
             />
           ) : null}
           {lesson.concepts && mainPane === 'concept' ? (
-            <ConceptPanel concepts={lesson.concepts} />
+            <ConceptPanel concepts={lesson.concepts} memory={lesson.memory} />
           ) : (
             <>
               <LessonContent lesson={lesson} />
@@ -200,7 +200,7 @@ export function LessonScreen() {
 function PaneBody({ pane, lesson }: { pane: Pane; lesson: Lesson }) {
   switch (pane) {
     case 'concept':
-      return lesson.concepts ? <ConceptPanel concepts={lesson.concepts} /> : <LessonContent lesson={lesson} />;
+      return lesson.concepts ? <ConceptPanel concepts={lesson.concepts} memory={lesson.memory} /> : <LessonContent lesson={lesson} />;
     case 'learn':
       return <LessonContent lesson={lesson} />;
     case 'code':

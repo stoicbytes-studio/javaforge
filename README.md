@@ -20,7 +20,12 @@ demonstrated and what to practise next.
   real-world breakdowns, SVG illustrations plus flow and architecture
   diagrams, "types of X" sections (e.g. the five types of inheritance and
   how Java supports each), and a deep dive citing public sources (JLS, JVMS,
-  JEPs, official docs). Then a plain-English explanation, technical detail, when (not)
+  JEPs, official docs). Each concept page also has a **"Make it stick"** layer
+  built on how memory works: it starts **in plain English** (one big idea, an
+  everyday story, three key points, the usual mix-up and a one-minute try-it),
+  shows a **picture** (a drawn pictogram scene of the same story) next to the
+  flow diagram, and ends with **quick recall** cards that hide the answer until
+  you have tried to remember it. Then a plain-English explanation, technical detail, when (not)
   to use it, runnable examples, a line-by-line walkthrough, a real-world
   scenario, common mistakes, knowledge checks, mastery criteria and revision
   prompts.
@@ -103,6 +108,7 @@ Step-by-step guide for Vercel + Supabase: [docs/deployment.md](docs/deployment.m
 | `npm run verify:java [filter]` | Compiles and runs all Java in the content on a local JDK 21+ (`--executor URL` to go through the API) |
 | `npm run e2e` | Playwright against a test web export with a mocked Supabase (`npm run e2e:build` first) |
 | `npm run test:db` | Migrations, seed, RLS and admin tests against Postgres (`PGURL=...`) |
+| `node scripts/check-concepts.mjs` / `node scripts/check-memory.mjs` | Checks concept pages and "Make it stick" memory aids (text limits, picture layout) |
 | `npm run seed:generate` | Regenerates `supabase/seed.sql` |
 | `npm run export:web` | Static web build in `dist/` |
 | `cd executor && mvn test` | Execution API and sandbox tests |

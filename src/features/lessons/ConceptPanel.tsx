@@ -1,31 +1,48 @@
 import { useState } from 'react';
-import { Linking, Pressable, StyleSheet, View } from 'react-native';
+import { Linking, Pressable, StyleSheet, View, type LayoutChangeEvent } from 'react-native';
 
 import { Badge } from '@/components/Card';
 import { CodeBlock } from '@/components/CodeBlock';
 import { DiagramView } from '@/components/DiagramView';
+import { IllustrationView } from '@/components/IllustrationView';
 import { Icon, type IconName } from '@/components/Icon';
 import { Inline, Markdown } from '@/components/Markdown';
 import { Text } from '@/components/Text';
 import { useLayout, useTheme } from '@/theme/ThemeProvider';
 import { radius, spacing } from '@/theme/tokens';
-import type { BreakdownItem, LessonConcepts, VariantGroup } from '@/types/curriculum';
+import type { BreakdownItem, LessonConcepts, MemoryAid, VariantGroup } from '@/types/curriculum';
+import { PlainEnglish, QuickRecall } from './MemoryParts';
 
 /**
- * The concept page every lesson opens with:
- * 1. interview-level definition, 2. mnemonic, 3. contextual breakdown,
- * 4. visuals (illustrations, flow and architecture diagrams), 5. deep dive.
- * Each section has its own visual treatment so the page reads as distinct parts.
+ * The concept page every lesson opens with. When the lesson has a memory aid it
+ * starts in plain English (a story before the formal definition), puts the picture
+ * beside the first flow diagram and ends with retrieval practice:
+ * plain English, interview-level definition, mnemonic, contextual breakdown,
+ * visuals, deep dive, quick recall. Each part has its own visual treatment.
  */
-export function ConceptPanel({ concepts }: { concepts: LessonConcepts }) {
+export function ConceptPanel({ concepts, memory }: { concepts: LessonConcepts; memory?: MemoryAid }) {
+  let step = 0;
+  const next = () => ++step;
   return (
     <View style={{ gap: spacing.xxl }}>
-      <InterviewSection concepts={concepts} />
-      <MnemonicSection concepts={concepts} />
-      <BreakdownSection items={concepts.breakdown} />
-      <VisualsSection concepts={concepts} />
+      {memory ? (
+        <View style={{ gap: spacing.lg }}>
+          <SectionTitle step={next()} icon="lightbulb" title="In plain English" subtitle="The simple version first: one big idea, a story and three things to keep." />
+          <PlainEnglish memory={memory} />
+        </View>
+      ) : null}
+      <InterviewSection concepts={concepts} step={next()} />
+      <MnemonicSection concepts={concepts} step={next()} />
+      <BreakdownSection items={concepts.breakdown} step={next()} />
+      <VisualsSection concepts={concepts} memory={memory} step={next()} />
       {concepts.variants?.map((v) => <VariantSection key={v.title} group={v} />)}
-      <DeepDiveSection concepts={concepts} />
+      <DeepDiveSection concepts={concepts} step={next()} />
+      {memory ? (
+        <View style={{ gap: spacing.lg }}>
+          <SectionTitle step={next()} icon="refresh" title="Quick recall" subtitle="Check yourself before moving on." />
+          <QuickRecall memory={memory} />
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -52,12 +69,12 @@ function SectionTitle({ step, title, subtitle, icon }: { step: number; title: st
   );
 }
 
-function InterviewSection({ concepts }: { concepts: LessonConcepts }) {
+function InterviewSection({ concepts, step }: { concepts: LessonConcepts; step: number }) {
   const { colors } = useTheme();
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   return (
     <View style={{ gap: spacing.lg }}>
-      <SectionTitle step={1} icon="message" title="Interview-level definition" subtitle="What a strong candidate says, in one breath." />
+      <SectionTitle step={step} icon="message" title="Interview-level definition" subtitle="What a strong candidate says, in one breath." />
       <View style={[styles.quote, { backgroundColor: colors.surface, borderColor: colors.border, borderLeftColor: colors.brand }]}>
         <Markdown source={concepts.interviewDefinition} />
       </View>
@@ -96,12 +113,12 @@ function InterviewSection({ concepts }: { concepts: LessonConcepts }) {
   );
 }
 
-function MnemonicSection({ concepts }: { concepts: LessonConcepts }) {
+function MnemonicSection({ concepts, step }: { concepts: LessonConcepts; step: number }) {
   const { colors } = useTheme();
   const m = concepts.mnemonic;
   return (
     <View style={{ gap: spacing.lg }}>
-      <SectionTitle step={2} icon="lightbulb" title="Remember it" subtitle="A memory hook you can recall under pressure." />
+      <SectionTitle step={step} icon="lightbulb" title="Remember it" subtitle="A memory hook you can recall under pressure." />
       <View style={[styles.mnemonic, { backgroundColor: colors.brandMuted, borderColor: colors.brand }]}>
         <Text variant="title" style={{ color: colors.onBrandMuted }}>
           {m.device}
@@ -140,7 +157,7 @@ const BREAKDOWN_STYLE: Record<BreakdownItem['kind'], { icon: IconName; label: st
   angle: { icon: 'layers', label: 'Another angle', tone: 'info' },
 };
 
-function BreakdownSection({ items }: { items: BreakdownItem[] }) {
+function BreakdownSection({ items, step }: { items: BreakdownItem[]; step: number }) {
   const { colors } = useTheme();
   const { layout } = useLayout();
   const two = layout !== 'compact';
@@ -148,7 +165,7 @@ function BreakdownSection({ items }: { items: BreakdownItem[] }) {
     t === 'brand' ? colors.brandStrong : t === 'accent' ? colors.accent : t === 'success' ? colors.success : colors.primary;
   return (
     <View style={{ gap: spacing.lg }}>
-      <SectionTitle step={3} icon="book" title="Break it down" subtitle="Analogies, insights and how it shows up in real systems." />
+      <SectionTitle step={step} icon="book" title="Break it down" subtitle="Analogies, insights and how it shows up in real systems." />
       <View style={[styles.grid, two && { flexDirection: 'row', flexWrap: 'wrap' }]}>
         {items.map((b) => {
           const s = BREAKDOWN_STYLE[b.kind];
@@ -178,13 +195,35 @@ function BreakdownSection({ items }: { items: BreakdownItem[] }) {
   );
 }
 
-function VisualsSection({ concepts }: { concepts: LessonConcepts }) {
+function VisualsSection({ concepts, memory, step }: { concepts: LessonConcepts; memory?: MemoryAid; step: number }) {
+  const [width, setWidth] = useState(0);
+  // The picture sits next to the first flow (or architecture) diagram: the everyday
+  // scene and the technical steps together, so one explains the other. Side by side
+  // only when both stay readable; otherwise the picture goes directly above it.
+  const paired = memory ? (concepts.diagrams.find((d) => d.kind === 'flow') ?? concepts.diagrams.find((d) => d.kind === 'architecture')) : undefined;
+  const sideBySide = width >= 1100;
   return (
-    <View style={{ gap: spacing.lg }}>
-      <SectionTitle step={4} icon="grid" title="See it" subtitle="Illustrations, flows and architecture diagrams." />
-      {concepts.diagrams.map((d) => (
-        <DiagramView key={d.id} diagram={d} />
-      ))}
+    <View style={{ gap: spacing.lg }} onLayout={(e: LayoutChangeEvent) => setWidth(e.nativeEvent.layout.width)}>
+      <SectionTitle step={step} icon="grid" title="See it" subtitle="A picture to remember, then illustrations, flows and architecture diagrams." />
+      {concepts.diagrams.map((d) =>
+        d === paired && memory ? (
+          <View key={d.id} style={sideBySide ? styles.pair : { gap: spacing.lg }}>
+            <View style={sideBySide ? styles.pairPicture : styles.picture}>
+              <IllustrationView picture={memory.picture} />
+            </View>
+            <View style={sideBySide ? styles.pairDiagram : undefined}>
+              <DiagramView diagram={d} />
+            </View>
+          </View>
+        ) : (
+          <DiagramView key={d.id} diagram={d} />
+        ),
+      )}
+      {memory && !paired ? (
+        <View style={styles.picture}>
+          <IllustrationView picture={memory.picture} />
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -230,11 +269,11 @@ function VariantSection({ group }: { group: VariantGroup }) {
   );
 }
 
-function DeepDiveSection({ concepts }: { concepts: LessonConcepts }) {
+function DeepDiveSection({ concepts, step }: { concepts: LessonConcepts; step: number }) {
   const { colors } = useTheme();
   return (
     <View style={{ gap: spacing.lg }}>
-      <SectionTitle step={5} icon="target" title="Go deeper" subtitle="Advanced insight for senior-level understanding, with sources." />
+      <SectionTitle step={step} icon="target" title="Go deeper" subtitle="Advanced insight for senior-level understanding, with sources." />
       {concepts.deepDive.map((d, i) => (
         <View key={d.title} style={[styles.deep, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <View style={styles.row}>
@@ -286,4 +325,8 @@ const styles = StyleSheet.create({
   variant: { borderWidth: 1, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.sm },
   index: { width: 28, height: 28, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
   deep: { borderWidth: 1, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.sm },
+  pair: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.lg },
+  pairPicture: { flex: 2, minWidth: 0 },
+  picture: { width: '100%', maxWidth: 640, alignSelf: 'center' },
+  pairDiagram: { flex: 3, minWidth: 0 },
 });

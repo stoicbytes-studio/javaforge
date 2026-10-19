@@ -86,6 +86,19 @@ test.describe('honesty guarantees', () => {
   });
 });
 
+test.describe('make it stick', () => {
+  test('concept pages start in plain English, show a picture and end with recall cards', async ({ page, supabase: _ }) => {
+    await page.goto('/learn/fundamentals/f-first-program');
+    await expect(page.getByRole('heading', { name: 'In plain English' })).toBeVisible();
+    await expect(page.getByText('Remember just these three things')).toBeVisible();
+    await expect(page.getByRole('img', { name: /One recipe card, every kitchen/ })).toBeAttached();
+    const reveal = page.getByRole('button', { name: 'Reveal answer 1' });
+    await reveal.scrollIntoViewIfNeeded();
+    await reveal.click();
+    await expect(page.getByText(/which contains bytecode that any JVM can run/)).toBeVisible();
+  });
+});
+
 test.describe('global search', () => {
   test('finds a "types of" topic and opens its lesson', async ({ page, supabase: _ }, info) => {
     if (info.project.name === 'desktop') {

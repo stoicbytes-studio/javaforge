@@ -33,11 +33,17 @@ const modules = new Map();
 const challenges = [];
 let questions = [];
 const concepts = {};
+const memory = {};
 const extraLessons = [];
 for (const file of walk(contentDir)) {
   if (file.includes(`${join('content', 'concepts')}`)) {
     // Concept pages are keyed by lesson id and attached below.
     for (const value of await load(file)) if (value && typeof value === 'object') Object.assign(concepts, value);
+    continue;
+  }
+  if (file.includes(`${join('content', 'memory')}`)) {
+    // "Make it stick" memory aids are keyed by lesson id too.
+    for (const value of await load(file)) if (value && typeof value === 'object') Object.assign(memory, value);
     continue;
   }
   for (const value of await load(file)) {
@@ -67,7 +73,7 @@ for (const l of extraLessons) {
   if (m && !m.lessons.some((x) => x.id === l.id)) modules.set(m.id, { ...m, lessons: [...m.lessons, l] });
 }
 for (const [id, m] of modules) {
-  modules.set(id, { ...m, lessons: m.lessons.map((l) => (concepts[l.id] ? { ...l, concepts: concepts[l.id] } : l)) });
+  modules.set(id, { ...m, lessons: m.lessons.map((l) => ({ ...l, ...(concepts[l.id] ? { concepts: concepts[l.id] } : {}), ...(memory[l.id] ? { memory: memory[l.id] } : {}) })) });
 }
 const sorted = [...modules.values()].sort((a, b) => a.order - b.order);
 const lines = [

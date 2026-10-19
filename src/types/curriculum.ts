@@ -211,8 +211,67 @@ export interface LessonConcepts {
   deepDive: DeepDiveItem[];
 }
 
+// ---------------------------------------------------------------------------
+// "Make it stick": plain-English memory aids built on how memory works.
+// ---------------------------------------------------------------------------
+
+/** Names of the drawn pictograms available to illustrations (see src/components/pictograms). */
+export type PictogramName =
+  | 'person' | 'people' | 'chef' | 'robot' | 'teacher'
+  | 'house' | 'factory' | 'shop' | 'bank' | 'library' | 'kitchen'
+  | 'box' | 'gift' | 'boxes' | 'shelf' | 'drawer' | 'bucket' | 'trash' | 'recycle'
+  | 'key' | 'lock' | 'door' | 'shield' | 'fence' | 'id-card'
+  | 'book' | 'recipe' | 'blueprint' | 'note' | 'envelope' | 'mailbox' | 'stamp' | 'tag' | 'label'
+  | 'truck' | 'conveyor' | 'road' | 'traffic-light' | 'signpost' | 'map' | 'ladder' | 'bridge'
+  | 'plates' | 'queue' | 'tree' | 'family' | 'puzzle' | 'gear' | 'gears' | 'magnifier' | 'mirror'
+  | 'clock' | 'calendar' | 'hourglass' | 'stopwatch' | 'coin' | 'calculator' | 'scale'
+  | 'phone' | 'laptop' | 'server' | 'database' | 'cloud' | 'globe' | 'plug' | 'battery'
+  | 'brain' | 'bulb' | 'warning' | 'check' | 'cross' | 'question' | 'star' | 'heart' | 'flag'
+  | 'chain' | 'magnet' | 'camera' | 'copy' | 'scissors' | 'pipe' | 'tap' | 'filter' | 'funnel'
+  | 'thread' | 'baton' | 'whistle' | 'crown' | 'medal' | 'rocket' | 'snail' | 'bug' | 'wrench' | 'hammer';
+
+/** One drawn element in an illustration, placed on a 100 x 60 canvas by its centre. */
+export interface IllustrationItem {
+  icon: PictogramName;
+  /** Short caption under the icon (<= 18 characters). */
+  label: string;
+  x: number;
+  y: number;
+  /** Relative size, default 1 (range 0.6-1.6). */
+  size?: number;
+  tone?: DiagramTone;
+}
+
+/** A picture-story scene that sits next to the flow diagram. */
+export interface Illustration {
+  title: string;
+  caption: string;
+  items: IllustrationItem[];
+  /** Optional arrows between items (by index). */
+  arrows?: { from: number; to: number; label?: string; dashed?: boolean }[];
+}
+
+export interface MemoryAid {
+  /** The whole idea in one simple sentence a 12-year-old understands (<= 24 words). */
+  oneLiner: string;
+  /** A short everyday story (40-130 words) in which the concept naturally appears. */
+  story: string;
+  /** Exactly three key points (chunking): the minimum to remember. */
+  keyPoints: [string, string, string];
+  /** What people mix it up with, and the one difference that matters. */
+  confusion?: { mixedUpWith: string; difference: string };
+  /** A tiny action to do within a minute (doing it yourself makes it stick). */
+  tryIt?: string;
+  /** Retrieval practice: questions to answer from memory before revealing (2-3). */
+  recall: { question: string; answer: string }[];
+  /** The picture shown beside the flow diagram. */
+  picture: Illustration;
+}
+
 export interface Lesson {
   id: string;
+  /** Plain-English memory aids ("Make it stick"), attached from src/content/memory. */
+  memory?: MemoryAid;
   /** Interview definition, mnemonic, breakdown, diagrams and deep dive (attached from src/content/concepts). */
   concepts?: LessonConcepts;
   moduleId: string;
