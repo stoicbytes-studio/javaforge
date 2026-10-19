@@ -46,7 +46,7 @@ for (const file of walk(contentDir)) {
       // Written modules override their "planned" outline entries.
       if (isModule(item) && (!modules.has(item.id) || item.lessons.length > 0)) modules.set(item.id, item);
       else if (isChallenge(item)) challenges.push(item);
-      else if (item && typeof item === 'object' && Array.isArray(item.checks) && item.moduleId && file.endsWith('-more.ts')) extraLessons.push(item);
+      else if (item && typeof item === 'object' && Array.isArray(item.checks) && item.moduleId && (file.endsWith('-more.ts') || file.includes(join('modules', 'extra')))) extraLessons.push(item);
     }
     if (file.endsWith(join('interview', 'questions.ts')) && Array.isArray(value)) questions = value;
   }
