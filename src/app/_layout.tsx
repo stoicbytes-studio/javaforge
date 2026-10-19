@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Stack } from 'expo-router';
+import { router, Stack, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -15,6 +15,16 @@ import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
 function SyncManager() {
   const model = useLearnerModel();
   useAutoSync({ mastery: model.mastery, streak: model.streak, achievements: model.achievements });
+  return null;
+}
+
+/** A password-recovery link signs the learner in; send them to choose a new password first. */
+function RecoveryRedirect() {
+  const { recovering } = useAuth();
+  const pathname = usePathname();
+  useEffect(() => {
+    if (recovering && pathname !== '/reset-password') router.replace('/reset-password');
+  }, [recovering, pathname]);
   return null;
 }
 
@@ -33,6 +43,7 @@ function ThemedStack() {
     <>
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
       {session ? <SyncManager /> : null}
+      <RecoveryRedirect />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }} />
     </>
   );

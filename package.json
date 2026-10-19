@@ -53,7 +53,8 @@
     "e2e": "playwright test",
     "postinstall": "node scripts/copy-monaco.mjs",
     "seed:generate": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/generate-seed.mjs",
-    "test:db": "bash supabase/tests/run.sh"
+    "test:db": "bash supabase/tests/run.sh",
+    "e2e:build": "node scripts/copy-monaco.mjs && EXPO_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321 EXPO_PUBLIC_SUPABASE_ANON_KEY=e2e-anon-key EXPO_PUBLIC_EXECUTOR_URL= expo export --platform web --output-dir dist-e2e"
   },
   "private": true,
   "jest": {

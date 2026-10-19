@@ -85,8 +85,11 @@ raw records, and nothing a client uploads can unlock anything by itself.
 - Sync is local-first: the device store is the source of truth offline; after
   sign-in, records are merged (attempts by id, cards and notes by recency,
   bookmarks and milestones by union) and upserted.
+- Admins are listed in `admin_users` (not writable through the API) and read
+  aggregate reports through `security definer` functions that check
+  `is_admin()`; see [admin.md](admin.md).
 - `npm run test:db` applies migrations and the seed to a scratch Postgres and
-  runs the RLS tests in `supabase/tests`.
+  runs the RLS and admin tests in `supabase/tests`.
 
 ## Code execution in the app
 

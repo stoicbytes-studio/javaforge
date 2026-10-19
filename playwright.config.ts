@@ -1,8 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * End-to-end tests against the static web export.
- * Build first: `npm run export:web` (writes dist/), then `npm run e2e`.
+ * End-to-end tests against a static web export.
+ * Build first with `npm run e2e:build` (writes dist-e2e/, configured with a
+ * fake Supabase URL that the tests intercept), then run `npm run e2e`.
  * Set PLAYWRIGHT_CHROMIUM to use a preinstalled Chromium binary.
  */
 const executablePath = process.env.PLAYWRIGHT_CHROMIUM;
@@ -23,7 +24,7 @@ export default defineConfig({
     { name: 'mobile', use: { ...devices['Pixel 7'], launchOptions } },
   ],
   webServer: {
-    command: `npx serve -s dist -l ${PORT} --no-port-switching`,
+    command: `npx serve -s dist-e2e -l ${PORT} --no-port-switching`,
     port: PORT,
     reuseExistingServer: !process.env.CI,
   },

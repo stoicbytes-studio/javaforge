@@ -3,9 +3,13 @@ import { forwardRef, type ComponentRef } from 'react';
 import { Pressable, StyleSheet, View, type GestureResponderEvent, type StyleProp, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Link } from 'expo-router';
+
 import { Icon, type IconName } from '@/components/Icon';
 import { Text } from '@/components/Text';
+import { useIsAdmin } from '@/features/admin/adminApi';
 import { useLearnerModel } from '@/features/progress/useLearnerModel';
+import { useAuth } from '@/services/auth';
 import { useLayout, useTheme } from '@/theme/ThemeProvider';
 import { radius, spacing } from '@/theme/tokens';
 import { NAV_GROUPS, NAV_ITEMS } from './navigation';
@@ -80,6 +84,7 @@ const SidebarItem = forwardRef<ComponentRef<typeof Pressable>, TriggerChildProps
 function Sidebar({ collapsed }: { collapsed: boolean }) {
   const { colors } = useTheme();
   const model = useLearnerModel();
+  const { isAdmin } = useIsAdmin();
   return (
     <View
       accessibilityRole="navigation"
@@ -111,7 +116,7 @@ function Sidebar({ collapsed }: { collapsed: boolean }) {
                 {group}
               </Text>
             ) : null}
-            {NAV_ITEMS.filter((n) => n.group === group && !n.hiddenOnWide).map((item) => (
+            {NAV_ITEMS.filter((n) => n.group === group && !n.hiddenOnWide && (!n.adminOnly || isAdmin)).map((item) => (
               <TabTrigger key={item.name} name={item.name} asChild>
                 <SidebarItem label={item.label} icon={item.icon} collapsed={collapsed} />
               </TabTrigger>
@@ -119,6 +124,8 @@ function Sidebar({ collapsed }: { collapsed: boolean }) {
           </View>
         ))}
       </View>
+
+      <AccountEntry collapsed={collapsed} />
 
       {!collapsed ? (
         <View style={[styles.tierCard, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}>
@@ -139,6 +146,41 @@ function Sidebar({ collapsed }: { collapsed: boolean }) {
         </View>
       ) : null}
     </View>
+  );
+}
+
+/** Sign-in call to action, or the signed-in learner's identity. Hidden in local-only builds. */
+function AccountEntry({ collapsed }: { collapsed: boolean }) {
+  const { colors } = useTheme();
+  const { configured, session } = useAuth();
+  if (!configured) return null;
+  const signedIn = !!session;
+  const label = signedIn ? (session.user.user_metadata?.display_name as string | undefined) ?? session.user.email ?? 'Account' : 'Sign in';
+  return (
+    <Link href={signedIn ? '/settings/account' : '/sign-in'} asChild>
+      <Pressable
+        accessibilityRole="link"
+        accessibilityLabel={signedIn ? `Account: ${label}` : 'Sign in or create an account'}
+        // Link's asChild slot passes styles straight to the DOM on web, so hand it a flat object.
+        style={StyleSheet.flatten([
+          styles.account,
+          collapsed && { justifyContent: 'center', paddingHorizontal: 0 },
+          { borderColor: signedIn ? colors.border : colors.primary, backgroundColor: signedIn ? 'transparent' : colors.primaryMuted },
+        ])}
+      >
+        <Icon name="user" size={18} color={signedIn ? colors.textMuted : colors.primary} />
+        {!collapsed ? (
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text variant="small" weight="600" color={signedIn ? 'text' : 'primary'} numberOfLines={1}>
+              {label}
+            </Text>
+            <Text variant="caption" color="textSubtle" style={{ textTransform: 'none', letterSpacing: 0 }} numberOfLines={1}>
+              {signedIn ? 'Synced account' : 'Sync progress across devices'}
+            </Text>
+          </View>
+        ) : null}
+      </Pressable>
+    </Link>
   );
 }
 
@@ -202,6 +244,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
   },
   sideItemCollapsed: { flexDirection: 'column', gap: 2, paddingHorizontal: 0, paddingVertical: spacing.sm, justifyContent: 'center' },
+  account: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, borderWidth: 1, borderRadius: radius.md, padding: spacing.sm, minHeight: 44 },
   tierCard: { borderWidth: 1, borderRadius: radius.md, padding: spacing.md, gap: spacing.xs },
   bottomBar: { flexDirection: 'row', borderTopWidth: 1, paddingTop: spacing.xs },
   bottomItem: { flex: 1, alignItems: 'center', gap: 2, minHeight: 52, justifyContent: 'center' },

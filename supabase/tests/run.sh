@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Applies the migrations and the generated seed to a scratch database and runs
-# the RLS tests. Needs a Postgres superuser connection, e.g.
+# the RLS and admin tests. Needs a Postgres superuser connection, e.g.
 #   docker run -d --name jf-pg -e POSTGRES_PASSWORD=pg -p 55432:5432 postgres:17
 #   PGURL=postgres://postgres:pg@localhost:55432 npm run test:db
 set -euo pipefail
@@ -15,4 +15,5 @@ node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/generate-seed.mjs > 
 run supabase/seed.sql
 run supabase/seed.sql   # seeding must be repeatable
 psql "$PGURL/$db" -v ON_ERROR_STOP=1 -q -f supabase/tests/rls_test.sql | grep -q 'RLS tests passed'
-echo "Migrations, seed and RLS tests passed."
+psql "$PGURL/$db" -v ON_ERROR_STOP=1 -q -f supabase/tests/admin_test.sql | grep -q 'Admin tests passed'
+echo "Migrations, seed, RLS and admin tests passed."

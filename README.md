@@ -33,6 +33,9 @@ demonstrated and what to practise next.
   simulated incidents using metrics, logs and diagnostics.
 - **Projects**: nine milestone-based builds, from an expense tracker to a
   production-ready service.
+- **Accounts and admin**: optional sign-up/sign-in with email confirmation
+  and password reset, and an admin dashboard with learner, activity and
+  content-health reports ([docs/admin.md](docs/admin.md)).
 - **Progress**: mastery across six dimensions (conceptual, coding, debugging,
   runtime, interview, retention), XP, career tiers, achievements, streaks,
   SM-2 revision and a recommended daily mission for 15/30/60/90-minute plans.
@@ -76,6 +79,8 @@ npm run seed:generate      # writes supabase/seed.sql from src/content
 # run supabase/seed.sql with a privileged connection
 ```
 
+Then sign up in the app and make yourself an admin; see [docs/admin.md](docs/admin.md).
+
 ## Scripts
 
 | Command | What it does |
@@ -83,8 +88,8 @@ npm run seed:generate      # writes supabase/seed.sql from src/content
 | `npm run typecheck` | TypeScript (strict) |
 | `npm test` | Jest unit and component tests |
 | `npm run verify:java [filter]` | Compiles and runs all Java in the content on a local JDK 21+ (`--executor URL` to go through the API) |
-| `npm run e2e` | Playwright against the web export (`npm run export:web` first) |
-| `npm run test:db` | Migrations, seed and RLS tests against Postgres (`PGURL=...`) |
+| `npm run e2e` | Playwright against a test web export with a mocked Supabase (`npm run e2e:build` first) |
+| `npm run test:db` | Migrations, seed, RLS and admin tests against Postgres (`PGURL=...`) |
 | `npm run seed:generate` | Regenerates `supabase/seed.sql` |
 | `npm run export:web` | Static web build in `dist/` |
 | `cd executor && mvn test` | Execution API and sandbox tests |
