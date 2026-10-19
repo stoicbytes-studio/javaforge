@@ -624,6 +624,7 @@ Java has also changed a lot since Java 8. Records, switch expressions, text bloc
 - **17**: records (16), sealed classes, pattern matching for instanceof (16), text blocks (15), switch expressions (14), helpful NPE messages, strong encapsulation of JDK internals.
 - **21**: virtual threads, pattern matching for switch and record patterns, sequenced collections, generational ZGC option. (String templates were a preview and were later withdrawn — do not rely on them.)
 - **25**: compact source files and instance main methods, flexible constructor bodies, scoped values, module import declarations.
+- **26 and 27** (non-LTS): HTTP/3 in HttpClient, Applet API removed, new Math and String helpers; see **Curriculum → Java version updates** for the full, compiler-verified list.
 
 Preview features require \`--enable-preview\` and can change or be removed; production code should use finalised features only.`,
       whyItExists: `Optional makes absence visible in method signatures, reducing NullPointerExceptions at API boundaries. The later language features remove boilerplate and push towards safer, data-oriented designs.`,

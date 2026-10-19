@@ -16,7 +16,10 @@ import { typesModule } from './modules/04-types';
 import { exceptionsModule } from './modules/05-exceptions';
 import { functionalModule } from './modules/07-functional';
 import { collectionsModule } from './modules/06-collections';
+import { JVM_SCENARIO_LIST } from './jvm/scenarios';
 import { PLANNED_MODULES } from './modules/planned';
+import { BUG_HUNT_LIST } from './practice/bugHunts';
+import { INCIDENT_LIST } from './practice/incidents';
 
 /**
  * Public curriculum content. Lives in the app bundle so the learning journey
@@ -34,10 +37,10 @@ export const MODULES: CurriculumModule[] = [
 
 export const CHALLENGES: CodingChallenge[] = [...fundamentalsChallenges, ...platformChallenges, ...oopChallenges, ...typesChallenges, ...exceptionsChallenges, ...collectionsChallenges, ...functionalChallenges];
 export const INTERVIEW_QUESTIONS: InterviewQuestion[] = [];
-export const BUG_HUNTS: BugHunt[] = [];
-export const INCIDENTS: Incident[] = [];
+export const BUG_HUNTS: BugHunt[] = BUG_HUNT_LIST;
+export const INCIDENTS: Incident[] = INCIDENT_LIST;
 export const PROJECTS: Project[] = [];
-export const JVM_SCENARIOS: JvmScenario[] = [];
+export const JVM_SCENARIOS: JvmScenario[] = JVM_SCENARIO_LIST;
 
 export const LESSONS: Lesson[] = MODULES.flatMap((m) => m.lessons);
 

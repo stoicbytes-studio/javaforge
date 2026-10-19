@@ -6,10 +6,13 @@ import { ProgressBar } from '@/components/Progress';
 import { PageHeader, Screen, SectionHeader } from '@/components/Screen';
 import { Text } from '@/components/Text';
 import { getModule, MODULES } from '@/content';
+import { JAVA_RELEASES } from '@/content/versions/javaReleases';
 import { useLearnerModel } from '@/features/progress/useLearnerModel';
 import { useLayout, useTheme } from '@/theme/ThemeProvider';
 import { spacing } from '@/theme/tokens';
 import type { CurriculumModule, ModuleLevel } from '@/types/curriculum';
+
+const LATEST_JAVA = Math.max(...JAVA_RELEASES.map((r) => r.version));
 
 const LEVELS: { level: ModuleLevel; title: string; description: string }[] = [
   { level: 'core', title: 'Core Java path', description: 'The recommended sequence from first program to confident Core Java.' },
@@ -27,6 +30,18 @@ export function CurriculumScreen() {
         title="Learning roadmap"
         subtitle="Seventeen domains in a recommended order. Prerequisites are recommendations — every unlocked lesson is open to you."
       />
+      <LinkCard href="/learn/java-versions" accessibilityLabel="Java version updates from Java 8 to the latest release">
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+          <Icon name="layers" />
+          <View style={{ flex: 1 }}>
+            <Text variant="heading">Java version updates</Text>
+            <Text variant="small" color="textMuted">
+              Every release from Java 8 to Java {LATEST_JAVA}: what is final, what is still preview, and LTS upgrade checklists — verified by compiling on real JDKs.
+            </Text>
+          </View>
+          <Icon name="chevronRight" size={18} />
+        </View>
+      </LinkCard>
       {LEVELS.map(({ level, title, description }) => {
         const modules = MODULES.filter((m) => m.level === level);
         if (modules.length === 0) return null;

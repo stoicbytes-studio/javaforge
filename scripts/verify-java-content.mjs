@@ -187,6 +187,39 @@ function collect(value, file) {
     return;
   }
 
+  // Bug hunt: the code under investigation must compile.
+  if (typeof value.code === 'string' && Array.isArray(value.buggyLines) && Array.isArray(value.rootCauseOptions)) {
+    track('bug-hunt', value.id, file);
+    jobs.push({
+      label: `bug hunt ${value.id}`,
+      file,
+      fn: async () => {
+        if (executorUrl) return;
+        const c = await compile(value.code);
+        if (!c.ok) return `bug hunt code does not compile:\n${c.errors}`;
+      },
+    });
+    return;
+  }
+
+  // JVM Lab scenario: the program must print what the final step shows.
+  if (typeof value.source === 'string' && Array.isArray(value.steps) && Array.isArray(value.concepts)) {
+    track('jvm', value.id, file);
+    const shown = [...value.steps].reverse().find((s) => s.output !== undefined)?.output;
+    jobs.push({
+      label: `jvm scenario ${value.id}`,
+      file,
+      fn: async () => {
+        const r = await execute(value.source);
+        if (r.compileError) return `scenario source does not compile:\n${r.compileError}`;
+        if (shown !== undefined && normalize(r.stdout) !== normalize(shown)) {
+          return `final step shows "${shown}" but the program printed:\n${r.stdout}`;
+        }
+      },
+    });
+    return;
+  }
+
   // Interview output question
   if (value.kind === 'output' && typeof value.code === 'string' && value.code.includes('static void main') && value.options) {
     track('interview', value.id, file);

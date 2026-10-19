@@ -633,5 +633,231 @@ The class existed at compile time but not on the runtime classpath. Running \`mv
         { id: 'r3', question: 'What does `exports` in module-info.java control?', answer: 'Which packages of the module are accessible to other modules at compile time and run time; non-exported packages are encapsulated.' },
       ],
     },
+    // -----------------------------------------------------------------------
+    {
+      id: 'p-java-releases',
+      moduleId: 'jvm-platform',
+      title: 'Java releases, LTS versions and preview features',
+      summary: 'How Java evolves every six months, what LTS means, how preview features work, and what changed from Java 8 to the latest release.',
+      estimatedMinutes: 30,
+      difficulty: 'intermediate',
+      prerequisites: ['p-jdk-jre-jvm'],
+      versionNotes: [
+        { feature: 'Time-based six-month releases', since: 10 },
+        { feature: 'Preview language features (--enable-preview)', since: 12, note: 'JEP 12' },
+        { feature: 'Current LTS', since: 25 },
+      ],
+      objectives: [
+        'Explain the release cadence and choose an appropriate Java version for a project.',
+        'Distinguish final, preview and incubator features and their risks.',
+        'Name the headline features of each LTS release (8, 11, 17, 21, 25).',
+        'Plan an LTS-to-LTS upgrade.',
+      ],
+      plainEnglish: `A new Java version ships **every March and September**. Every two years one of them is a **Long-Term Support (LTS)** release that vendors patch for many years: 8, 11, 17, 21 and 25. Most companies run an LTS and upgrade from one LTS to the next.
+
+New features often arrive first as **previews**: complete and usable for experiments, but switched off unless you pass \`--enable-preview\`, and allowed to change or even disappear before they become final. Treat preview features like a beta — great to learn, risky to ship.
+
+The full release-by-release list, including Java 26 and 27, is in **Curriculum → Java version updates**.`,
+      technical: `### Release model
+- Feature releases every six months (since Java 10); update releases (e.g. 21.0.5) every quarter with security fixes.
+- LTS releases: 8 (2014), 11 (2018), 17 (2021), 21 (2023), 25 (2025). Non-LTS releases such as 26 and 27 are supported only until the next release.
+
+### Feature maturity
+- **Final**: standard and stable; covered by compatibility guarantees.
+- **Preview** (JEP 12): fully specified language or API features that need \`--enable-preview\` at compile **and** run time, together with \`--release N\` for that exact release. Class files compiled with preview features only run on that same JDK version.
+- **Incubator**: experimental APIs in \`jdk.incubator.*\` modules (e.g. the Vector API).
+
+Previews really do change. String templates were previewed in 21 and 22 and then **removed** in 23. The lazy-constants API was previewed as \`StableValue\` in 25, renamed to \`LazyConstant\` in 26, and its methods changed again in 27.
+
+### LTS highlights
+- **8**: lambdas, streams, java.time, Optional, default methods.
+- **11**: HttpClient, \`var\` (10), String strip/isBlank/lines/repeat, single-file launch, Java EE modules removed.
+- **17**: records, text blocks, switch expressions, instanceof patterns, sealed classes, strong encapsulation of JDK internals.
+- **21**: virtual threads, pattern matching for switch and record patterns, sequenced collections, generational ZGC.
+- **25**: compact source files with \`void main()\`, flexible constructor bodies, module imports, scoped values, KDF API, compact object headers. Stream gatherers and the Class-File API became final in 24.
+
+### Since the last LTS
+- **26**: HTTP/3 in HttpClient, the Applet API removed, UUID.ofEpochMillis, Comparator.min/max and more; lazy constants in preview.
+- **27**: Math.asinh/acosh/atanh, String.encodedLength, BigDecimal.rootn; Set.ofLazy joins the lazy constants preview; structured concurrency is still a preview.
+
+### Choosing a version
+New projects should start on the latest LTS your frameworks support. Compile with \`--release N\` for the oldest runtime you deploy to, and run CI on the production version.`,
+      whyItExists: `A predictable six-month train ships improvements without multi-year waits, while LTS releases give organisations a stable base. Previews let the community try designs on real code before they are frozen forever by Java's compatibility promise.`,
+      whenToUse: [
+        'Use the latest LTS for new production systems.',
+        'Use preview features to learn and to give feedback, in experiments and side projects.',
+        'Use non-LTS releases when you can upgrade every six months (e.g. internal tools with good test coverage).',
+      ],
+      whenNotToUse: [
+        'Do not ship production code that depends on preview features.',
+        'Do not stay on an unsupported release; security fixes stop.',
+        'Do not use -source/-target to "support" older runtimes — use --release.',
+      ],
+      examples: [
+        {
+          id: 'then-and-now',
+          title: 'The same task in Java 8 and Java 21 style',
+          runnable: true,
+          minJavaVersion: 21,
+          code: `import java.util.*;
+import java.util.stream.*;
+
+public class Main {
+    sealed interface Event permits Login, Purchase {}
+    record Login(String user) implements Event {}
+    record Purchase(String user, int cents) implements Event {}
+
+    // Java 8 style: instanceof checks and casts, mutable accumulation
+    static int revenueJava8(List<Object> events) {
+        int total = 0;
+        for (Object e : events) {
+            if (e instanceof Purchase) {
+                Purchase p = (Purchase) e;
+                total += p.cents();
+            }
+        }
+        return total;
+    }
+
+    // Java 21 style: sealed types, record patterns, exhaustive switch
+    static int revenueModern(List<Event> events) {
+        return events.stream()
+            .mapToInt(e -> switch (e) {
+                case Purchase(var user, var cents) -> cents;
+                case Login l -> 0;
+            })
+            .sum();
+    }
+
+    public static void main(String[] args) {
+        List<Event> events = List.of(new Login("ann"), new Purchase("ann", 1200), new Purchase("bob", 300));
+        System.out.println(revenueJava8(new ArrayList<>(events)));
+        System.out.println(revenueModern(events));
+        System.out.println("Running on Java " + (Runtime.version().feature() >= 21 ? "21 or newer" : "an older release"));
+    }
+}`,
+          expectedOutput: `1500
+1500
+Running on Java 21 or newer`,
+        },
+      ],
+      walkthrough: {
+        exampleId: 'then-and-now',
+        steps: [
+          { lines: [5, 7], text: 'Java 17 sealed interfaces and Java 16 records describe the data precisely.' },
+          { lines: [10, 19], text: 'Java 8 style: test with instanceof, cast explicitly, accumulate in a mutable variable.' },
+          { lines: [22, 29], text: 'Java 21 style: a stream with a switch over the sealed type. Record patterns deconstruct Purchase; the compiler checks every Event subtype is handled.' },
+          { lines: [33, 35], text: 'Both produce the same answer. Runtime.version() (Java 9+) reports the running release.' },
+        ],
+      },
+      realWorld: {
+        title: 'An upgrade blocked by a preview feature',
+        scenario: `A team experimented with string templates on Java 21 using \`--enable-preview\` and let them spread into a reporting module. When they tried to move to Java 23 for a garbage-collector improvement, the code no longer compiled: string templates had been withdrawn. They had to rewrite dozens of call sites under time pressure.
+
+Their rule now: preview features are allowed only in prototypes, CI rejects \`--enable-preview\` in production modules, and upgrades follow the LTS train with the checklist in Java version updates.`,
+      },
+      commonMistakes: [
+        {
+          mistake: 'Shipping code that needs --enable-preview.',
+          why: 'Preview class files only run on the exact JDK they were compiled for, and the feature may change or disappear.',
+          fix: 'Keep previews in experiments; wait for the feature to become final.',
+        },
+        {
+          mistake: 'Assuming "newest" means "most supported".',
+          why: 'Non-LTS releases lose updates after six months.',
+          fix: 'Run an LTS in production unless you can upgrade every release.',
+        },
+        {
+          mistake: 'Skipping LTS releases without reading the removals.',
+          why: 'Each jump removes APIs (Java EE modules in 11, Nashorn in 15, Security Manager disabled in 24, Applet API in 26).',
+          fix: 'Run jdeps and your test suite on the target version; follow the upgrade checklist.',
+        },
+      ],
+      checks: [
+        {
+          id: 'p4-c1',
+          kind: 'multi-select',
+          dimension: 'conceptual',
+          prompt: 'Which of these are LTS releases? Select all that apply.',
+          options: [
+            { id: 'a', text: 'Java 17' },
+            { id: 'b', text: 'Java 21' },
+            { id: 'c', text: 'Java 22' },
+            { id: 'd', text: 'Java 25' },
+            { id: 'e', text: 'Java 26' },
+          ],
+          correctOptionIds: ['a', 'b', 'd'],
+          explanation: 'LTS releases arrive every two years: 8, 11, 17, 21, 25. Java 26 and 27 are short-lived feature releases.',
+        },
+        {
+          id: 'p4-c2',
+          kind: 'mcq',
+          dimension: 'conceptual',
+          prompt: 'What is true about a class compiled with --enable-preview on JDK 26?',
+          options: [
+            { id: 'a', text: 'It runs on any JDK 26 or newer' },
+            { id: 'b', text: 'It runs only on JDK 26, and only when the JVM is also started with --enable-preview' },
+            { id: 'c', text: 'It runs on any JVM because preview is a compile-time flag' },
+            { id: 'd', text: 'It is identical to normal bytecode' },
+          ],
+          correctOptionId: 'b',
+          explanation: 'Preview class files are marked with a special minor version and are rejected by other releases and by JVMs not started with --enable-preview.',
+        },
+        {
+          id: 'p4-c3',
+          kind: 'mcq',
+          dimension: 'conceptual',
+          prompt: 'Stream gatherers (Stream.gather) — from which release can you use them without preview flags?',
+          options: [
+            { id: 'a', text: 'Java 21' },
+            { id: 'b', text: 'Java 22' },
+            { id: 'c', text: 'Java 24' },
+            { id: 'd', text: 'Java 27' },
+          ],
+          correctOptionId: 'c',
+          explanation: 'Gatherers were a preview in 22 and 23 and became final in 24, so they are standard in the Java 25 LTS.',
+        },
+        {
+          id: 'p4-c4',
+          kind: 'mcq',
+          dimension: 'conceptual',
+          prompt: 'What happened to string templates (STR."Hello \\{name}")?',
+          options: [
+            { id: 'a', text: 'They became final in Java 21' },
+            { id: 'b', text: 'They were previewed in Java 21 and 22, then removed for redesign' },
+            { id: 'c', text: 'They are an incubator API' },
+            { id: 'd', text: 'They have always been part of Java' },
+          ],
+          correctOptionId: 'b',
+          explanation: 'Compiling the same code on JDK 23 or later fails even with --enable-preview — a concrete reason not to depend on previews.',
+        },
+        {
+          id: 'p4-c5',
+          kind: 'mcq',
+          dimension: 'conceptual',
+          prompt: 'A team on Java 21 wants `void main() { ... }` without a class declaration in production scripts. What is the earliest release where this is a final feature?',
+          options: [
+            { id: 'a', text: 'Java 21' },
+            { id: 'b', text: 'Java 23' },
+            { id: 'c', text: 'Java 25' },
+            { id: 'd', text: 'Java 27' },
+          ],
+          correctOptionId: 'c',
+          explanation: 'Compact source files and instance main methods were previewed from 21 to 24 and finalised in Java 25 (JEP 512).',
+        },
+      ],
+      challengeIds: [],
+      masteryCriteria: [
+        'Name the LTS releases and their headline features.',
+        'Explain preview vs final and the risks of shipping previews.',
+        'Outline an LTS-to-LTS upgrade plan.',
+      ],
+      relatedLessonIds: ['p-jdk-jre-jvm', 'fn-optional-modern', 't-modern-types'],
+      revision: [
+        { id: 'r1', question: 'How often does Java release, and which releases are LTS?', answer: 'Every six months (March and September). LTS every two years: 8, 11, 17, 21, 25.' },
+        { id: 'r2', question: 'What does --enable-preview imply for deployment?', answer: 'It is needed at compile and run time with --release N; the class files only run on that exact JDK, and the feature may change or be removed.' },
+        { id: 'r3', question: 'Name three features that became final in Java 25.', answer: 'Compact source files/instance main methods, flexible constructor bodies, module import declarations, scoped values, the KDF API (any three).' },
+      ],
+    },
   ],
 };
