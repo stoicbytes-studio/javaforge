@@ -17,6 +17,7 @@ const DESCRIPTIONS: Record<string, string> = {
   projects: 'Build real applications milestone by milestone.',
   progress: 'Tiers, achievements and mastery by dimension.',
   settings: 'Study schedule, theme, code execution and account.',
+  search: 'Find any concept, topic, challenge or Java feature.',
   admin: 'Learners, activity and content health.',
 };
 

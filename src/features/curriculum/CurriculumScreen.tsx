@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { Badge, LinkCard } from '@/components/Card';
 import { Icon } from '@/components/Icon';
 import { ProgressBar } from '@/components/Progress';
+import { SearchLink } from '@/components/SearchLink';
 import { PageHeader, Screen, SectionHeader } from '@/components/Screen';
 import { Text } from '@/components/Text';
 import { getModule, MODULES } from '@/content';
@@ -30,6 +31,7 @@ export function CurriculumScreen() {
         title="Learning roadmap"
         subtitle="Seventeen domains in a recommended order. Prerequisites are recommendations — every unlocked lesson is open to you."
       />
+      <SearchLink />
       <LinkCard href="/learn/java-versions" accessibilityLabel="Java version updates from Java 8 to the latest release">
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
           <Icon name="layers" />

@@ -16,6 +16,7 @@ export interface NavItemConfig {
 
 export const NAV_ITEMS: NavItemConfig[] = [
   { name: 'index', href: '/', label: 'Dashboard', icon: 'home', group: 'Learn', primaryMobile: true },
+  { name: 'search', href: '/search', label: 'Search', icon: 'search', group: 'Learn' },
   { name: 'learn', href: '/learn', label: 'Curriculum', icon: 'book', group: 'Learn', primaryMobile: true },
   { name: 'revision', href: '/revision', label: 'Revision', icon: 'refresh', group: 'Learn' },
   { name: 'practice', href: '/practice', label: 'Playground', icon: 'code', group: 'Practice', primaryMobile: true },

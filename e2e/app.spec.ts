@@ -85,3 +85,24 @@ test.describe('honesty guarantees', () => {
     await expect(page.getByText(/simplified|model/i).first()).toBeVisible();
   });
 });
+
+test.describe('global search', () => {
+  test('finds a "types of" topic and opens its lesson', async ({ page, supabase: _ }, info) => {
+    if (info.project.name === 'desktop') {
+      await page.keyboard.press('Control+k');
+    } else {
+      await page.goto('/search');
+    }
+    await expect(page).toHaveURL(/\/search/);
+    await page.getByLabel('Search JavaForge').fill('multilevel inheritance');
+    const first = page.getByRole('link', { name: /Multilevel/ }).first();
+    await expect(first).toBeVisible();
+    await first.click();
+    await expect(page).toHaveURL(/\/learn\/oop\/o-inheritance-types$/);
+  });
+
+  test('shows an honest empty state for unknown terms', async ({ page, supabase: _ }) => {
+    await page.goto('/search?q=zzqxv');
+    await expect(page.getByText('No results for “zzqxv”.')).toBeVisible();
+  });
+});

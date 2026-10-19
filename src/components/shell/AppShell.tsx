@@ -1,9 +1,10 @@
 import { TabList, TabSlot, TabTrigger, Tabs } from 'expo-router/ui';
 import { forwardRef, type ComponentRef } from 'react';
-import { Pressable, ScrollView, StyleSheet, View, type GestureResponderEvent, type StyleProp, type ViewStyle } from 'react-native';
+import { Platform, Pressable, ScrollView, StyleSheet, View, type GestureResponderEvent, type StyleProp, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
+import { useEffect } from 'react';
 
 import { BrandMark } from '@/components/BrandMark';
 import { Icon, type IconName } from '@/components/Icon';
@@ -20,7 +21,25 @@ import { NAV_GROUPS, NAV_ITEMS } from './navigation';
  * hidden TabList; the visible navigation is either a sidebar (tablet/desktop)
  * or a bottom bar (phone). Each destination keeps its own stack.
  */
+/** Web keyboard shortcut: Ctrl+K / Cmd+K, or "/" outside text fields, opens search. */
+function useSearchShortcut() {
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof document === 'undefined') return;
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const typing = !!target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
+      if (((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') || (e.key === '/' && !typing)) {
+        e.preventDefault();
+        router.push('/search');
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, []);
+}
+
 export function AppShell() {
+  useSearchShortcut();
   const { layout, isWide } = useLayout();
   const { colors } = useTheme();
   return (

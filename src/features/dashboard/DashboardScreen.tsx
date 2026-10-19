@@ -5,6 +5,7 @@ import { Badge, Card, LinkCard, PressableLink } from '@/components/Card';
 import { ActivityHeatmap, DimensionBars } from '@/components/charts';
 import { Icon } from '@/components/Icon';
 import { ProgressBar, ProgressRing } from '@/components/Progress';
+import { SearchLink } from '@/components/SearchLink';
 import { EmptyState, PageHeader, Screen, SectionHeader } from '@/components/Screen';
 import { Text } from '@/components/Text';
 import { MODULES, PROJECTS } from '@/content';
@@ -229,6 +230,7 @@ export function DashboardScreen() {
             : 'Start with the first lesson. Everything you see here is computed from what you actually demonstrate.'
         }
       />
+      <SearchLink />
       {!hasActivity ? (
         <EmptyState
           icon="book"
