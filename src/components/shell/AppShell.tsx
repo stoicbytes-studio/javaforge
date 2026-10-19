@@ -1,6 +1,6 @@
 import { TabList, TabSlot, TabTrigger, Tabs } from 'expo-router/ui';
 import { forwardRef, type ComponentRef } from 'react';
-import { Pressable, StyleSheet, View, type GestureResponderEvent, type StyleProp, type ViewStyle } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View, type GestureResponderEvent, type StyleProp, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Link } from 'expo-router';
@@ -108,7 +108,7 @@ function Sidebar({ collapsed }: { collapsed: boolean }) {
         ) : null}
       </View>
 
-      <View style={{ flex: 1, gap: spacing.md }}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ gap: spacing.md }} showsVerticalScrollIndicator={false}>
         {NAV_GROUPS.map((group) => (
           <View key={group} style={{ gap: 2 }}>
             {!collapsed ? (
@@ -123,7 +123,7 @@ function Sidebar({ collapsed }: { collapsed: boolean }) {
             ))}
           </View>
         ))}
-      </View>
+      </ScrollView>
 
       <AccountEntry collapsed={collapsed} />
 
