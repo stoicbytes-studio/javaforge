@@ -1,0 +1,771 @@
+import type { LessonConcepts } from '@/types/curriculum';
+
+/** Concept pages for module 15 (Spring Boot), keyed by lesson id. */
+export const springConcepts: Record<string, LessonConcepts> = {
+  // -------------------------------------------------------------------------
+  'sp-ioc-boot': {
+    interviewDefinition:
+      '**Inversion of control** means an object no longer creates or looks up its collaborators; it declares them, and a container supplies them. **Dependency injection** is the mechanism: Spring\'s `ApplicationContext` collects bean definitions (component scanning, `@Bean` methods, auto-configuration), resolves the dependency graph, instantiates beans in order, injects them — preferably through constructors — and may wrap them in proxies for transactions or security. **Spring Boot** adds starters, conditional auto-configuration and externalised configuration, so sensible defaults appear automatically and back off when you define your own beans.',
+    interviewFollowUps: [
+      {
+        question: 'Why is constructor injection preferred over field injection?',
+        answer: 'Dependencies can be `final`, the object is never half-built, required collaborators are visible in the signature, and a unit test just calls the constructor with fakes — no container or reflection. Field injection hides dependencies and lets an object exist without them.',
+      },
+      {
+        question: 'What is the difference between `BeanFactory` and `ApplicationContext`?',
+        answer: '`BeanFactory` is the core container that creates and wires beans. `ApplicationContext` extends it with eager pre-instantiation of singletons, automatic registration of post-processors, events, the `Environment` (profiles and properties), resource loading and i18n messages. Applications always use an `ApplicationContext`.',
+      },
+      {
+        question: 'How does Spring Boot decide which auto-configurations apply?',
+        answer: 'Candidates are listed in `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`; each is guarded by conditions such as `@ConditionalOnClass`, `@ConditionalOnProperty` and `@ConditionalOnMissingBean`. Run with `--debug` to print the condition evaluation report.',
+      },
+      {
+        question: 'What happens with a circular dependency?',
+        answer: 'With constructor injection Spring cannot build either bean and fails at start-up; since Spring Boot 2.6 circular references are prohibited by default even for field injection. The fix is a design change — extract the shared logic into a third bean or publish an event.',
+      },
+    ],
+    mnemonic: {
+      device: 'The Hollywood Principle: "Don\'t call us, we\'ll call you"',
+      expansion: [
+        { key: 'Don\'t call us', meaning: 'Your class never calls `new` on its collaborators or looks them up; it only declares them as constructor parameters.' },
+        { key: 'We\'ll call you', meaning: 'The container calls your constructor, your `@PostConstruct` method and, through proxies, wraps your methods with transactions or security.' },
+        { key: 'The casting agency', meaning: 'The `ApplicationContext` holds every actor (bean) and decides who plays which role (which implementation is injected).' },
+        { key: 'The contract', meaning: 'Configuration — profiles, properties and `@Bean` methods — tells the agency which actor to send for each role in each environment.' },
+      ],
+      visual: 'Picture actors waiting by the phone instead of knocking on studio doors: the studio (Spring) calls them when it is time to perform.',
+    },
+    breakdown: [
+      {
+        kind: 'analogy',
+        title: 'A theatre with a stage manager',
+        body: 'An actor does not build the set or hire the other actors. They declare "I need a sword and a partner", and the stage manager supplies both before the curtain rises. Swap the real sword for a prop in rehearsal (a fake in a test) and the actor does not notice — that is what injecting an interface buys you.',
+      },
+      {
+        kind: 'insight',
+        title: 'Start-up failure is a feature',
+        body: 'Singletons are created eagerly when the context refreshes, so a missing bean, an ambiguous match or a bad property fails the deploy in seconds instead of on the first unlucky request. Making everything lazy (`spring.main.lazy-initialization=true`) speeds start-up but moves those errors to run time — a trade-off, not a free win.',
+      },
+      {
+        kind: 'real-world',
+        title: 'One payment interface, three implementations',
+        body: 'A shop injects `PaymentGateway`. Locally a `@Profile("local")` fake approves everything; in tests a mock is registered with `@MockitoBean` (Spring Framework 6.2+, replacing Boot\'s deprecated `@MockBean`); in production the real gateway client is created from `@ConfigurationProperties` filled by environment variables. Not one line of `CheckoutService` changes.',
+      },
+      {
+        kind: 'angle',
+        title: 'The bean you inject is often not your class',
+        body: 'When a bean needs transactions, caching, `@Async` or method security, Spring hands out a **proxy** — usually a CGLIB subclass whose class name contains `$$SpringCGLIB$$`. That is why `final` classes and methods cannot be advised, why `this.method()` skips the advice, and why `getClass()` surprises people in a debugger.',
+      },
+    ],
+    diagrams: [
+      {
+        id: 'sp-ioc-boot-who-calls-new',
+        kind: 'concept',
+        title: 'Who calls new?',
+        caption: 'Without IoC the service hard-wires its own mailer. With IoC the container creates both objects and passes the mailer into the constructor, so a test or profile can swap the implementation.',
+        cols: 4,
+        rows: 3,
+        nodes: [
+          { id: 'os1', label: 'OrderService', detail: 'creates what it needs', col: 0, row: 0, tone: 'neutral' },
+          { id: 'm1', label: 'SmtpMailer', detail: 'concrete, hard-wired', col: 1, row: 0, tone: 'neutral' },
+          { id: 'bad', label: 'Tests send real email', detail: 'no seam to swap the mailer', col: 0, row: 1, span: 2, shape: 'pill', tone: 'danger' },
+          { id: 'ctx', label: 'ApplicationContext', detail: 'creates beans in dependency order', col: 2, row: 0, span: 2, tone: 'primary' },
+          { id: 'm2', label: 'Mailer bean', detail: 'SmtpMailer or FakeMailer', col: 2, row: 1, tone: 'accent' },
+          { id: 'os2', label: 'OrderService', detail: 'private final Mailer', col: 3, row: 1, tone: 'primary' },
+          { id: 'good', label: 'Swap by profile or test', detail: 'OrderService code never changes', col: 2, row: 2, span: 2, shape: 'pill', tone: 'success' },
+        ],
+        edges: [
+          { from: 'os1', to: 'm1', label: 'new SmtpMailer()' },
+          { from: 'm1', to: 'bad', dashed: true },
+          { from: 'ctx', to: 'm2', label: 'creates' },
+          { from: 'ctx', to: 'os2', label: 'creates' },
+          { from: 'm2', to: 'os2', label: 'constructor arg' },
+          { from: 'm2', to: 'good', dashed: true },
+        ],
+        groups: [
+          { label: 'Without IoC', fromCol: 0, toCol: 1, fromRow: 0, toRow: 1, tone: 'danger' },
+          { label: 'With IoC', fromCol: 2, toCol: 3, fromRow: 0, toRow: 2, tone: 'success' },
+        ],
+      },
+      {
+        id: 'sp-ioc-boot-startup',
+        kind: 'flow',
+        title: 'What happens inside SpringApplication.run',
+        caption: 'Configuration is read and filtered by conditions before any bean exists; beans are then created in dependency order, initialised, and only afterwards wrapped in proxies — which is why @PostConstruct runs on the raw object.',
+        cols: 3,
+        rows: 3,
+        nodes: [
+          { id: 'run', label: 'Start', detail: 'SpringApplication.run', col: 0, row: 0, shape: 'pill', tone: 'neutral' },
+          { id: 'env', label: 'Environment', detail: 'properties + profiles', col: 1, row: 0, tone: 'primary' },
+          { id: 'cand', label: 'Candidates', detail: 'scan, @Bean, auto-config', col: 2, row: 0, tone: 'primary' },
+          { id: 'cond', label: 'Conditions', detail: 'keep or back off', col: 2, row: 1, tone: 'warning' },
+          { id: 'defs', label: 'Bean definitions', detail: 'the dependency graph', col: 1, row: 1, tone: 'primary' },
+          { id: 'inst', label: 'Instantiate + inject', detail: 'constructors, in order', col: 0, row: 1, tone: 'primary' },
+          { id: 'init', label: 'Initialise', detail: '@PostConstruct, init', col: 0, row: 2, tone: 'primary' },
+          { id: 'proxy', label: 'Post-process', detail: 'AOP proxies wrap beans', col: 1, row: 2, tone: 'accent' },
+          { id: 'ready', label: 'Ready', detail: 'server up, runners run', col: 2, row: 2, shape: 'pill', tone: 'success' },
+        ],
+        edges: [
+          { from: 'run', to: 'env' },
+          { from: 'env', to: 'cand' },
+          { from: 'cand', to: 'cond' },
+          { from: 'cond', to: 'defs', label: 'matched only' },
+          { from: 'defs', to: 'inst' },
+          { from: 'inst', to: 'init' },
+          { from: 'init', to: 'proxy' },
+          { from: 'proxy', to: 'ready' },
+        ],
+        groups: [{ label: 'Configuration phase (no beans yet)', fromCol: 1, toCol: 2, fromRow: 0, toRow: 1, tone: 'neutral' }],
+      },
+      {
+        id: 'sp-ioc-boot-autoconfig',
+        kind: 'architecture',
+        title: 'How an auto-configuration backs off',
+        caption: 'A starter puts classes on the classpath; the matching auto-configuration only creates its default DataSource when you have not defined one yourself.',
+        cols: 3,
+        rows: 3,
+        nodes: [
+          { id: 'starter', label: 'starter-data-jpa', detail: 'jar on the classpath', col: 0, row: 0, shape: 'note', tone: 'neutral' },
+          { id: 'imports', label: 'Auto-config imports', detail: 'AutoConfiguration .imports', col: 1, row: 0, shape: 'note', tone: 'neutral' },
+          { id: 'dsac', label: 'DataSource config', detail: '@ConditionalOnClass', col: 2, row: 0, tone: 'primary' },
+          { id: 'missing', label: 'Bean missing?', detail: '@ConditionalOnMissing Bean', col: 2, row: 1, tone: 'warning' },
+          { id: 'yml', label: 'application.yml', detail: 'spring.datasource.*', col: 0, row: 1, shape: 'note', tone: 'accent' },
+          { id: 'def', label: 'Default DataSource', detail: 'HikariCP pool', col: 1, row: 1, tone: 'success' },
+          { id: 'yours', label: 'Your @Bean wins', detail: 'default is skipped', col: 2, row: 2, tone: 'accent' },
+        ],
+        edges: [
+          { from: 'starter', to: 'imports', label: 'ships' },
+          { from: 'imports', to: 'dsac', label: 'candidate' },
+          { from: 'dsac', to: 'missing', label: 'class present' },
+          { from: 'missing', to: 'def', label: 'yes' },
+          { from: 'missing', to: 'yours', label: 'no: back off' },
+          { from: 'yml', to: 'def', label: 'binds' },
+        ],
+      },
+    ],
+    variants: [
+      {
+        title: 'Types of dependency injection',
+        intro: 'Spring supports all three; constructor injection is the documented recommendation for required dependencies.',
+        items: [
+          {
+            name: 'Constructor injection',
+            summary: 'Dependencies are constructor parameters. A single constructor needs no `@Autowired`.',
+            support: 'supported',
+            note: 'Preferred: final fields, complete objects, trivially testable, circular dependencies fail fast.',
+            code: '@Service\nclass OrderService {\n  private final Mailer mailer;\n  OrderService(Mailer mailer) { this.mailer = mailer; }\n}',
+          },
+          {
+            name: 'Setter injection',
+            summary: 'The container calls a setter after construction.',
+            support: 'supported',
+            note: 'Use for genuinely optional dependencies with a sensible default, or to allow re-configuration.',
+            code: '@Autowired(required = false)\nvoid setMetrics(Metrics metrics) { this.metrics = metrics; }',
+          },
+          {
+            name: 'Field injection',
+            summary: '`@Autowired` directly on a (usually private) field, set by reflection.',
+            support: 'supported',
+            note: 'Discouraged in production code: hidden dependencies, no `final`, needs a container or reflection to test. Acceptable in test classes.',
+            code: '@Autowired private Mailer mailer; // avoid',
+          },
+          {
+            name: 'Lookup via ObjectProvider',
+            summary: 'Inject a provider and ask it for an instance when needed — fresh prototypes, optional or lazily resolved beans.',
+            support: 'supported',
+            code: 'OrderService(ObjectProvider<ReportBuilder> builders) { ... }\nReportBuilder b = builders.getObject();',
+          },
+        ],
+      },
+      {
+        title: 'Bean scopes',
+        intro: 'The scope decides how many instances exist and how long each lives. The four web-aware scopes need a web-aware ApplicationContext.',
+        items: [
+          { name: 'singleton', summary: 'One instance per container, shared by all threads (the default).', support: 'supported', note: 'Must be stateless or thread-safe.' },
+          { name: 'prototype', summary: 'A new instance every time the container is asked for one; Spring does not call its destroy callbacks.', support: 'supported', note: 'Injected into a singleton it is created once — use ObjectProvider for a fresh one per use.' },
+          { name: 'request', summary: 'One instance per HTTP request.', support: 'supported', note: 'Injected into singletons through a scoped proxy.' },
+          { name: 'session', summary: 'One instance per HTTP session.', support: 'supported', note: 'Beware memory per user and session replication cost.' },
+          { name: 'application', summary: 'One instance per ServletContext — like a singleton, but shared across contexts in the same web application and exposed as a ServletContext attribute.', support: 'supported' },
+          { name: 'websocket', summary: 'One instance per WebSocket session, used with STOMP messaging over WebSocket.', support: 'supported' },
+        ],
+      },
+      {
+        title: 'Stereotype annotations',
+        intro: 'All are detected by component scanning because they are meta-annotated with @Component; the specialisations add meaning and some behaviour.',
+        items: [
+          { name: '@Component', summary: 'Generic managed component; the base stereotype.', support: 'supported' },
+          { name: '@Service', summary: 'Business logic layer. No extra behaviour today — it documents intent and is a natural pointcut target.', support: 'supported' },
+          { name: '@Repository', summary: 'Data access layer. Enables persistence exception translation: vendor exceptions become Spring `DataAccessException`s.', support: 'supported' },
+          { name: '@Controller / @RestController', summary: 'Web layer. `@RestController` = `@Controller` + `@ResponseBody`, so return values are written to the response body (JSON).', support: 'supported' },
+          { name: '@Configuration', summary: 'Holds `@Bean` factory methods. In the default full mode the class is CGLIB-proxied so calling one `@Bean` method from another returns the shared singleton.', support: 'supported', note: '`proxyBeanMethods = false` (lite mode) skips the proxy for faster start-up.' },
+        ],
+      },
+    ],
+    deepDive: [
+      {
+        title: 'Proxies are created after initialisation',
+        body: 'AOP proxies are produced by a `BeanPostProcessor` in its *after-initialisation* callback. During construction and `@PostConstruct` you are working with the raw target, so calling your own `@Transactional` method there runs without a transaction. Spring Boot defaults to class-based (CGLIB) proxies, which subclass your bean: `final` classes fail and `final` or `private` methods are silently not advised. If you need work to run transactionally at start-up, use an `ApplicationRunner` or listen for `ApplicationReadyEvent`.',
+        sources: [
+          { label: 'Spring Framework reference: Core Technologies (Bean lifecycle, AOP proxying)', url: 'https://docs.spring.io/spring-framework/reference/' },
+        ],
+      },
+      {
+        title: 'Full vs lite @Configuration',
+        body: 'In a `@Configuration` class, `@Bean` methods are intercepted: `dataSource()` called twice returns the same singleton because the CGLIB subclass checks the container first. With `@Configuration(proxyBeanMethods = false)` — or `@Bean` methods on a plain `@Component` — each call is a plain Java call and creates a new object. Spring Boot\'s own auto-configurations use `proxyBeanMethods = false` to avoid runtime subclassing; inject dependencies as `@Bean` method parameters instead of calling other `@Bean` methods.',
+        sources: [{ label: 'Spring Framework reference: Java-based container configuration', url: 'https://docs.spring.io/spring-framework/reference/' }],
+      },
+      {
+        title: 'Version boundaries interviewers probe',
+        body: 'Spring Boot 3 / Spring Framework 6 moved to a Java 17 baseline and from `javax.*` to `jakarta.*` (Jakarta EE 9+), so upgrading from Boot 2 means rewriting imports for persistence, validation and servlet APIs. Boot 3 also introduced AOT processing for GraalVM native images. Spring Boot 4 (November 2025) is built on Spring Framework 7, keeps the Java 17 baseline and moves to Jakarta EE 11; Framework 7 adopts JSpecify annotations for null safety.',
+        sources: [
+          { label: 'Spring Boot reference documentation', url: 'https://docs.spring.io/spring-boot/' },
+          { label: 'Spring Framework reference documentation', url: 'https://docs.spring.io/spring-framework/reference/' },
+        ],
+      },
+    ],
+  },
+
+  // -------------------------------------------------------------------------
+  'sp-rest': {
+    interviewDefinition:
+      'A REST API models the domain as **resources** identified by URIs and manipulated through a uniform interface: HTTP methods whose semantics — safe, idempotent, cacheable — are defined by RFC 9110, with status codes and representations (usually JSON) carrying the outcome. In Spring MVC, the `DispatcherServlet` routes each request to a `@RestController` method; `HttpMessageConverter`s (Jackson) translate bodies, Bean Validation guards the input, and a `@RestControllerAdvice` turns exceptions into RFC 9457 `ProblemDetail` responses.',
+    interviewFollowUps: [
+      {
+        question: 'What is the difference between PUT, PATCH and POST?',
+        answer: 'PUT replaces the resource at a known URI and is idempotent. PATCH applies a partial change and is not guaranteed to be idempotent (an "increment" patch is not). POST asks the target to process the representation — typically creating a subordinate resource with a server-chosen id — and is neither safe nor idempotent.',
+      },
+      {
+        question: 'Is DELETE still idempotent if the second call returns 404?',
+        answer: 'Yes. Idempotency is about the effect on server state, not the response: after one or many DELETEs the resource is gone. Status codes may differ.',
+      },
+      {
+        question: 'What does "stateless" mean in REST?',
+        answer: 'Each request carries everything the server needs to process it (credentials, identifiers); the server keeps no client conversation state between requests. That lets any instance serve any request, which makes horizontal scaling and retries simple.',
+      },
+      {
+        question: 'How do you prevent lost updates when two clients edit the same resource?',
+        answer: 'Optimistic concurrency: return an `ETag` (or version) with the resource and require `If-Match` on updates; if it no longer matches, respond **412 Precondition Failed**. In JPA, back it with a `@Version` column.',
+      },
+    ],
+    mnemonic: {
+      device: 'Status classes: "1 hold on, 2 here you go, 3 go away, 4 you messed up, 5 I messed up"',
+      expansion: [
+        { key: '1xx — hold on', meaning: 'Informational: the request is in progress (100 Continue, 103 Early Hints).' },
+        { key: '2xx — here you go', meaning: 'Success: 200 OK, 201 Created (+ Location), 202 Accepted, 204 No Content.' },
+        { key: '3xx — go away', meaning: 'Redirection: 301/308 permanent, 302/307 temporary, 304 Not Modified (use your cache).' },
+        { key: '4xx — you messed up', meaning: 'Client error: 400, 401, 403, 404, 409, 412, 422, 429. Retrying unchanged will not help (except 429 after waiting).' },
+        { key: '5xx — I messed up', meaning: 'Server error: 500, 502, 503, 504. Often transient, so retries with backoff may succeed.' },
+      ],
+      visual: 'Picture a shop counter: the clerk says "one moment", hands you the parcel, points you to another counter, tells you your form is wrong, or apologises that the till is broken.',
+    },
+    breakdown: [
+      {
+        kind: 'analogy',
+        title: 'Lift buttons and vending machines',
+        body: 'Pressing the lift button for floor 3 five times still takes you to floor 3 — that is **idempotent** (PUT, DELETE). Pressing "buy" on a vending machine five times gives you five drinks — that is **POST**. Looking at the floor display changes nothing at all — that is **safe** (GET, HEAD, OPTIONS).',
+      },
+      {
+        kind: 'insight',
+        title: 'Method semantics are a promise to the whole network',
+        body: 'Browsers, proxies, CDNs and HTTP client libraries act on method semantics without asking you: caches store GET responses, crawlers follow GET links, and some clients automatically retry idempotent requests after a dropped connection. A GET that deletes data, or a PUT that is not idempotent, breaks assumptions made by software you will never see.',
+      },
+      {
+        kind: 'real-world',
+        title: 'The retried payment on a mobile network',
+        body: 'A phone sends `POST /payments`, the server charges the card, and the response is lost in a tunnel. The app retries. Without an `Idempotency-Key` the customer pays twice. Payment APIs store each key with the original response and replay it for retries; the IETF is standardising this as the `Idempotency-Key` header field (an Internet-Draft at the time of writing).',
+      },
+      {
+        kind: 'angle',
+        title: 'One front controller, many pluggable steps',
+        body: 'Spring MVC is the Front Controller pattern: `DispatcherServlet` asks a `HandlerMapping` which method matches, a `HandlerAdapter` resolves each argument (`@PathVariable`, `@RequestBody` + `@Valid`, `Pageable`), and a `HandlerExceptionResolver` handles failures. Knowing those extension points lets you add a custom argument resolver (e.g. the current tenant) instead of repeating code in every controller.',
+      },
+    ],
+    diagrams: [
+      {
+        id: 'sp-rest-method-semantics',
+        kind: 'concept',
+        title: 'Safe, idempotent, neither',
+        caption: 'Every safe method is also idempotent; PUT and DELETE are idempotent but change state; POST and PATCH are neither, so retrying them needs an idempotency key.',
+        cols: 3,
+        rows: 3,
+        nodes: [
+          { id: 'get', label: 'GET', detail: 'read a representation', col: 0, row: 0, shape: 'pill', tone: 'success' },
+          { id: 'head', label: 'HEAD', detail: 'headers only', col: 0, row: 1, shape: 'pill', tone: 'success' },
+          { id: 'opt', label: 'OPTIONS', detail: 'allowed methods, CORS', col: 0, row: 2, shape: 'pill', tone: 'success' },
+          { id: 'put', label: 'PUT', detail: 'replace at known URI', col: 1, row: 0, shape: 'pill', tone: 'warning' },
+          { id: 'del', label: 'DELETE', detail: 'remove the resource', col: 1, row: 1, shape: 'pill', tone: 'warning' },
+          { id: 'post', label: 'POST', detail: 'create / process', col: 2, row: 0, shape: 'pill', tone: 'danger' },
+          { id: 'patch', label: 'PATCH', detail: 'partial change', col: 2, row: 1, shape: 'pill', tone: 'danger' },
+          { id: 'retry', label: 'Safe to retry', detail: 'same end state', col: 1, row: 2, tone: 'success' },
+          { id: 'key', label: 'Needs a key to retry', detail: 'Idempotency-Key header', col: 2, row: 2, tone: 'danger' },
+        ],
+        edges: [
+          { from: 'del', to: 'retry' },
+          { from: 'patch', to: 'key' },
+        ],
+        groups: [
+          { label: 'Safe + idempotent', fromCol: 0, toCol: 0, fromRow: 0, toRow: 2, tone: 'success' },
+          { label: 'Idempotent only', fromCol: 1, toCol: 1, fromRow: 0, toRow: 1, tone: 'warning' },
+          { label: 'Neither', fromCol: 2, toCol: 2, fromRow: 0, toRow: 1, tone: 'danger' },
+        ],
+      },
+      {
+        id: 'sp-rest-mvc-flow',
+        kind: 'flow',
+        title: 'A request through Spring MVC',
+        caption: 'Filters run before the DispatcherServlet; arguments are converted and validated before your method runs; any exception, including a validation failure, is turned into one consistent problem response.',
+        cols: 4,
+        rows: 3,
+        nodes: [
+          { id: 'client', label: 'Client', detail: 'POST /api/books', col: 0, row: 0, shape: 'pill', tone: 'neutral' },
+          { id: 'filters', label: 'Filter chain', detail: 'security, logging', col: 1, row: 0, tone: 'neutral' },
+          { id: 'ds', label: 'DispatcherServlet', detail: 'front controller', col: 2, row: 0, tone: 'primary' },
+          { id: 'hm', label: 'HandlerMapping', detail: 'match path + method', col: 3, row: 0, tone: 'primary' },
+          { id: 'args', label: 'Argument resolvers', detail: 'JSON to DTO, @Valid', col: 3, row: 1, tone: 'primary' },
+          { id: 'ctrl', label: '@RestController', detail: 'your method', col: 2, row: 1, tone: 'accent' },
+          { id: 'conv', label: 'Message converter', detail: 'DTO to JSON (Jackson)', col: 1, row: 1, tone: 'primary' },
+          { id: 'resp', label: '201 Created', detail: 'Location header + body', col: 0, row: 1, shape: 'pill', tone: 'success' },
+          { id: 'advice', label: 'ControllerAdvice', detail: '@RestControllerAdvice', col: 2, row: 2, tone: 'warning' },
+          { id: 'problem', label: 'ProblemDetail', detail: 'application/problem+json', col: 1, row: 2, shape: 'pill', tone: 'danger' },
+        ],
+        edges: [
+          { from: 'client', to: 'filters' },
+          { from: 'filters', to: 'ds' },
+          { from: 'ds', to: 'hm' },
+          { from: 'hm', to: 'args' },
+          { from: 'args', to: 'ctrl', label: 'invoke' },
+          { from: 'ctrl', to: 'conv', label: 'return value' },
+          { from: 'conv', to: 'resp' },
+          { from: 'args', to: 'advice', label: 'invalid: 400', dashed: true },
+          { from: 'ctrl', to: 'advice', label: 'exception', dashed: true },
+          { from: 'advice', to: 'problem' },
+        ],
+      },
+      {
+        id: 'sp-rest-idempotency',
+        kind: 'flow',
+        title: 'Idempotency key on a retried POST',
+        caption: 'The first request with a key does the work and stores the response; any retry with the same key gets the stored response, so the card is charged once.',
+        cols: 4,
+        rows: 2,
+        nodes: [
+          { id: 'c', label: 'Client', detail: 'POST + Idempotency-Key', col: 0, row: 0, shape: 'pill', tone: 'neutral' },
+          { id: 'api', label: 'Payment endpoint', detail: 'reads the key', col: 1, row: 0, tone: 'primary' },
+          { id: 'store', label: 'Key table', detail: 'unique(key), expiry', col: 2, row: 0, shape: 'cylinder', tone: 'accent' },
+          { id: 'seen', label: 'Seen before', detail: 'replay stored response', col: 3, row: 0, tone: 'warning' },
+          { id: 'new', label: 'New key', detail: 'charge, save response', col: 2, row: 1, tone: 'primary' },
+          { id: 'ok', label: '201 Created', detail: 'same body every time', col: 1, row: 1, shape: 'pill', tone: 'success' },
+        ],
+        edges: [
+          { from: 'c', to: 'api' },
+          { from: 'api', to: 'store', label: 'lookup' },
+          { from: 'store', to: 'seen', label: 'hit' },
+          { from: 'store', to: 'new', label: 'miss' },
+          { from: 'new', to: 'ok', label: 'store + reply' },
+          { from: 'seen', to: 'ok', dashed: true },
+        ],
+      },
+    ],
+    variants: [
+      {
+        title: 'HTTP methods: safety and idempotency (RFC 9110)',
+        intro: 'Safe means read-only from the client\'s point of view; idempotent means repeating the request has the same effect on the server as sending it once.',
+        items: [
+          { name: 'GET', summary: 'Retrieve a representation. Safe, idempotent, cacheable.' },
+          { name: 'HEAD', summary: 'Like GET without the body — check existence, size or ETag. Safe, idempotent, cacheable.' },
+          { name: 'OPTIONS', summary: 'Describe communication options; used by browsers for CORS preflight. Safe, idempotent.' },
+          { name: 'PUT', summary: 'Create or replace the resource at the given URI with the full representation. Idempotent, not safe.' },
+          { name: 'DELETE', summary: 'Remove the resource. Idempotent, not safe.' },
+          { name: 'POST', summary: 'Process the enclosed representation — usually create a resource with a server-assigned id, or run an action. Neither safe nor idempotent.' },
+          { name: 'PATCH', summary: 'Apply a partial modification (RFC 5789), e.g. JSON Merge Patch. Not safe and not guaranteed idempotent.' },
+        ],
+      },
+      {
+        title: 'Status code classes',
+        items: [
+          { name: '1xx Informational', summary: 'Interim responses: 100 Continue, 101 Switching Protocols (WebSocket upgrade), 103 Early Hints.' },
+          { name: '2xx Success', summary: '200 OK, 201 Created (with Location), 202 Accepted (async processing), 204 No Content.' },
+          { name: '3xx Redirection', summary: '301/308 moved permanently, 302/307 temporary (307/308 keep the method), 304 Not Modified for conditional GETs.' },
+          { name: '4xx Client error', summary: '400 bad syntax or validation, 401 not authenticated, 403 not allowed, 404 not found, 409 conflict, 412 precondition failed, 422 unprocessable content, 429 too many requests.' },
+          { name: '5xx Server error', summary: '500 unexpected failure, 502 bad gateway, 503 unavailable (overload, maintenance; may send Retry-After), 504 gateway timeout.' },
+        ],
+      },
+    ],
+    deepDive: [
+      {
+        title: 'Conditional requests stop lost updates',
+        body: 'Two editors GET the same book, both change it, both PUT: the second silently overwrites the first. HTTP solves this with validators: send an `ETag` (Spring\'s `ShallowEtagHeaderFilter` computes one from the body, or derive it from a JPA `@Version`), require `If-Match` on PUT/PATCH, and answer **412 Precondition Failed** when it no longer matches. **428 Precondition Required** (RFC 6585) tells clients they must send the condition. The same validators make `If-None-Match` → **304 Not Modified** possible, saving bandwidth on reads.',
+        sources: [
+          { label: 'RFC 9110: HTTP Semantics (methods, status codes, conditional requests)', url: 'https://www.rfc-editor.org/rfc/rfc9110' },
+          { label: 'RFC 6585: Additional HTTP Status Codes', url: 'https://www.rfc-editor.org/rfc/rfc6585' },
+        ],
+      },
+      {
+        title: 'ProblemDetail is a contract, not just a format',
+        body: 'RFC 9457 (which obsoletes RFC 7807) defines `type` as a URI that identifies the *kind* of problem and that clients may branch on, while `title` should not change between occurrences and `detail` explains this occurrence. Treat `type` values as part of your public API: document them, never reuse one for a different meaning, and add extension members (e.g. `errors` with field-level validation messages) rather than overloading `detail`. In Spring, throw `ErrorResponseException` or return `ProblemDetail` from an `@ExceptionHandler`; enable `spring.mvc.problemdetails.enabled` so framework exceptions use the same shape.',
+        sources: [
+          { label: 'RFC 9457: Problem Details for HTTP APIs', url: 'https://www.rfc-editor.org/rfc/rfc9457' },
+          { label: 'Spring Framework reference: Web on Servlet Stack (Error Responses)', url: 'https://docs.spring.io/spring-framework/reference/' },
+        ],
+      },
+      {
+        title: 'Why deep offset pagination gets slow',
+        body: '`OFFSET 100000 LIMIT 20` makes the database produce and discard 100,000 rows before returning 20, so page cost grows linearly with depth, and inserts between requests shift rows across page boundaries (duplicates or gaps). Keyset pagination (`WHERE (created, id) < (:c, :i) ORDER BY created DESC, id DESC LIMIT 20`) uses an index seek, costs the same on every page and is stable under inserts — at the price of no "jump to page 57". Spring Data supports it with `ScrollPosition` and `Window` (Spring Data 3.1+).',
+        sources: [{ label: 'Spring Data JPA reference documentation (Scrolling)', url: 'https://docs.spring.io/spring-data/jpa/reference/' }],
+      },
+    ],
+  },
+
+  // -------------------------------------------------------------------------
+  'sp-data-tx': {
+    interviewDefinition:
+      '**JPA** (Jakarta Persistence, usually implemented by Hibernate) maps entities to tables; a **persistence context** tracks managed entities and flushes their changes at commit through dirty checking. **Spring Data JPA** generates repository implementations from interfaces. `@Transactional` is applied by an AOP proxy that asks a `PlatformTransactionManager` to begin, join, suspend, commit or roll back according to its **propagation** and **rollback rules** — so it only applies to calls that pass through the proxy, and by default rolls back only on unchecked exceptions.',
+    interviewFollowUps: [
+      {
+        question: 'Why does `@Transactional` sometimes do nothing?',
+        answer: 'The proxy is bypassed: a self-call via `this`, a `private` or `final` method, an object created with `new`, or a call made from `@PostConstruct` before proxying. Also, a checked exception commits by default, and a caught exception that is not rethrown looks like success.',
+      },
+      {
+        question: 'REQUIRES_NEW vs NESTED?',
+        answer: '`REQUIRES_NEW` suspends the caller\'s transaction and runs a completely independent one on a second connection — it commits even if the outer one later rolls back. `NESTED` stays in the same physical transaction and sets a JDBC savepoint, so the inner part can roll back alone, but nothing commits until the outer transaction does.',
+      },
+      {
+        question: 'Do you need to call `save()` after changing a loaded entity?',
+        answer: 'No. A managed entity inside a transaction is dirty-checked; Hibernate compares it with the snapshot taken at load time and issues the UPDATE at flush. `save()` matters for new (transient) entities, and calling `save()` on a detached one performs a merge.',
+      },
+      {
+        question: 'What is `UnexpectedRollbackException`?',
+        answer: 'An inner `REQUIRED` method threw a runtime exception, which marked the shared transaction rollback-only. The outer method caught the exception and tried to commit; Spring rolls back and throws `UnexpectedRollbackException` so the caller knows its "success" did not persist.',
+      },
+    ],
+    mnemonic: {
+      device: '"Unchecked Undoes, Checked Commits — and this. skips the proxy"',
+      expansion: [
+        { key: 'Unchecked Undoes', meaning: 'A `RuntimeException` or `Error` leaving the method rolls the transaction back.' },
+        { key: 'Checked Commits', meaning: 'A checked exception commits by default; add `rollbackFor = Exception.class` when it should roll back.' },
+        { key: 'this. skips the proxy', meaning: 'Calling another annotated method on `this` goes straight to the target, so its transaction settings are ignored.' },
+      ],
+      visual: 'Picture a bouncer (the proxy) at the door who starts and ends the party (the transaction). Guests already inside who walk into another room (`this.method()`) never meet the bouncer again.',
+    },
+    breakdown: [
+      {
+        kind: 'analogy',
+        title: 'The clerk with photocopies',
+        body: 'When you load an entity, Hibernate quietly photocopies it. At flush time it compares every managed object with its photocopy and writes only what changed. That is why you do not call `save()` for updates — and why loading 50,000 entities in one transaction is slow: that is 50,000 photocopies to compare.',
+      },
+      {
+        kind: 'insight',
+        title: 'Flush is not commit',
+        body: 'A flush sends pending SQL to the database inside the still-open transaction; the commit makes it permanent. Hibernate flushes automatically before a JPQL query that touches affected tables (so the query sees your changes) and at commit. Constraint violations therefore often surface at the commit or the next query — far from the line that caused them.',
+      },
+      {
+        kind: 'real-world',
+        title: 'The audit log that exhausted the pool',
+        body: 'An audit method used `REQUIRES_NEW` so its row survived rollbacks. Each request then held **two** connections: the suspended outer one and the new inner one. Under load, all ten pool connections were held by outer transactions waiting for a second connection — and every request timed out. Fix: size the pool for it, write audit rows after commit (`@TransactionalEventListener`), or use an outbox.',
+      },
+      {
+        kind: 'angle',
+        title: 'readOnly is a hint with real effects',
+        body: '`@Transactional(readOnly = true)` sets Hibernate\'s flush mode to manual (no dirty checking at the end) and marks the JDBC connection read-only, which some drivers and routing data sources use to send queries to a replica. It does not stop you calling a modifying query — it is an optimisation, not a security boundary.',
+      },
+    ],
+    diagrams: [
+      {
+        id: 'sp-data-tx-entity-states',
+        kind: 'concept',
+        title: 'Entity states in the persistence context',
+        caption: 'Only managed entities are tracked and flushed. merge() does not reattach the detached object — it copies its state onto a managed instance and returns that.',
+        cols: 3,
+        rows: 2,
+        nodes: [
+          { id: 'tr', label: 'Transient', detail: 'new Order(), not tracked', col: 0, row: 0, tone: 'neutral' },
+          { id: 'mg', label: 'Managed', detail: 'tracked, dirty-checked', col: 1, row: 0, tone: 'success' },
+          { id: 'dt', label: 'Detached', detail: 'context closed, stale', col: 2, row: 0, tone: 'warning' },
+          { id: 'db', label: 'Database', detail: 'rows', col: 1, row: 1, shape: 'cylinder', tone: 'accent' },
+          { id: 'rm', label: 'Removed', detail: 'scheduled for DELETE', col: 2, row: 1, tone: 'danger' },
+        ],
+        edges: [
+          { from: 'tr', to: 'mg', label: 'persist()' },
+          { from: 'mg', to: 'dt', label: 'detach / merge()', both: true },
+          { from: 'mg', to: 'db', label: 'find / flush', both: true },
+          { from: 'mg', to: 'rm', label: 'remove()' },
+          { from: 'rm', to: 'db', label: 'DELETE at flush' },
+        ],
+        groups: [{ label: 'Persistence context', fromCol: 1, toCol: 1, fromRow: 0, toRow: 0, tone: 'success' }],
+      },
+      {
+        id: 'sp-data-tx-proxy-flow',
+        kind: 'flow',
+        title: 'What the transactional proxy does',
+        caption: 'The proxy binds one connection and persistence context to the thread for the whole method; the exception type that escapes decides commit or rollback.',
+        cols: 4,
+        rows: 3,
+        nodes: [
+          { id: 'caller', label: 'Controller', detail: 'calls orderService', col: 0, row: 0, shape: 'pill', tone: 'neutral' },
+          { id: 'proxy', label: 'Proxy', detail: 'CGLIB subclass', col: 1, row: 0, tone: 'accent' },
+          { id: 'tm', label: 'Tx manager', detail: 'begin: bind connection', col: 2, row: 0, tone: 'primary' },
+          { id: 'target', label: 'Real OrderService', detail: 'your business code', col: 3, row: 0, tone: 'primary' },
+          { id: 'repos', label: 'Repositories', detail: 'same connection + context', col: 3, row: 1, tone: 'primary' },
+          { id: 'out', label: 'How did it end?', detail: 'return or exception', col: 2, row: 1, tone: 'warning' },
+          { id: 'commit', label: 'Commit', detail: 'flush, then COMMIT', col: 1, row: 1, shape: 'pill', tone: 'success' },
+          { id: 'rollback', label: 'Rollback', detail: 'RuntimeException, Error', col: 2, row: 2, shape: 'pill', tone: 'danger' },
+        ],
+        edges: [
+          { from: 'caller', to: 'proxy' },
+          { from: 'proxy', to: 'tm' },
+          { from: 'tm', to: 'target', label: 'invoke' },
+          { from: 'target', to: 'repos' },
+          { from: 'repos', to: 'out' },
+          { from: 'out', to: 'commit', label: 'normal / checked' },
+          { from: 'out', to: 'rollback', label: 'unchecked' },
+        ],
+      },
+      {
+        id: 'sp-data-tx-self-invocation',
+        kind: 'architecture',
+        title: 'The proxy boundary',
+        caption: 'Only calls that arrive through a proxy get transaction advice. A call on this stays inside the target object, so REQUIRES_NEW on audit() is ignored; moving audit() to another bean fixes it.',
+        cols: 3,
+        rows: 2,
+        nodes: [
+          { id: 'c', label: 'Caller', col: 0, row: 0, shape: 'pill', tone: 'neutral' },
+          { id: 'p', label: 'OrderService proxy', detail: 'transaction advice', col: 1, row: 0, tone: 'accent' },
+          { id: 't', label: 'placeOrder()', detail: 'inside the target', col: 2, row: 0, tone: 'primary' },
+          { id: 'self', label: 'audit()', detail: 'REQUIRES_NEW ignored', col: 2, row: 1, tone: 'danger' },
+          { id: 'other', label: 'AuditService proxy', detail: 'REQUIRES_NEW applied', col: 1, row: 1, tone: 'success' },
+        ],
+        edges: [
+          { from: 'c', to: 'p' },
+          { from: 'p', to: 't', label: 'advised call' },
+          { from: 't', to: 'self', label: 'this.audit()' },
+          { from: 't', to: 'other', label: 'injected bean' },
+        ],
+        groups: [{ label: 'Target object', fromCol: 2, toCol: 2, fromRow: 0, toRow: 1, tone: 'neutral' }],
+      },
+    ],
+    variants: [
+      {
+        title: 'Transaction propagation types',
+        intro: 'Propagation decides what happens when a transactional method is called while a transaction may already be active.',
+        items: [
+          { name: 'REQUIRED (default)', summary: 'Join the current transaction, or start one if none exists. An inner failure marks the whole transaction rollback-only.', support: 'supported' },
+          { name: 'REQUIRES_NEW', summary: 'Suspend the current transaction and run an independent one that commits or rolls back on its own.', support: 'supported', note: 'Needs a second connection while the outer one is held — watch pool sizing.' },
+          { name: 'NESTED', summary: 'Run inside the current transaction with a savepoint; an inner rollback returns to the savepoint only.', support: 'partial', note: 'Uses JDBC savepoints: works with DataSourceTransactionManager (JDBC); not supported by JTA, and JPA providers cannot roll back entity state to a savepoint.' },
+          { name: 'SUPPORTS', summary: 'Join a transaction if one exists; otherwise run non-transactionally.', support: 'supported' },
+          { name: 'MANDATORY', summary: 'Must be called inside an existing transaction; otherwise throw `IllegalTransactionStateException`.', support: 'supported' },
+          { name: 'NOT_SUPPORTED', summary: 'Suspend any current transaction and run without one.', support: 'supported' },
+          { name: 'NEVER', summary: 'Run without a transaction; throw if one is active.', support: 'supported' },
+        ],
+      },
+      {
+        title: 'JPA fetch types',
+        items: [
+          { name: 'EAGER', summary: 'Load the association with its owner. Default for `@ManyToOne` and `@OneToOne`.', note: 'Cannot be turned off per query — set these associations to LAZY explicitly.', code: '@ManyToOne(fetch = FetchType.LAZY)\nprivate Customer customer;' },
+          { name: 'LAZY', summary: 'Load on first access through a proxy or lazy collection. Default for `@OneToMany` and `@ManyToMany`.', note: 'Needs an open persistence context, or you get LazyInitializationException; per-query fetching with JOIN FETCH or @EntityGraph.' },
+        ],
+      },
+      {
+        title: 'Entity states',
+        items: [
+          { name: 'Transient (new)', summary: 'Created with `new`, no persistent identity, not known to any persistence context.', code: 'Order o = new Order();' },
+          { name: 'Managed', summary: 'Associated with an open persistence context; changes are dirty-checked and flushed.', code: 'em.persist(o); // or em.find(...)' },
+          { name: 'Detached', summary: 'Has an identity but its persistence context was closed or cleared; changes are not tracked.', code: 'Order managed = em.merge(detached);' },
+          { name: 'Removed', summary: 'Scheduled for deletion; the DELETE is issued at flush/commit.', code: 'em.remove(managed);' },
+        ],
+      },
+    ],
+    deepDive: [
+      {
+        title: 'Rollback-only: when the inner method decides for everyone',
+        body: 'With `REQUIRED`, inner and outer methods share **one** physical transaction. When an inner advised method throws an unchecked exception, its interceptor marks the transaction rollback-only before the exception reaches the caller. If the outer method catches it and returns normally, the commit attempt finds the flag, rolls back and throws `UnexpectedRollbackException`. If the inner work really is optional, give it its own transaction (`REQUIRES_NEW` or `NESTED`) or avoid the exception — catching is not enough.',
+        sources: [{ label: 'Spring Framework reference: Data Access — Transaction Management (propagation)', url: 'https://docs.spring.io/spring-framework/reference/' }],
+      },
+      {
+        title: 'JOIN FETCH plus pagination is a trap',
+        body: 'Fetch-joining a collection multiplies rows (one per child), so the database cannot apply `LIMIT` to parents. Hibernate then logs a warning, fetches **all** matching rows and paginates in memory — fine with ten rows, an outage with a million. Paginate the parent ids first and fetch-join for that page, or rely on batch fetching (`@BatchSize` / `hibernate.default_batch_fetch_size`) which loads children with `IN (...)` queries per page.',
+        sources: [{ label: 'Hibernate ORM User Guide (fetching, batch fetching)' }],
+      },
+      {
+        title: 'Optimistic locking with @Version',
+        body: 'A `@Version` column makes every UPDATE include `WHERE id = ? AND version = ?` and increment the version. If another transaction changed the row first, zero rows match and JPA throws `OptimisticLockException` (Spring translates it to `ObjectOptimisticLockingFailureException`). It costs nothing until there is a conflict, which makes it the default choice for web apps; map the exception to **409 Conflict** and let the user reload. Use pessimistic locks (`@Lock(PESSIMISTIC_WRITE)`, i.e. `SELECT ... FOR UPDATE`) only for short, highly contended updates.',
+        sources: [{ label: 'Jakarta Persistence specification (locking and concurrency)', url: 'https://jakarta.ee/specifications/persistence/' }],
+      },
+    ],
+  },
+
+  // -------------------------------------------------------------------------
+  'sp-security': {
+    interviewDefinition:
+      'Spring Security protects an application with a chain of servlet filters in front of the `DispatcherServlet`: `FilterChainProxy` picks the first matching `SecurityFilterChain`, whose filters **authenticate** the request (session, HTTP Basic, bearer token, OAuth2 login), store the resulting `Authentication` in the `SecurityContext`, and then **authorize** it against URL rules — plus method rules with `@EnableMethodSecurity`. Failures become **401** (not authenticated) or **403** (authenticated but not allowed). It is deny-by-default, uses adaptive password encoders, and enables CSRF protection and security headers out of the box.',
+    interviewFollowUps: [
+      {
+        question: 'How do you revoke a JWT?',
+        answer: 'You mostly cannot: it is valid until `exp` because resource servers verify it offline. Keep access tokens short-lived (minutes), revoke refresh tokens at the authorization server, and for instant revocation use opaque tokens with introspection or a deny-list of token ids (`jti`) — accepting the lookup cost.',
+      },
+      {
+        question: 'Why can a bearer-token API disable CSRF protection?',
+        answer: 'CSRF exploits credentials the browser attaches automatically — cookies. An `Authorization: Bearer` header is added explicitly by client code, and a malicious site cannot make the browser add it. If the token is stored in a cookie, CSRF protection is needed again.',
+      },
+      {
+        question: 'What is the difference between OAuth 2.0 and OpenID Connect?',
+        answer: 'OAuth 2.0 is delegated **authorization**: it issues access tokens that grant scopes to a client. OpenID Connect is an identity layer on top that adds **authentication**: an ID token (a JWT) describing who logged in, plus a userinfo endpoint and discovery metadata.',
+      },
+      {
+        question: 'Where does Spring keep the current user, and what breaks it?',
+        answer: 'In the `SecurityContextHolder`, which by default uses a `ThreadLocal`. Work handed to another thread (executors, `@Async`, `CompletableFuture`) does not see it unless you propagate it, e.g. with `DelegatingSecurityContextExecutor`.',
+      },
+    ],
+    mnemonic: {
+      device: 'The nightclub: the bouncer checks your ID, the wristband opens the rooms',
+      expansion: [
+        { key: 'Bouncer checks ID', meaning: 'Authentication: who are you? No valid ID → **401 Unauthorized**.' },
+        { key: 'Wristband', meaning: 'The granted authorities stored in the `Authentication` (`ROLE_ADMIN`, `SCOPE_orders.read`).' },
+        { key: 'VIP rope', meaning: 'Authorization rules (`hasRole`, `@PreAuthorize`): wrong wristband → **403 Forbidden**.' },
+        { key: 'Stamp on the hand', meaning: 'A session cookie or token so you are not re-checked from scratch on every visit.' },
+      ],
+      visual: 'Picture the queue outside: some people are turned away at the door (401), others get in but are stopped at the VIP rope (403).',
+    },
+    breakdown: [
+      {
+        kind: 'analogy',
+        title: 'A boarding pass is a JWT',
+        body: 'At check-in (the authorization server) your identity is verified once and you get a boarding pass with your seat and gate, signed so it cannot be forged. Every gate (resource server) checks the pass itself without phoning the check-in desk. That is fast — but if the pass is stolen, it works until it expires, which is exactly the JWT revocation problem.',
+      },
+      {
+        kind: 'insight',
+        title: 'Rule order is security-critical',
+        body: '`authorizeHttpRequests` rules are evaluated top to bottom and the first match wins. Putting `anyRequest().permitAll()` or a broad `/api/**` rule before `/api/admin/**` silently opens the admin endpoints. Write specific matchers first and end with `anyRequest().authenticated()` (or `denyAll()`) so anything forgotten is closed, not open.',
+      },
+      {
+        kind: 'real-world',
+        title: 'The leaked token in a support ticket',
+        body: 'A customer pasted a curl command, including the `Authorization` header, into a public issue. Because access tokens lived 24 hours, the token was usable for a day. Teams now keep access tokens to minutes, rotate refresh tokens on every use (so a replayed one is detected), and mask `Authorization` headers in every log and error report.',
+      },
+      {
+        kind: 'angle',
+        title: 'BCrypt has a 72-byte limit and a tunable cost',
+        body: 'BCrypt only uses the first 72 bytes of input, so very long passphrases beyond that are not fully used, and each +1 in the cost factor doubles the work. Spring\'s `BCryptPasswordEncoder` defaults to strength 10; tune it so one hash takes roughly a few hundred milliseconds on your servers. OWASP currently recommends Argon2id first, with BCrypt still acceptable for legacy systems.',
+      },
+    ],
+    diagrams: [
+      {
+        id: 'sp-security-authn-authz',
+        kind: 'concept',
+        title: 'Two questions, two failure codes',
+        caption: 'Authentication must succeed before authorization is even asked. A missing or invalid credential is a 401; a valid user without permission is a 403.',
+        cols: 4,
+        rows: 2,
+        nodes: [
+          { id: 'req', label: 'Request', detail: 'cookie or Bearer token', col: 0, row: 0, shape: 'pill', tone: 'neutral' },
+          { id: 'authn', label: 'Authentication', detail: 'who are you?', col: 1, row: 0, tone: 'primary' },
+          { id: 'authz', label: 'Authorization', detail: 'may you do this?', col: 2, row: 0, tone: 'primary' },
+          { id: 'ok', label: 'Controller', detail: '200 OK', col: 3, row: 0, shape: 'pill', tone: 'success' },
+          { id: 'e401', label: '401 Unauthorized', detail: 'missing or bad creds', col: 1, row: 1, shape: 'pill', tone: 'danger' },
+          { id: 'e403', label: '403 Forbidden', detail: 'known user, no right', col: 2, row: 1, shape: 'pill', tone: 'danger' },
+        ],
+        edges: [
+          { from: 'req', to: 'authn' },
+          { from: 'authn', to: 'authz', label: 'identity' },
+          { from: 'authz', to: 'ok', label: 'allowed' },
+          { from: 'authn', to: 'e401', label: 'fails', dashed: true },
+          { from: 'authz', to: 'e403', label: 'denied', dashed: true },
+        ],
+      },
+      {
+        id: 'sp-security-filter-chain',
+        kind: 'architecture',
+        title: 'Where Spring Security sits',
+        caption: 'Security runs as servlet filters before any controller. The authenticated user is stored in the SecurityContext; access-denied exceptions are turned into 401 or 403 by ExceptionTranslationFilter; method security adds a second line of defence behind the controller.',
+        cols: 3,
+        rows: 4,
+        nodes: [
+          { id: 'tomcat', label: 'Servlet container', detail: 'Tomcat filter list', col: 0, row: 0, tone: 'neutral' },
+          { id: 'dfp', label: 'DelegatingFilterProxy', detail: 'bridge to Spring', col: 1, row: 0, tone: 'neutral' },
+          { id: 'fcp', label: 'FilterChainProxy', detail: 'first matching chain', col: 2, row: 0, tone: 'primary' },
+          { id: 'csrf', label: 'CSRF + headers', detail: 'CsrfFilter, HSTS...', col: 2, row: 1, tone: 'primary' },
+          { id: 'authn', label: 'Authentication', detail: 'session, Basic, bearer', col: 1, row: 1, tone: 'primary' },
+          { id: 'ctx', label: 'SecurityContext', detail: 'ThreadLocal holder', col: 0, row: 1, shape: 'cylinder', tone: 'accent' },
+          { id: 'etf', label: 'Exception translation', detail: 'to 401 or 403', col: 0, row: 2, tone: 'warning' },
+          { id: 'authz', label: 'AuthorizationFilter', detail: 'URL rules, in order', col: 1, row: 2, tone: 'primary' },
+          { id: 'ds', label: 'DispatcherServlet', detail: 'controllers', col: 2, row: 2, tone: 'neutral' },
+          { id: 'method', label: 'Method security', detail: '@PreAuthorize proxy', col: 2, row: 3, tone: 'accent' },
+          { id: 'svc', label: 'Service', detail: 'ownership checked', col: 1, row: 3, shape: 'pill', tone: 'success' },
+        ],
+        edges: [
+          { from: 'tomcat', to: 'dfp' },
+          { from: 'dfp', to: 'fcp' },
+          { from: 'fcp', to: 'csrf' },
+          { from: 'csrf', to: 'authn' },
+          { from: 'authn', to: 'ctx', label: 'store user' },
+          { from: 'authn', to: 'authz' },
+          { from: 'authz', to: 'ds', label: 'allowed' },
+          { from: 'authz', to: 'etf', label: 'throws', dashed: true },
+          { from: 'ds', to: 'method' },
+          { from: 'method', to: 'svc', label: 'allowed' },
+        ],
+        groups: [{ label: 'SecurityFilterChain', fromCol: 0, toCol: 2, fromRow: 1, toRow: 2, tone: 'primary' }],
+      },
+      {
+        id: 'sp-security-jwt-flow',
+        kind: 'flow',
+        title: 'How a resource server trusts a JWT',
+        caption: 'The API never sees the password. It verifies the token signature with the issuer\'s public keys (fetched once and cached), checks expiry and issuer, and maps scopes to authorities.',
+        cols: 4,
+        rows: 2,
+        nodes: [
+          { id: 'client', label: 'Client', detail: 'app or service', col: 0, row: 0, shape: 'pill', tone: 'neutral' },
+          { id: 'idp', label: 'Authorization server', detail: 'Keycloak, Okta, ...', col: 1, row: 0, tone: 'accent' },
+          { id: 'jwks', label: 'JWK Set', detail: 'public keys, cached', col: 2, row: 0, shape: 'cylinder', tone: 'accent' },
+          { id: 'tok', label: 'Bearer token', detail: 'Authorization header', col: 0, row: 1, shape: 'note', tone: 'neutral' },
+          { id: 'dec', label: 'JwtDecoder', detail: 'signature, exp, iss', col: 1, row: 1, tone: 'primary' },
+          { id: 'conv', label: 'Authorities', detail: 'SCOPE_orders.read', col: 2, row: 1, tone: 'primary' },
+          { id: 'ok', label: 'Authorize', detail: 'hasAuthority(...)', col: 3, row: 1, shape: 'pill', tone: 'success' },
+        ],
+        edges: [
+          { from: 'client', to: 'idp', label: 'log in, get token', both: true },
+          { from: 'idp', to: 'jwks', label: 'publishes' },
+          { from: 'client', to: 'tok', label: 'sends' },
+          { from: 'tok', to: 'dec' },
+          { from: 'jwks', to: 'dec', label: 'verify with', dashed: true },
+          { from: 'dec', to: 'conv', label: 'claims' },
+          { from: 'conv', to: 'ok' },
+        ],
+      },
+    ],
+    variants: [
+      {
+        title: 'Authentication mechanisms',
+        intro: 'All of these are built into Spring Security; the right one depends on who the client is and where credentials live.',
+        items: [
+          { name: 'Session cookie (form login)', summary: 'User logs in once; the server stores the security context in the HTTP session and the browser sends `JSESSIONID`.', note: 'Instantly revocable; needs CSRF protection and shared session storage when scaled out.', code: 'http.formLogin(Customizer.withDefaults());' },
+          { name: 'HTTP Basic', summary: 'Username and password Base64-encoded in the `Authorization` header on every request (RFC 7617).', note: 'Only over TLS; fine for internal tools and tests, poor for public APIs.', code: 'http.httpBasic(Customizer.withDefaults());' },
+          { name: 'JWT bearer (resource server)', summary: 'A signed, self-contained token verified locally against the issuer\'s keys.', note: 'Stateless and fast; hard to revoke before expiry — keep it short-lived.', code: 'http.oauth2ResourceServer(o -> o.jwt(Customizer.withDefaults()));' },
+          { name: 'OAuth2 / OpenID Connect login', summary: 'Browser is redirected to an identity provider (authorization code flow with PKCE); the app receives an ID token describing the user.', note: 'Single sign-on and social login without handling passwords yourself.', code: 'http.oauth2Login(Customizer.withDefaults());' },
+          { name: 'Mutual TLS (X.509)', summary: 'The client proves its identity with a certificate during the TLS handshake.', note: 'Common for service-to-service traffic inside a platform or service mesh.', code: 'http.x509(Customizer.withDefaults());' },
+        ],
+      },
+    ],
+    deepDive: [
+      {
+        title: 'CSRF tokens in Spring Security 6',
+        body: 'Spring Security 6 loads the CSRF token lazily (only when a request needs it) and by default uses `XorCsrfTokenRequestAttributeHandler`, which randomises the token value in each response to mitigate BREACH-style compression attacks. Single-page apps that read the token from a cookie (`CookieCsrfTokenRepository.withHttpOnlyFalse()`) must configure the request handler accordingly, which is a common upgrade pitfall. `SameSite=Lax` cookies reduce CSRF risk but are defence in depth, not a replacement.',
+        sources: [{ label: 'Spring Security reference: Cross Site Request Forgery', url: 'https://docs.spring.io/spring-security/reference/' }],
+      },
+      {
+        title: 'What a JWT actually guarantees',
+        body: 'A JWS-signed JWT guarantees **integrity and origin**, not secrecy: the payload is Base64URL and readable by anyone holding it. Validation must check the signature with an expected algorithm (never trust `alg: none` or let the token choose), plus `exp`, `nbf`, `iss` and `aud`. Spring\'s `NimbusJwtDecoder` validates timestamps by default and the issuer when built from `issuer-uri`; audience checks must be configured. Signing with asymmetric keys (RS256, ES256) lets resource servers verify without being able to mint tokens.',
+        sources: [
+          { label: 'RFC 7519: JSON Web Token', url: 'https://www.rfc-editor.org/rfc/rfc7519' },
+          { label: 'OpenID Connect Core 1.0', url: 'https://openid.net/specs/openid-connect-core-1_0.html' },
+        ],
+      },
+      {
+        title: 'DelegatingPasswordEncoder makes hashes upgradeable',
+        body: 'Stored hashes carry an id prefix such as `{bcrypt}` or `{argon2}`. Verification picks the encoder from the prefix, so old and new formats coexist; `upgradeEncoding()` lets a `UserDetailsPasswordService` re-hash a password with the current algorithm at the next successful login — the only moment the plain password is available. This is how systems migrate away from weak hashes without forcing password resets.',
+        sources: [
+          { label: 'OWASP Password Storage Cheat Sheet', url: 'https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html' },
+          { label: 'Spring Security reference: Password Storage', url: 'https://docs.spring.io/spring-security/reference/' },
+        ],
+      },
+    ],
+  },
+};
