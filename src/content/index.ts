@@ -4,12 +4,16 @@ import type { BugHunt, Incident, InterviewQuestion, JvmScenario, Project } from 
 
 import { collectionsChallenges } from './challenges/collections';
 import { concurrencyChallenges } from './challenges/concurrency';
+import { designChallenges } from './challenges/design';
+import { dsaChallenges } from './challenges/dsa';
 import { ioChallenges } from './challenges/io';
 import { exceptionsChallenges } from './challenges/exceptions';
 import { functionalChallenges } from './challenges/functional';
 import { fundamentalsChallenges } from './challenges/fundamentals';
 import { oopChallenges } from './challenges/oop';
 import { platformChallenges } from './challenges/platform';
+import { productionChallenges } from './challenges/production';
+import { testingChallenges } from './challenges/testing';
 import { typesChallenges } from './challenges/types';
 import { fundamentalsModule } from './modules/01-fundamentals';
 import { platformModule } from './modules/02-platform';
@@ -21,6 +25,13 @@ import { collectionsModule } from './modules/06-collections';
 import { jvmRuntimeModule } from './modules/08-jvm-runtime';
 import { concurrencyModule } from './modules/09-concurrency';
 import { ioModule } from './modules/10-io';
+import { jdbcModule } from './modules/11-jdbc';
+import { testingModule } from './modules/12-testing';
+import { designModule } from './modules/13-design';
+import { dsaModule } from './modules/14-dsa';
+import { springModule } from './modules/15-spring';
+import { performanceModule } from './modules/16-performance';
+import { productionModule } from './modules/17-production';
 import { INTERVIEW_QUESTION_LIST } from './interview/questions';
 import { JVM_SCENARIO_LIST } from './jvm/scenarios';
 import { PLANNED_MODULES } from './modules/planned';
@@ -34,7 +45,7 @@ import { PROJECT_LIST } from './practice/projects';
  * into the public Postgres tables.
  */
 
-const WRITTEN_MODULES: CurriculumModule[] = [fundamentalsModule, platformModule, oopModule, typesModule, exceptionsModule, collectionsModule, functionalModule, jvmRuntimeModule, concurrencyModule, ioModule];
+const WRITTEN_MODULES: CurriculumModule[] = [fundamentalsModule, platformModule, oopModule, typesModule, exceptionsModule, collectionsModule, functionalModule, jvmRuntimeModule, concurrencyModule, ioModule, jdbcModule, testingModule, designModule, dsaModule, springModule, performanceModule, productionModule];
 
 const writtenIds = new Set(WRITTEN_MODULES.map((m) => m.id));
 export const MODULES: CurriculumModule[] = [
@@ -42,7 +53,7 @@ export const MODULES: CurriculumModule[] = [
   ...PLANNED_MODULES.filter((m) => !writtenIds.has(m.id)),
 ].sort((a, b) => a.order - b.order);
 
-export const CHALLENGES: CodingChallenge[] = [...fundamentalsChallenges, ...platformChallenges, ...oopChallenges, ...typesChallenges, ...exceptionsChallenges, ...collectionsChallenges, ...functionalChallenges, ...concurrencyChallenges, ...ioChallenges];
+export const CHALLENGES: CodingChallenge[] = [...fundamentalsChallenges, ...platformChallenges, ...oopChallenges, ...typesChallenges, ...exceptionsChallenges, ...collectionsChallenges, ...functionalChallenges, ...concurrencyChallenges, ...ioChallenges, ...testingChallenges, ...designChallenges, ...dsaChallenges, ...productionChallenges];
 export const INTERVIEW_QUESTIONS: InterviewQuestion[] = INTERVIEW_QUESTION_LIST;
 export const BUG_HUNTS: BugHunt[] = BUG_HUNT_LIST;
 export const INCIDENTS: Incident[] = INCIDENT_LIST;

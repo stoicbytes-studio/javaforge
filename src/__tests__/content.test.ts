@@ -49,6 +49,7 @@ describe('curriculum integrity', () => {
       for (const p of l.prerequisites) expect(getLesson(p)).toBeDefined();
       for (const c of l.challengeIds) expect(getChallenge(c)).toBeDefined();
       expect(l.examples.some((e) => e.id === l.walkthrough.exampleId)).toBe(true);
+      for (const r of l.relatedLessonIds) expect(getLesson(r)).toBeDefined();
     }
     for (const c of CHALLENGES) {
       expect(getModule(c.moduleId)).toBeDefined();
