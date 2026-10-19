@@ -16,6 +16,7 @@ import { typesModule } from './modules/04-types';
 import { exceptionsModule } from './modules/05-exceptions';
 import { functionalModule } from './modules/07-functional';
 import { collectionsModule } from './modules/06-collections';
+import { INTERVIEW_QUESTION_LIST } from './interview/questions';
 import { JVM_SCENARIO_LIST } from './jvm/scenarios';
 import { PLANNED_MODULES } from './modules/planned';
 import { BUG_HUNT_LIST } from './practice/bugHunts';
@@ -36,7 +37,7 @@ export const MODULES: CurriculumModule[] = [
 ].sort((a, b) => a.order - b.order);
 
 export const CHALLENGES: CodingChallenge[] = [...fundamentalsChallenges, ...platformChallenges, ...oopChallenges, ...typesChallenges, ...exceptionsChallenges, ...collectionsChallenges, ...functionalChallenges];
-export const INTERVIEW_QUESTIONS: InterviewQuestion[] = [];
+export const INTERVIEW_QUESTIONS: InterviewQuestion[] = INTERVIEW_QUESTION_LIST;
 export const BUG_HUNTS: BugHunt[] = BUG_HUNT_LIST;
 export const INCIDENTS: Incident[] = INCIDENT_LIST;
 export const PROJECTS: Project[] = [];
