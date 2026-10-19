@@ -33,7 +33,14 @@ export const typesModule: CurriculumModule = {
 
 Because Strings are so common, Java keeps one shared copy of each string **literal** in a pool. That is why \`==\` sometimes appears to work for strings — and why you must never rely on it. Use \`equals\` to compare text.
 
-When you build a string piece by piece in a loop, use a \`StringBuilder\`, which *is* mutable.`,
+When you build a string piece by piece in a loop, use a \`StringBuilder\`, which *is* mutable.
+
+**Cheat sheet for comparing text:**
+- \`a.equals(b)\` — same characters, exactly (case matters).
+- \`a.equalsIgnoreCase(b)\` — same characters, ignoring upper/lower case.
+- \`a.compareTo(b)\` — for **sorting**: a negative number means a comes first, 0 means equal, a positive number means a comes after. Only the sign matters.
+- \`a == b\` — "are these the *same object*?" Almost never what you want for text.
+- \`"literal".equals(input)\` or \`Objects.equals(a, b)\` — null-safe versions.`,
       technical: `### Immutability
 A String's state is final and private (since Java 9 a \`byte[]\` plus a coder flag: Latin-1 or UTF-16, "compact strings"). Immutability makes Strings safe to share between threads, safe as HashMap keys (the hash is cached), and safe for security-sensitive values such as class names and file paths.
 
@@ -150,6 +157,45 @@ public class Main {
 }
 4 lines`,
           explanation: 'Indentation common to all lines (relative to the closing delimiter) is stripped. `formatted` is the instance form of String.format.',
+        },
+        {
+          id: 't-strings-compare',
+          title: 'equals, equalsIgnoreCase, compareTo and StringBuilder',
+          runnable: true,
+          code: `import java.util.Objects;
+
+public class Main {
+    public static void main(String[] args) {
+        String typed = "Admin";
+        String stored = "admin";
+        System.out.println(typed.equals(stored));            // case matters
+        System.out.println(typed.equalsIgnoreCase(stored));  // case ignored
+
+        System.out.println("apple".compareTo("banana"));     // negative: apple sorts first
+        System.out.println("banana".compareTo("apple"));     // positive: banana sorts after
+        System.out.println("Zebra".compareTo("apple"));      // uppercase sorts before lowercase
+        System.out.println("app".compareTo("apple"));        // a prefix sorts first
+
+        String missing = null;
+        System.out.println("admin".equals(missing));         // null-safe: literal first
+        System.out.println(Objects.equals(missing, null));   // null-safe for two variables
+
+        StringBuilder sb = new StringBuilder("Java");
+        sb.append(21).insert(0, "Hello ").append('!');       // mutates the same builder
+        System.out.println(sb + " (length " + sb.length() + ")");
+    }
+}`,
+          expectedOutput: `false
+true
+-1
+1
+-7
+-2
+false
+true
+Hello Java21! (length 13)`,
+          explanation:
+            '`compareTo` subtracts the first differing characters (`\'a\' - \'b\'` is -1, `\'Z\' - \'a\'` is 90 - 97 = -7) or, when one string is a prefix of the other, the lengths (3 - 5 = -2). Rely only on the sign, never on the exact number. `StringBuilder` methods change the builder itself and return it, so calls can be chained.',
         },
       ],
       walkthrough: {
@@ -313,7 +359,14 @@ The fix was \`toLowerCase(Locale.ROOT)\` for all identifiers and protocol values
       ],
       plainEnglish: `Collections and generics only hold objects, so each primitive has a **wrapper** class: \`int\` → \`Integer\`, \`double\` → \`Double\`, \`boolean\` → \`Boolean\`, and so on.
 
-Java converts automatically between them: **autoboxing** turns \`5\` into an \`Integer\`; **unboxing** turns an \`Integer\` back into an \`int\`. It is convenient but hides two traps: an \`Integer\` can be \`null\` (unboxing it crashes), and \`==\` on two \`Integer\`s compares objects, not numbers.`,
+Java converts automatically between them: **autoboxing** turns \`5\` into an \`Integer\`; **unboxing** turns an \`Integer\` back into an \`int\`. It is convenient but hides two traps: an \`Integer\` can be \`null\` (unboxing it crashes), and \`==\` on two \`Integer\`s compares objects, not numbers.
+
+**The eight pairs** (note the two irregular names):
+- \`byte\` → \`Byte\`, \`short\` → \`Short\`, \`int\` → **\`Integer\`**, \`long\` → \`Long\`
+- \`float\` → \`Float\`, \`double\` → \`Double\`
+- \`char\` → **\`Character\`**, \`boolean\` → \`Boolean\`
+
+Wrappers are also where the handy helpers live: \`Integer.parseInt("42")\` turns text into a number, \`Integer.MAX_VALUE\` is the largest int, and \`Character.isDigit('7')\` checks a character.`,
       technical: `### Boxing mechanics
 Autoboxing compiles to \`Integer.valueOf(i)\`; unboxing to \`i.intValue()\`. Unboxing a null reference throws \`NullPointerException\` at that point — often in a line that looks purely numeric, such as \`int total = map.get(key);\`.
 
@@ -391,6 +444,38 @@ public class Main {
 }`,
           expectedOutput: `[10, 30, 1]
 [10, 30]`,
+        },
+        {
+          id: 't-wrappers-helpers',
+          title: 'Parsing text and the static helpers on wrappers',
+          runnable: true,
+          code: `public class Main {
+    public static void main(String[] args) {
+        int port = Integer.parseInt("8080");          // String -> int
+        Integer boxed = Integer.valueOf("8080");      // String -> Integer
+        double price = Double.parseDouble("19.99");
+        boolean on = Boolean.parseBoolean("TRUE");    // ignores case
+        System.out.println(port + 1);
+        System.out.println(boxed.equals(port));       // port is boxed to Integer
+        System.out.println(price * 2);
+        System.out.println(on);
+
+        System.out.println(Integer.MAX_VALUE + " " + Integer.MIN_VALUE);
+        System.out.println(Integer.compare(3, 7) + " " + Integer.toBinaryString(10));
+        System.out.println(Character.isDigit('7') + " " + Character.toUpperCase('q'));
+        System.out.println(Byte.MAX_VALUE + " " + Short.MAX_VALUE + " " + Long.SIZE);
+    }
+}`,
+          expectedOutput: `8081
+true
+39.98
+true
+2147483647 -2147483648
+-1 1010
+true Q
+127 32767 64`,
+          explanation:
+            '`parseXxx` returns a primitive; `valueOf` returns a wrapper (possibly a cached one). Both throw NumberFormatException for text that is not a number — except `Boolean.parseBoolean`, which returns false for anything other than "true" (any case). `Integer.compare` is the overflow-safe way to compare ints in a Comparator.',
         },
       ],
       walkthrough: {
@@ -545,7 +630,13 @@ public class Main {
       ],
       plainEnglish: `**Generics** let you write a class or method once and use it with many types while the compiler still checks types: a \`List<String>\` will refuse to accept an \`Integer\`, and you never need to cast when reading from it.
 
-The type in angle brackets is a **type parameter**. You can restrict it — \`<T extends Comparable<T>>\` means "any T that can be compared" — and you can use **wildcards** (\`?\`) when a method can accept several related types.`,
+The type in angle brackets is a **type parameter**. You can restrict it — \`<T extends Comparable<T>>\` means "any T that can be compared" — and you can use **wildcards** (\`?\`) when a method can accept several related types.
+
+**Where the angle brackets go** (the part beginners mix up):
+- Generic **class**: after the class name — \`class Box<T> { T value; }\`, used as \`Box<String>\`.
+- Generic **method**: *before* the return type — \`static <T> T first(List<T> list)\`. The \`<T>\` declares T; the return type then uses it.
+- Type parameter names are single capital letters by convention: \`T\` type, \`E\` element, \`K\`/\`V\` key/value, \`R\` result.
+- Type arguments must be reference types: \`List<int>\` does not compile; use \`List<Integer>\`.`,
       technical: `### Invariance
 \`List<String>\` is **not** a subtype of \`List<Object>\`, even though String is a subtype of Object. If it were, you could add an Integer to a list of Strings through the Object view. Arrays, by contrast, are **covariant** (\`String[]\` is an \`Object[]\`), which is why storing the wrong type fails at runtime with \`ArrayStoreException\`.
 
@@ -653,6 +744,51 @@ public class Main {
           expectedOutput: `true
 ClassCastException when reading
 ArrayStoreException: java.lang.Integer`,
+        },
+        {
+          id: 't-generics-class',
+          title: 'Writing your own generic class, record and method',
+          runnable: true,
+          code: `import java.util.List;
+import java.util.function.Function;
+
+class Box<T> {                                    // T is declared after the class name
+    private final T value;
+    Box(T value) { this.value = value; }
+    T get() { return value; }
+    <R> Box<R> map(Function<? super T, ? extends R> f) {   // a generic method inside
+        return new Box<>(f.apply(value));
+    }
+}
+
+record Pair<K, V>(K key, V value) {}              // records can be generic too
+
+public class Main {
+    static <T> T firstOrDefault(List<T> items, T fallback) {   // <T> before the return type
+        return items.isEmpty() ? fallback : items.get(0);
+    }
+
+    public static void main(String[] args) {
+        Box<String> name = new Box<>("forge");
+        String s = name.get();                    // no cast needed
+        Box<Integer> length = name.map(String::length);
+        System.out.println(s + " " + length.get());
+
+        Pair<String, Integer> score = new Pair<>("Ada", 95);
+        System.out.println(score.key() + "=" + score.value());
+
+        System.out.println(firstOrDefault(List.of("x", "y"), "none"));
+        System.out.println(firstOrDefault(List.of(), "none"));
+        System.out.println(Main.<Integer>firstOrDefault(List.of(), -1));
+    }
+}`,
+          expectedOutput: `forge 5
+Ada=95
+x
+none
+-1`,
+          explanation:
+            'The diamond `new Box<>(...)` lets the compiler infer the type argument from the declaration. Type arguments for generic methods are normally inferred from the arguments; `Main.<Integer>firstOrDefault(...)` shows the rarely needed explicit form.',
         },
       ],
       walkthrough: {
@@ -806,7 +942,11 @@ public class Main {
 
 - \`var\` lets the compiler infer a local variable's type from its initialiser: \`var orders = new ArrayList<Order>();\`. The type is still fixed at compile time — Java does not become dynamically typed.
 - **Pattern matching** combines "check the type" and "cast it" into one step: \`if (obj instanceof String s)\` gives you \`s\` already typed.
-- **Switch patterns** (Java 21) let one switch branch on types and even on the contents of records.`,
+- **Switch patterns** (Java 21) let one switch branch on types and even on the contents of records.
+
+**Two different kinds of cast** — beginners often mix them up:
+- **Primitive casts** convert a value. Widening (\`int\` → \`long\` → \`double\`) is automatic and safe; narrowing (\`(int) 3.99\`) must be written explicitly and can lose information — it truncates to 3, it does not round.
+- **Reference casts** do not change the object at all; they change how the compiler lets you *view* it. An upcast (\`Object o = "text"\`) is automatic; a downcast (\`(String) o\`) is checked when the program runs and throws \`ClassCastException\` if the object is not really that type. Pattern matching replaces most downcasts.`,
       technical: `### var
 Only for local variables with an initialiser (and loop variables, lambda parameters since 11). Not for fields, method parameters or return types. \`var x = null;\` and \`var arr = {1, 2};\` do not compile. \`var list = new ArrayList<>();\` infers \`ArrayList<Object>\` — usually not what you want.
 
@@ -908,6 +1048,45 @@ public class Main {
           expectedOutput: `[Ada] 3 1.5
 list starting with Ada
 ClassCastException: Integer is not a String`,
+        },
+        {
+          id: 't-modern-types-primitive-casts',
+          title: 'Widening, narrowing and reference casts',
+          runnable: true,
+          code: `public class Main {
+    public static void main(String[] args) {
+        int whole = 7;
+        double widened = whole;          // widening: implicit and safe
+        long big = whole;                // widening int -> long
+        System.out.println(widened + " " + big);
+
+        double price = 3.99;
+        int truncated = (int) price;     // narrowing: explicit, drops the fraction
+        System.out.println(truncated);
+        System.out.println(Math.round(price));
+
+        int large = 200;
+        byte b = (byte) large;           // keeps only the low 8 bits
+        System.out.println(b);
+
+        char letter = 'A';
+        int code = letter;               // char widens to int
+        char next = (char) (letter + 2); // int arithmetic, cast back to char
+        System.out.println(code + " " + next);
+
+        Object o = "text";               // upcast: implicit
+        String back = (String) o;        // downcast: checked at run time
+        System.out.println(back.length());
+    }
+}`,
+          expectedOutput: `7.0 7
+3
+4
+-56
+65 C
+4`,
+          explanation:
+            'A narrowing cast never throws: it silently truncates (3.99 → 3) or wraps around (200 does not fit in a byte, whose range is -128..127, so it becomes 200 - 256 = -56). Use `Math.round` to round, and `Math.toIntExact` when you want an exception instead of silent overflow. Reference downcasts, in contrast, are checked and can throw ClassCastException.',
         },
       ],
       walkthrough: {

@@ -11,11 +11,16 @@ demonstrated and what to practise next.
 
 ## What's inside
 
-- **Curriculum**: 17 modules and 53 lessons, from fundamentals, the JVM
+- **Curriculum**: 17 modules and 65 lessons, from fundamentals, the JVM
   platform, OOP, types, exceptions, collections and functional Java to JVM
   runtime internals, concurrency and virtual threads, I/O, JDBC, testing,
   design patterns, DSA, Spring Boot, performance and production engineering.
-  Each lesson has a plain-English explanation, technical detail, when (not)
+  Every lesson opens with a **concept page**: an interview-level
+  definition with follow-up questions, a memory mnemonic, analogies and
+  real-world breakdowns, SVG illustrations plus flow and architecture
+  diagrams, "types of X" sections (e.g. the five types of inheritance and
+  how Java supports each), and a deep dive citing public sources (JLS, JVMS,
+  JEPs, official docs). Then a plain-English explanation, technical detail, when (not)
   to use it, runnable examples, a line-by-line walkthrough, a real-world
   scenario, common mistakes, knowledge checks, mastery criteria and revision
   prompts.

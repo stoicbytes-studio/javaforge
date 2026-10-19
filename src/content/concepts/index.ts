@@ -1,8 +1,15 @@
 import type { LessonConcepts } from '@/types/curriculum';
 
 import { fundamentalsConcepts } from './01-fundamentals';
+import { platformConcepts } from './02-platform';
 import { oopConcepts } from './03-oop';
 import { oopMoreConcepts } from './03-oop-more';
+import { typesConcepts } from './04-types';
+import { exceptionsConcepts } from './05-exceptions';
+import { collectionsConcepts } from './06-collections';
+import { functionalConcepts } from './07-functional';
+import { jvmRuntimeConcepts } from './08-jvm-runtime';
+import { concurrencyConcepts } from './09-concurrency';
 import { ioConcepts } from './10-io';
 import { jdbcConcepts } from './11-jdbc';
 import { testingConcepts } from './12-testing';
@@ -15,8 +22,15 @@ import { productionConcepts } from './17-production';
 /** Concept pages for every lesson, keyed by lesson id. */
 export const CONCEPTS: Record<string, LessonConcepts> = {
   ...fundamentalsConcepts,
+  ...platformConcepts,
   ...oopConcepts,
   ...oopMoreConcepts,
+  ...typesConcepts,
+  ...exceptionsConcepts,
+  ...collectionsConcepts,
+  ...functionalConcepts,
+  ...jvmRuntimeConcepts,
+  ...concurrencyConcepts,
   ...ioConcepts,
   ...jdbcConcepts,
   ...testingConcepts,

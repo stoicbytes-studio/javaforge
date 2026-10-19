@@ -594,7 +594,8 @@ public class Main {
       versionNotes: [
         { feature: 'Optional', since: 8 },
         { feature: 'Optional.ifPresentOrElse, or, stream', since: 9 },
-        { feature: 'Optional.isEmpty, orElseThrow()', since: 11 },
+        { feature: 'Optional.orElseThrow()', since: 10 },
+        { feature: 'Optional.isEmpty', since: 11 },
         { feature: 'Records', since: 16 },
         { feature: 'Sealed types', since: 17 },
         { feature: 'Pattern matching for switch, record patterns, sequenced collections, virtual threads', since: 21 },

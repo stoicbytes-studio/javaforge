@@ -501,11 +501,386 @@ The fix was a single \`L\` — and, better, using \`java.time.Duration.ofDays(da
         'Explain why an int expression can overflow even when assigned to a long.',
         'Choose BigDecimal or minor units for money and justify it.',
       ],
-      relatedLessonIds: ['t-wrappers', 'f-control-flow'],
+      relatedLessonIds: ['f-type-conversion', 't-wrappers', 'f-control-flow'],
       revision: [
         { id: 'r1', question: 'Why does `long ms = days * 24 * 60 * 60 * 1000;` overflow for 30 days?', answer: 'All operands are int, so the multiplication happens in 32-bit arithmetic and wraps before the result is widened to long. Use 24L (or Duration) to force long arithmetic.' },
         { id: 'r2', question: 'What do -7 / 2 and -7 % 2 evaluate to?', answer: '-3 and -1: integer division truncates toward zero and the remainder has the sign of the dividend.' },
         { id: 'r3', question: 'Why does `b += 1` compile for a byte but `b = b + 1` does not?', answer: 'b + 1 is promoted to int and needs a cast to fit in a byte; compound assignment includes an implicit narrowing cast.' },
+      ],
+    },
+
+    // -----------------------------------------------------------------------
+    {
+      id: 'f-type-conversion',
+      moduleId: 'fundamentals',
+      title: 'Type conversion and casting',
+      summary: 'Widening and narrowing conversions, hidden promotions in expressions, casts that overflow or truncate, char ↔ int, and turning Strings into numbers and back.',
+      estimatedMinutes: 30,
+      difficulty: 'beginner',
+      prerequisites: ['f-types-operators'],
+      objectives: [
+        'Tell a widening conversion (automatic, safe range) from a narrowing one (needs a cast, may lose data).',
+        'Predict the type of an expression after numeric promotion, including byte + byte and int / int.',
+        'Predict what a cast does to out-of-range and fractional values.',
+        'Convert between char and int, and between String and numbers, with the right API.',
+        'Spot the hidden cast inside compound assignment (+=, *=).',
+      ],
+      plainEnglish: `Every value in Java has a type, and sometimes you need it as a different type: an \`int\` count used in a \`double\` average, a \`double\` price shown as whole euros, the text \`"42"\` typed by a user turned into the number 42.
+
+Java splits these moves into two groups:
+
+- **Widening** — moving to a "bigger" type (\`int\` → \`long\` → \`double\`). Every value fits, so Java does it **automatically**.
+- **Narrowing** — moving to a "smaller" type (\`double\` → \`int\`, \`int\` → \`byte\`). The value might not fit, so Java makes you write a **cast** such as \`(int) price\` to show you accept the risk. A cast never rounds: it chops off the fraction, and for whole numbers it keeps only the bits that fit.
+
+Text is not a number. \`"42" + 1\` is \`"421"\`; you must **parse** the text first with \`Integer.parseInt("42")\`. Going the other way, \`String.valueOf(42)\` turns a number into text.`,
+      technical: `JLS chapter 5 defines a small set of **conversions** and the **contexts** where each is allowed (assignment, method invocation, casting, string concatenation and numeric promotion).
+
+- **Widening primitive** (JLS 5.1.2): \`byte → short → int → long → float → double\`, and \`char → int\`. Never throws, but \`int\`/\`long\` → \`float\` and \`long\` → \`double\` can lose low-order digits.
+- **Narrowing primitive** (JLS 5.1.3): needs a cast, except that an \`int\` **constant** that fits may be assigned to \`byte\`, \`short\` or \`char\` (\`byte b = 100;\`). Integer narrowing keeps the low-order bits, so the sign can flip. Floating → integer rounds toward zero; \`NaN\` becomes 0 and out-of-range values clamp to the target's MIN/MAX.
+- **Numeric promotion** (JLS 5.6): before arithmetic, \`byte\`, \`short\` and \`char\` operands become \`int\`; if either operand is \`long\`, \`float\` or \`double\`, the other is widened to match. So \`byte + byte\` is an \`int\`, and \`int / int\` is integer division.
+- **Compound assignment** (JLS 15.26.2): \`s += x\` means \`s = (T) (s + x)\` — a narrowing cast you never wrote.
+- **Boxing/unboxing** (JLS 5.1.7–5.1.8) convert between \`int\` and \`Integer\`; unboxing \`null\` throws \`NullPointerException\`.
+- **String conversion** (JLS 5.1.11): when one operand of \`+\` is a String, the other is converted with \`String.valueOf\`. Parsing the other way is a library call, not a conversion: \`Integer.parseInt\` returns \`int\`, \`Integer.valueOf\` returns \`Integer\`, and both throw \`NumberFormatException\` for bad text.`,
+      whyItExists: `Java is statically typed so that mistakes surface at compile time. Allowing only safe conversions implicitly — and demanding an explicit cast for lossy ones — means data loss is always visible in the source code, while everyday arithmetic still reads naturally.`,
+      whenToUse: [
+        'Let widening happen implicitly, e.g. passing an int to a method that takes a long or double.',
+        'Cast explicitly when you really want truncation, e.g. `(int) seconds` to drop the fraction.',
+        'Use `Math.round`, `Math.floor` or `Math.ceil` when you mean rounding rather than truncation.',
+        'Use `Math.toIntExact(longValue)` when a narrowing must fail loudly instead of wrapping.',
+        'Use `Integer.parseInt` / `Double.parseDouble` for user input and configuration text.',
+      ],
+      whenNotToUse: [
+        'Do not cast to silence a compiler error without checking the value fits — the cast hides the bug instead of fixing it.',
+        'Do not cast a double to int when you mean "round" — `(int) 2.99` is 2.',
+        'Do not use `(int) someChar - 48` style tricks for digits when `Character.getNumericValue` or `c - \'0\'` with validation states the intent.',
+        'Do not parse without handling `NumberFormatException` when the text comes from users or files.',
+      ],
+      examples: [
+        {
+          id: 'conv-widen-narrow',
+          title: 'Widening is automatic, narrowing needs a cast',
+          runnable: true,
+          code: `public class Main {
+    public static void main(String[] args) {
+        int count = 100;
+        long total = count;          // widening: automatic
+        double average = total;      // widening: automatic
+        System.out.println(total + " " + average);
+
+        int big = 1_234_567_890;
+        float approx = big;          // widening, but float keeps ~7 digits
+        System.out.println((int) approx);
+
+        double price = 9.99;
+        int whole = (int) price;     // narrowing: cast required, truncates
+        System.out.println(whole);
+
+        int tooBig = 300;
+        byte b = (byte) tooBig;      // keeps only the low 8 bits
+        System.out.println(b);
+
+        long huge = 3_000_000_000L;
+        System.out.println((int) huge);
+        System.out.println((int) 1e20);
+        System.out.println((int) Double.NaN);
+    }
+}`,
+          expectedOutput: `100 100.0
+1234567936
+9
+44
+-1294967296
+2147483647
+0`,
+          explanation:
+            'Widening never needs a cast, yet int → float silently loses the last digits. Integer narrowing wraps (300 → 44, 3 billion → negative); double → int truncates, clamps huge values to Integer.MAX_VALUE and turns NaN into 0.',
+        },
+        {
+          id: 'conv-promotion-parsing',
+          title: 'Hidden promotions, char arithmetic and parsing text',
+          runnable: true,
+          code: `public class Main {
+    public static void main(String[] args) {
+        byte a = 10, b = 20;
+        int sum = a + b;             // byte + byte is an int
+        System.out.println(sum);
+
+        char c = 'A';
+        System.out.println(c + 2);
+        System.out.println((char) (c + 2));
+        System.out.println((int) 'a');
+        System.out.println('7' - '0');
+
+        System.out.println(7 / 2);
+        System.out.println(7 / 2.0);
+        System.out.println(1 / 3 * 3.0);
+        System.out.println(0.1f == 0.1);
+
+        String text = "42";
+        int n = Integer.parseInt(text);
+        Integer boxed = Integer.valueOf(text);
+        System.out.println(n + 1);
+        System.out.println(text + 1);
+        System.out.println(String.valueOf(n) + boxed);
+        System.out.println(Double.parseDouble("2.5") * 2);
+
+        short s = 1;
+        s += 70000;                  // hidden cast back to short
+        System.out.println(s);
+    }
+}`,
+          expectedOutput: `30
+67
+C
+97
+7
+3
+3.5
+0.0
+false
+43
+421
+4242
+5.0
+4465`,
+          explanation:
+            '`1 / 3 * 3.0` is 0.0 because `1 / 3` is int division (0) before the double appears. `0.1f` and `0.1` are different binary approximations, so widening the float does not make them equal. `s += 70000` compiles but wraps: (short) 70001 is 4465.',
+        },
+        {
+          id: 'conv-safe',
+          title: 'Converting safely: parse with a fallback, narrow with a check',
+          runnable: true,
+          code: `public class Main {
+    static int parseOrDefault(String s, int fallback) {
+        try {
+            return Integer.parseInt(s.trim());
+        } catch (NumberFormatException e) {
+            return fallback;
+        }
+    }
+
+    public static void main(String[] args) {
+        System.out.println(parseOrDefault(" 17 ", -1));
+        System.out.println(parseOrDefault("17.5", -1));
+        System.out.println(parseOrDefault("abc", -1));
+
+        System.out.println(Math.round(2.6) + " " + (int) 2.6);
+        System.out.println(Math.toIntExact(42L));
+        try {
+            Math.toIntExact(3_000_000_000L);
+        } catch (ArithmeticException e) {
+            System.out.println("refused: " + e.getMessage());
+        }
+    }
+}`,
+          expectedOutput: `17
+-1
+-1
+3 2
+42
+refused: integer overflow`,
+          explanation:
+            '`parseInt` rejects surrounding spaces and decimal points, so trim first and handle NumberFormatException. `Math.round` rounds; a cast truncates. `Math.toIntExact` throws instead of silently wrapping.',
+        },
+      ],
+      walkthrough: {
+        exampleId: 'conv-widen-narrow',
+        steps: [
+          { lines: [3, 6], text: 'int → long → double are widening conversions: every int value fits, so no cast is written. Printing a double always shows a decimal point: 100.0.' },
+          { lines: [8, 10], text: 'int → float is also widening, but a float has only 24 bits of precision. 1,234,567,890 becomes the nearest float, 1,234,567,936.' },
+          { lines: [12, 14], text: 'double → int is narrowing, so the cast is mandatory. It truncates toward zero: 9.99 becomes 9, not 10.' },
+          { lines: [16, 18], text: '300 needs 9 bits. (byte) keeps the low 8 bits, which are 44 (300 − 256).' },
+          { lines: [20, 21], text: 'long → int keeps the low 32 bits: 3,000,000,000 − 4,294,967,296 = −1,294,967,296. The sign flipped without any error.' },
+          { lines: [22, 23], text: 'Floating → int is different: too-large values clamp to Integer.MAX_VALUE and NaN becomes 0.' },
+        ],
+      },
+      realWorld: {
+        title: 'A percentage that was always zero',
+        scenario: `A dashboard showed "0% complete" for every upload until the very end, when it jumped to 100%. The code was \`int percent = done / total * 100;\` with \`done\` and \`total\` both ints: \`done / total\` is integer division, which is 0 until done equals total.
+
+Reordering to \`done * 100 / total\` fixed the display — until uploads above 21 MB made \`done * 100\` overflow int. The final fix was \`(int) (done * 100L / total)\`: widen to long before multiplying, divide, then narrow deliberately once the value is known to fit.`,
+      },
+      commonMistakes: [
+        {
+          mistake: 'Casting too late: `(double) (a / b)`.',
+          why: 'The division already happened in int arithmetic; the cast only widens the truncated result.',
+          fix: 'Cast an operand before dividing: `(double) a / b`.',
+          code: 'double ratio = (double) done / total;  // not (double) (done / total)',
+        },
+        {
+          mistake: 'Expecting `(int) 2.7` to be 3.',
+          why: 'Casting a floating-point value to an integer type truncates toward zero.',
+          fix: 'Use `Math.round` (returns long for double) or `Math.floor` / `Math.ceil` for the rounding you mean.',
+        },
+        {
+          mistake: 'Writing `"Total: " + a + b` and getting "Total: 12" instead of 3.',
+          why: 'Once the left operand is a String, every following + is concatenation, converting each number to text.',
+          fix: 'Parenthesise the arithmetic: `"Total: " + (a + b)`.',
+        },
+        {
+          mistake: 'Calling `Integer.parseInt("3.5")` or `Integer.parseInt(" 7")`.',
+          why: 'parseInt accepts only an optional sign and digits; decimals and spaces throw NumberFormatException.',
+          fix: 'Trim input, use Double.parseDouble for decimals, and catch NumberFormatException for user input.',
+        },
+        {
+          mistake: 'Assuming `+=` is exactly the same as `x = x + y`.',
+          why: 'Compound assignment casts the result back to the variable type, so `byte b += 200;` compiles and wraps silently.',
+          fix: 'Use a wider variable type when values can grow, or check ranges before narrowing.',
+        },
+      ],
+      checks: [
+        {
+          id: 'f6-c1',
+          kind: 'predict-output',
+          dimension: 'runtime',
+          prompt: 'What does this print?',
+          code: `public class Main {
+    public static void main(String[] args) {
+        int total = 7;
+        double half = total / 2;
+        System.out.println(half);
+    }
+}`,
+          options: [
+            { id: 'a', text: '3.5' },
+            { id: 'b', text: '3.0' },
+            { id: 'c', text: '3' },
+            { id: 'd', text: '4.0' },
+          ],
+          correctOptionId: 'b',
+          explanation:
+            '`total / 2` is int / int, so it is integer division: 3. Only then is the int 3 widened to double for the assignment, giving 3.0. Write `total / 2.0` to get 3.5.',
+          hints: ['Work out the type of the right-hand side before looking at the variable.', 'What is 7 / 2 in integer arithmetic?'],
+        },
+        {
+          id: 'f6-c2',
+          kind: 'predict-output',
+          dimension: 'conceptual',
+          prompt: 'What happens when you compile this?',
+          code: `public class Main {
+    public static void main(String[] args) {
+        long total = 10;
+        int count = total;
+        System.out.println(count);
+    }
+}`,
+          options: [
+            { id: 'a', text: '10' },
+            { id: 'b', text: 'Compile error: possible lossy conversion from long to int' },
+            { id: 'c', text: 'Runtime ArithmeticException' },
+            { id: 'd', text: '10L' },
+          ],
+          correctOptionId: 'b',
+          expectCompileError: true,
+          explanation:
+            'long → int is a narrowing conversion. The compiler does not track that `total` happens to hold 10; it only sees the types, so an explicit `(int)` cast (or `Math.toIntExact`) is required.',
+        },
+        {
+          id: 'f6-c3',
+          kind: 'predict-output',
+          dimension: 'runtime',
+          prompt: 'What does this print?',
+          code: `public class Main {
+    public static void main(String[] args) {
+        System.out.println((byte) 130);
+        System.out.println((int) -2.7);
+        System.out.println((char) ('a' + 1));
+    }
+}`,
+          options: [
+            { id: 'a', text: '-126\n-2\nb' },
+            { id: 'b', text: '127\n-3\nb' },
+            { id: 'c', text: '-126\n-3\n98' },
+            { id: 'd', text: '130\n-2\nb' },
+          ],
+          correctOptionId: 'a',
+          explanation:
+            '130 does not fit in a byte (max 127); keeping the low 8 bits gives 130 − 256 = −126. Casting −2.7 truncates toward zero: −2. `\'a\' + 1` is the int 98, and casting back to char gives \'b\'.',
+          hints: ['A byte holds −128 to 127.', 'Casts truncate toward zero; they do not round down.'],
+        },
+        {
+          id: 'f6-c4',
+          kind: 'multi-select',
+          dimension: 'conceptual',
+          prompt: 'Which declarations compile WITHOUT a cast? Select all that apply.',
+          options: [
+            { id: 'a', text: 'long l = 42;' },
+            { id: 'b', text: 'float f = 1.5;' },
+            { id: 'c', text: 'byte b = 100;' },
+            { id: 'd', text: 'int i = 3.0;' },
+            { id: 'e', text: 'double d = \'A\';' },
+            { id: 'f', text: 'int i = 5L;' },
+          ],
+          correctOptionIds: ['a', 'c', 'e'],
+          explanation:
+            'int → long and char → double are widening. `byte b = 100;` is allowed because 100 is a constant that fits in a byte. 1.5 is a double literal (needs 1.5f), and 3.0 and 5L would be narrowing to int.',
+        },
+        {
+          id: 'f6-c5',
+          kind: 'predict-output',
+          dimension: 'runtime',
+          prompt: 'What does this print?',
+          code: `public class Main {
+    public static void main(String[] args) {
+        String s = "5";
+        System.out.println(s + 2 + 3);
+        System.out.println(Integer.parseInt(s) + 2 + 3);
+    }
+}`,
+          options: [
+            { id: 'a', text: '10\n10' },
+            { id: 'b', text: '523\n10' },
+            { id: 'c', text: '55\n10' },
+            { id: 'd', text: '523\n523' },
+          ],
+          correctOptionId: 'b',
+          explanation:
+            'In the first line the left operand is a String, so 2 and 3 are converted to text and appended. In the second line parseInt produces the int 5, so + is ordinary addition.',
+        },
+        {
+          id: 'f6-c6',
+          kind: 'mcq',
+          dimension: 'runtime',
+          prompt: 'A form field contains "12.50" and the code calls `Integer.parseInt(field)`. What happens?',
+          options: [
+            { id: 'a', text: 'It returns 12' },
+            { id: 'b', text: 'It returns 13' },
+            { id: 'c', text: 'It throws NumberFormatException' },
+            { id: 'd', text: 'It does not compile' },
+          ],
+          correctOptionId: 'c',
+          explanation:
+            'parseInt accepts only an optional sign followed by digits. A decimal point is invalid input, reported at runtime with NumberFormatException. Use Double.parseDouble or new BigDecimal(field) for decimals.',
+        },
+        {
+          id: 'f6-c7',
+          kind: 'mcq',
+          dimension: 'interview',
+          prompt: 'Which conversions does the compiler apply for `Object o = 42;`?',
+          options: [
+            { id: 'a', text: 'Widening primitive conversion from int to Object' },
+            { id: 'b', text: 'Boxing int to Integer, then widening reference conversion Integer to Object' },
+            { id: 'c', text: 'String conversion of 42' },
+            { id: 'd', text: 'None — it does not compile' },
+          ],
+          correctOptionId: 'b',
+          explanation:
+            'A primitive cannot become a reference by widening. Assignment context allows boxing (int → Integer) followed by a widening reference conversion (Integer → Object, a supertype).',
+        },
+      ],
+      challengeIds: [],
+      masteryCriteria: [
+        'Classify a conversion as widening or narrowing and say whether a cast is needed.',
+        'Predict the result of casts that truncate, wrap or clamp.',
+        'Explain why `double avg = sum / count;` can be wrong and fix it.',
+        'Parse numeric text safely and explain parseInt vs valueOf.',
+      ],
+      relatedLessonIds: ['f-types-operators', 't-wrappers', 't-strings'],
+      revision: [
+        { id: 'r1', question: 'What is the difference between widening and narrowing conversion?', answer: 'Widening goes to a type that can represent the whole range (int → long → double) and is automatic. Narrowing may lose information (double → int, int → byte) and needs an explicit cast, except for int constants that fit in byte/short/char.' },
+        { id: 'r2', question: 'What does (int) 3.99 evaluate to, and (byte) 200?', answer: '3 (casts truncate toward zero) and −56 (only the low 8 bits are kept: 200 − 256).' },
+        { id: 'r3', question: 'Why is byte + byte an int?', answer: 'Binary numeric promotion widens byte, short and char operands to int before any arithmetic, so the result is int and needs a cast to go back to byte.' },
+        { id: 'r4', question: 'Integer.parseInt vs Integer.valueOf?', answer: 'parseInt returns a primitive int; valueOf returns an Integer (using the cache for −128..127). Both throw NumberFormatException for invalid text.' },
       ],
     },
 
@@ -519,7 +894,7 @@ The fix was a single \`L\` — and, better, using \`java.time.Duration.ofDays(da
       difficulty: 'beginner',
       prerequisites: ['f-types-operators'],
       versionNotes: [
-        { feature: 'switch on String', since: 8, note: 'Available since Java 7' },
+        { feature: 'switch on String', since: 7 },
         { feature: 'switch expressions and arrow labels', since: 17, note: 'Final in Java 14' },
         { feature: 'Pattern matching in switch', since: 21, note: 'Final in Java 21 (JEP 441)' },
       ],

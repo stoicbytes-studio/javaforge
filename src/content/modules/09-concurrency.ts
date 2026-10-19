@@ -8,7 +8,7 @@ export const concurrencyModule: CurriculumModule = {
   summary: 'Threads, executors and futures, virtual threads, race conditions, locks, visibility, deadlocks and the concurrent toolkit.',
   level: 'advanced',
   prerequisites: ['jvm-runtime'],
-  plannedTopics: ['Producer-consumer with BlockingQueue', 'Fork/join and parallel streams'],
+  plannedTopics: ['Fork/join and parallel streams'],
   bossChallengeId: 'boss-concurrent-ledger',
   lessons: [
     {
@@ -294,7 +294,7 @@ public class Main {
         'Handle task failures through ExecutionException and CompletionException.',
         'Decide between a fixed pool and virtual threads for a given workload, and explain pinning.',
       ],
-      relatedLessonIds: ['cc-synchronization', 'fn-lambdas', 'r-memory-areas', 'e-resources'],
+      relatedLessonIds: ['cc-synchronization', 'cc-concurrency-utilities', 'fn-lambdas', 'r-memory-areas', 'e-resources'],
       revision: [
         { id: 'r1', question: 'What is the difference between Thread.run() and Thread.start()?', answer: 'start() creates a new thread that then calls run(); calling run() directly just executes the code on the current thread.' },
         { id: 'r2', question: 'What does ExecutorService.close() do (Java 19+)?', answer: 'It initiates shutdown (no new tasks) and waits until all submitted tasks have finished, so try-with-resources bounds the executor\'s lifetime.' },
@@ -692,13 +692,427 @@ public class Main {
         'Diagnose a deadlock from a thread dump and fix it with lock ordering.',
         'State accurately that scoped values are final in 25 and structured concurrency is still preview.',
       ],
-      relatedLessonIds: ['cc-threads', 'c-hashmap', 'c-iteration', 'r-gc'],
+      relatedLessonIds: ['cc-threads', 'cc-concurrency-utilities', 'c-hashmap', 'c-iteration', 'r-gc'],
       revision: [
         { id: 'r1', question: 'What two guarantees does synchronized give?', answer: 'Mutual exclusion (one thread at a time per monitor) and visibility (writes before an unlock are visible after the next lock of the same monitor).' },
         { id: 'r2', question: 'Why is volatile not enough for a counter?', answer: 'It guarantees visibility and ordering but not atomicity; count++ is a read-modify-write that two threads can interleave.' },
         { id: 'r3', question: 'How do you prevent lock-ordering deadlocks?', answer: 'Acquire locks in one global order (for example by id), or use tryLock with a timeout and back off.' },
         { id: 'r4', question: 'Which ConcurrentHashMap methods perform atomic compound updates?', answer: 'merge, compute, computeIfAbsent, computeIfPresent and putIfAbsent.' },
         { id: 'r5', question: 'Are scoped values and structured concurrency standard in Java 25?', answer: 'Scoped values are final in 25 (JEP 506). Structured concurrency is still a preview API that needs --enable-preview.' },
+      ],
+    },
+    {
+      id: 'cc-concurrency-utilities',
+      moduleId: 'concurrency',
+      title: 'Concurrency utilities: BlockingQueue, latches, semaphores and concurrent collections',
+      summary: 'Ready-made building blocks from java.util.concurrent: producer-consumer queues, CountDownLatch, CyclicBarrier, Semaphore, Phaser, and atomic ConcurrentHashMap and CopyOnWriteArrayList operations.',
+      estimatedMinutes: 40,
+      difficulty: 'advanced',
+      prerequisites: ['cc-synchronization'],
+      versionNotes: [
+        { feature: 'BlockingQueue, CountDownLatch, CyclicBarrier, Semaphore, ConcurrentHashMap, CopyOnWriteArrayList', since: 5, note: 'JSR 166' },
+        { feature: 'Phaser, LinkedTransferQueue, ForkJoinPool', since: 7 },
+        { feature: 'ConcurrentHashMap rewrite with atomic compute/merge and bulk operations', since: 8 },
+        { feature: 'Virtual threads: blocking on these utilities unmounts instead of holding an OS thread', since: 21 },
+      ],
+      objectives: [
+        'Build a producer-consumer pipeline with a bounded BlockingQueue and a clean shutdown signal.',
+        'Coordinate threads with CountDownLatch, CyclicBarrier and Semaphore, and know when Phaser fits.',
+        'Update shared maps atomically with ConcurrentHashMap compute, computeIfAbsent and merge.',
+        'Choose CopyOnWriteArrayList only for read-mostly data.',
+        'Pick the right utility for a coordination problem instead of hand-writing wait/notify.',
+      ],
+      plainEnglish: `Locks and atomics are the bricks of concurrent code. \`java.util.concurrent\` also ships **ready-made furniture** — tested, fast components for the coordination problems that come up again and again:
+
+- A **BlockingQueue** is a conveyor belt between threads: producers put work on it, consumers take work off it. If the belt is full, producers wait; if it is empty, consumers wait.
+- A **CountDownLatch** is a starting gate that opens once a counter reaches zero ("wait until all three services are ready").
+- A **CyclicBarrier** is a meeting point: a group of threads waits until everyone has arrived, then they all continue — and it can be reused round after round.
+- A **Semaphore** is a stack of tickets: at most N threads can hold one at a time ("no more than 10 calls to the payment API at once").
+- **Concurrent collections** such as \`ConcurrentHashMap\` and \`CopyOnWriteArrayList\` let many threads share data safely without you writing a single lock.
+
+Using these instead of \`wait()\`/\`notify()\` makes concurrent code shorter, easier to read and far less likely to be wrong.`,
+      technical: `### BlockingQueue and producer-consumer
+\`BlockingQueue<E>\` adds blocking operations to a queue. Each operation comes in four flavours: throw (\`add\`/\`remove\`), special value (\`offer\`/\`poll\`), **block** (\`put\`/\`take\`) and time out (\`offer(e, t, unit)\`/\`poll(t, unit)\`).
+- \`ArrayBlockingQueue(n)\` — bounded array; the default choice for back-pressure.
+- \`LinkedBlockingQueue\` — optionally bounded; **unbounded by default** (\`Integer.MAX_VALUE\`), which is why \`Executors.newFixedThreadPool\` can queue work until memory runs out.
+- \`SynchronousQueue\` — no capacity: each \`put\` waits for a \`take\` (used by \`newCachedThreadPool\`).
+- \`PriorityBlockingQueue\`, \`DelayQueue\`, \`LinkedTransferQueue\` for ordering, scheduling and hand-off.
+
+A **bounded** queue gives back-pressure: a fast producer slows down to the consumers' pace instead of filling the heap. To stop consumers, send one **poison pill** per consumer, close an executor, or interrupt them — \`put\` and \`take\` respond to interruption with \`InterruptedException\` (restore the flag with \`Thread.currentThread().interrupt()\` if you cannot rethrow). Queue hand-off is also a happens-before edge: everything the producer did before \`put\` is visible to the consumer after \`take\`.
+
+### Synchronizers
+- **CountDownLatch(n)**: \`countDown()\` decrements, \`await()\` blocks until zero. **One-shot**: it cannot be reset, and counting below zero is ignored.
+- **CyclicBarrier(n, action)**: \`await()\` blocks until n parties arrive; the last one runs the optional barrier action, then the barrier **resets** for the next round. If one party is interrupted or times out, the barrier **breaks** and the others get \`BrokenBarrierException\`.
+- **Semaphore(n)**: \`acquire()\` takes a permit (blocking if none), \`release()\` returns it — always in \`finally\`. Permits are not owned, so any thread can release. \`tryAcquire\` (with or without a timeout) never waits forever. The idiomatic way to **limit concurrency with virtual threads**.
+- **Phaser**: a reusable, dynamic barrier; parties can \`register()\` and \`arriveAndDeregister()\` between phases. Use it when the number of participants changes.
+- **Exchanger**: two threads swap objects at a rendezvous point (rare).
+
+### Concurrent collections
+- **ConcurrentHashMap**: lock-free reads and fine-grained locking for writes. Single operations are atomic, and so are the compound ones: \`putIfAbsent\`, \`computeIfAbsent\`, \`computeIfPresent\`, \`compute\`, \`merge\`. The function you pass runs while that key's bin is locked, so keep it short and never update **other keys of the same map** inside it. No null keys or values. \`size()\` is an estimate while updates are running; iterators are weakly consistent and never throw \`ConcurrentModificationException\`.
+- **CopyOnWriteArrayList / CopyOnWriteArraySet**: every write copies the whole array; iterators work on an immutable snapshot. Ideal for listener lists that are read constantly and changed rarely; terrible for frequent writes.
+- **ConcurrentLinkedQueue / ConcurrentLinkedDeque**: non-blocking queues.
+- **ConcurrentSkipListMap / ConcurrentSkipListSet**: sorted, concurrent \`NavigableMap\`/\`NavigableSet\`.
+- \`Collections.synchronizedMap\` and \`Hashtable\` lock the whole map for every call and still need external locking for iteration and compound actions — avoid them in new code.`,
+      whyItExists: `Before Java 5, every team wrote its own queues and gates with \`synchronized\`, \`wait()\` and \`notify()\` — and got them subtly wrong (missed signals, spurious wake-ups, lost updates). Doug Lea's JSR 166 put expert-built, heavily tested implementations into the JDK. They are faster than hand-written code because they use lock-free algorithms and fine-grained locking internally, and they encode common patterns so that code reads as intent ("wait for three services") rather than mechanics.`,
+      whenToUse: [
+        'Use a bounded BlockingQueue to connect producer and consumer stages with back-pressure.',
+        'Use CountDownLatch to wait once for N events (start-up checks, test harnesses).',
+        'Use CyclicBarrier (or Phaser when parties change) for phased algorithms where threads meet repeatedly.',
+        'Use Semaphore to cap concurrent access to a scarce resource, especially from virtual threads.',
+        'Use ConcurrentHashMap merge/compute/computeIfAbsent for shared counters, caches and grouping.',
+        'Use CopyOnWriteArrayList for read-mostly lists such as event listeners.',
+      ],
+      whenNotToUse: [
+        'Do not use an unbounded queue between a fast producer and a slow consumer.',
+        'Do not use CopyOnWriteArrayList for data that is written often or is large.',
+        'Do not do slow work or I/O inside ConcurrentHashMap.compute or computeIfAbsent — it blocks other updates to that bin.',
+        'Do not hand-roll wait()/notify() coordination when one of these utilities fits.',
+      ],
+      examples: [
+        {
+          id: 'producer-consumer',
+          title: 'Producer-consumer with a bounded BlockingQueue',
+          runnable: true,
+          code: `import java.util.*;
+import java.util.concurrent.*;
+
+public class Main {
+    static final String POISON = "__done__";   // tells a consumer to stop
+
+    public static void main(String[] args) throws InterruptedException {
+        BlockingQueue<String> queue = new ArrayBlockingQueue<>(5);   // bounded: back-pressure
+        Map<String, Integer> totals = new ConcurrentHashMap<>();
+
+        Thread producer = new Thread(() -> {
+            try {
+                for (int i = 1; i <= 20; i++) {
+                    queue.put("order-" + i);       // blocks while the queue is full
+                }
+                queue.put(POISON);                 // one pill per consumer
+                queue.put(POISON);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        });
+
+        List<Thread> consumers = new ArrayList<>();
+        for (int c = 0; c < 2; c++) {
+            Thread consumer = new Thread(() -> {
+                try {
+                    while (true) {
+                        String order = queue.take();   // blocks while the queue is empty
+                        if (order.equals(POISON)) return;
+                        totals.merge("processed", 1, Integer::sum);
+                        totals.merge("sum", Integer.parseInt(order.substring(6)), Integer::sum);
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            });
+            consumers.add(consumer);
+            consumer.start();
+        }
+        producer.start();
+
+        producer.join();
+        for (Thread consumer : consumers) consumer.join();
+        System.out.println("processed = " + totals.get("processed"));
+        System.out.println("sum of ids = " + totals.get("sum"));
+        System.out.println("queue empty = " + queue.isEmpty());
+    }
+}`,
+          expectedOutput: `processed = 20
+sum of ids = 210
+queue empty = true`,
+          explanation: 'Which consumer handles which order changes from run to run, so the program prints only totals computed after join(). 1 + 2 + ... + 20 = 210.',
+        },
+        {
+          id: 'sync-toolkit',
+          title: 'Latch, semaphore, barrier and concurrent collections in one program',
+          runnable: true,
+          code: `import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.*;
+
+public class Main {
+    public static void main(String[] args) throws Exception {
+        // 1. CountDownLatch: wait until 3 services report ready
+        CountDownLatch ready = new CountDownLatch(3);
+        for (String name : List.of("db", "cache", "queue")) {
+            new Thread(ready::countDown, name).start();
+        }
+        boolean allReady = ready.await(5, TimeUnit.SECONDS);
+        System.out.println("all services ready: " + allReady);
+
+        // 2. Semaphore: at most 3 of 10 tasks inside at once
+        Semaphore permits = new Semaphore(3);
+        AtomicInteger inside = new AtomicInteger();
+        AtomicInteger peak = new AtomicInteger();
+        try (ExecutorService pool = Executors.newFixedThreadPool(10)) {
+            for (int i = 0; i < 10; i++) {
+                pool.submit(() -> {
+                    permits.acquire();
+                    try {
+                        int now = inside.incrementAndGet();
+                        peak.accumulateAndGet(now, Math::max);
+                        Thread.sleep(20);
+                        inside.decrementAndGet();
+                    } finally {
+                        permits.release();
+                    }
+                    return null;
+                });
+            }
+        }
+        System.out.println("peak concurrency <= 3: " + (peak.get() <= 3));
+
+        // 3. CyclicBarrier: 3 workers meet at the end of each of 2 rounds
+        AtomicInteger roundsCompleted = new AtomicInteger();
+        CyclicBarrier barrier = new CyclicBarrier(3, roundsCompleted::incrementAndGet);
+        List<Thread> workers = new ArrayList<>();
+        for (int w = 0; w < 3; w++) {
+            Thread t = new Thread(() -> {
+                try {
+                    for (int round = 0; round < 2; round++) barrier.await();
+                } catch (InterruptedException | BrokenBarrierException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            workers.add(t);
+            t.start();
+        }
+        for (Thread t : workers) t.join();
+        System.out.println("barrier rounds completed: " + roundsCompleted.get());
+
+        // 4. ConcurrentHashMap.merge: atomic word counts from 4 threads
+        ConcurrentHashMap<String, Integer> counts = new ConcurrentHashMap<>();
+        List<String> words = List.of("java", "jvm", "java", "thread");
+        try (ExecutorService pool = Executors.newFixedThreadPool(4)) {
+            for (int t = 0; t < 4; t++) {
+                pool.submit(() -> {
+                    for (int i = 0; i < 1_000; i++) {
+                        for (String word : words) counts.merge(word, 1, Integer::sum);
+                    }
+                });
+            }
+        }
+        System.out.println("word counts: " + new TreeMap<>(counts));
+
+        // 5. CopyOnWriteArrayList: iterators see a snapshot
+        List<String> listeners = new CopyOnWriteArrayList<>(List.of("audit", "metrics"));
+        for (String l : listeners) {
+            listeners.add(l + "-copy");     // would throw ConcurrentModificationException on ArrayList
+        }
+        System.out.println("listeners: " + listeners);
+    }
+}`,
+          expectedOutput: `all services ready: true
+peak concurrency <= 3: true
+barrier rounds completed: 2
+word counts: {java=8000, jvm=4000, thread=4000}
+listeners: [audit, metrics, audit-copy, metrics-copy]`,
+          explanation: 'Every line is printed after the threads involved have finished (await, executor close, join), so the output is deterministic. The barrier action runs once per round, by the last thread to arrive. The Callable form of submit (return null) lets the lambda call acquire(), which throws InterruptedException.',
+        },
+        {
+          id: 'chm-compute',
+          title: 'Grouping and caching with computeIfAbsent',
+          runnable: true,
+          code: `import java.util.*;
+import java.util.concurrent.*;
+
+public class Main {
+    public static void main(String[] args) {
+        ConcurrentHashMap<Integer, Queue<String>> byLength = new ConcurrentHashMap<>();
+        List<String> words = List.of("map", "queue", "latch", "lock", "set", "phaser");
+        try (ExecutorService pool = Executors.newFixedThreadPool(3)) {
+            for (String w : words) {
+                pool.submit(() -> byLength
+                    .computeIfAbsent(w.length(), k -> new ConcurrentLinkedQueue<>())   // atomic create
+                    .add(w));
+            }
+        }
+        Map<Integer, List<String>> sorted = new TreeMap<>();
+        byLength.forEach((len, q) -> sorted.put(len, q.stream().sorted().toList()));
+        System.out.println(sorted);
+
+        ConcurrentHashMap<String, Integer> stock = new ConcurrentHashMap<>(Map.of("apple", 3));
+        stock.compute("apple", (k, v) -> v == null ? 1 : v - 1);       // read-modify-write, atomic
+        stock.computeIfPresent("pear", (k, v) -> v - 1);                // absent: nothing happens
+        stock.merge("pear", 5, Integer::sum);                           // absent: inserts 5
+        System.out.println(new TreeMap<>(stock));
+    }
+}`,
+          expectedOutput: `{3=[map, set], 4=[lock], 5=[latch, queue], 6=[phaser]}
+{apple=2, pear=5}`,
+          explanation: 'computeIfAbsent guarantees exactly one queue is created per length even when several threads ask at once; a get-then-put version could create two and lose words. The value collections are themselves thread-safe, because add() runs after computeIfAbsent has returned.',
+        },
+      ],
+      walkthrough: {
+        exampleId: 'producer-consumer',
+        steps: [
+          { lines: [8, 9], text: 'A bounded queue of capacity 5 sits between the stages. The totals map is concurrent because both consumers update it.' },
+          { lines: [11, 21], text: 'The producer puts 20 orders. put() blocks whenever 5 orders are already waiting, so the producer can never run ahead and fill memory. At the end it sends one poison pill per consumer.' },
+          { lines: [24, 36], text: 'Each consumer loops on take(), which blocks while the queue is empty. A poison pill ends the loop. merge() updates the shared totals atomically.' },
+          { lines: [33, 35], text: 'put() and take() throw InterruptedException. If a thread cannot propagate it, it restores the interrupt flag so code further up still sees the cancellation.' },
+          { lines: [42, 46], text: 'join() waits for all three threads and makes their writes visible to main. Only then are the totals printed, so the output never depends on scheduling.' },
+        ],
+      },
+      realWorld: {
+        title: 'An import job that ran out of memory, then out of connections',
+        scenario: `A nightly import read 50 million rows from files and wrote them to a database. Version one used \`Executors.newFixedThreadPool(8)\` and submitted one task per row. The file reader was far faster than the database, so the pool's **unbounded** \`LinkedBlockingQueue\` grew to millions of pending tasks and the job died with \`OutOfMemoryError: Java heap space\`.
+
+Version two used an explicit pipeline: one reader thread \`put\`s batches of 1,000 rows into an \`ArrayBlockingQueue<>(16)\`, and eight writer threads \`take\` batches and insert them. The bounded queue gave back-pressure — the reader simply waited when writers fell behind — and heap usage became flat. A \`CountDownLatch\` let the main thread wait for all writers before it reported success, and a \`ConcurrentHashMap.merge\` per table recorded row counts.
+
+A later move to virtual threads (one per batch) briefly opened 400 database connections at once and exhausted the pool. A \`Semaphore(20)\` around the insert call restored a safe limit while keeping the simple blocking code.`,
+      },
+      commonMistakes: [
+        {
+          mistake: 'Using an unbounded queue (or newFixedThreadPool) between a fast producer and a slow consumer.',
+          why: 'Nothing slows the producer down, so pending work accumulates until the heap is exhausted.',
+          fix: 'Use a bounded ArrayBlockingQueue (or a ThreadPoolExecutor with a bounded queue and a rejection policy) so producers wait.',
+        },
+        {
+          mistake: 'Releasing a Semaphore outside finally, or releasing without having acquired.',
+          why: 'An exception leaks a permit forever and capacity shrinks; an extra release silently increases the limit, because permits are not owned.',
+          fix: 'acquire() just before try, release() in finally, and only on the path where the acquire succeeded.',
+          code: `permits.acquire();
+try {
+    callPaymentApi();
+} finally {
+    permits.release();
+}`,
+        },
+        {
+          mistake: 'Swallowing InterruptedException in a consumer loop.',
+          why: 'The thread can no longer be cancelled: shutdownNow() and Future.cancel(true) rely on interruption.',
+          fix: 'Exit the loop and restore the flag with Thread.currentThread().interrupt(), or let the exception propagate.',
+        },
+        {
+          mistake: 'Expecting a CountDownLatch to be reusable.',
+          why: 'Once the count reaches zero it stays open; there is no reset.',
+          fix: 'Use a CyclicBarrier for repeated rounds, or a Phaser if the number of parties changes.',
+        },
+        {
+          mistake: 'Calling slow code or updating another key inside ConcurrentHashMap.computeIfAbsent.',
+          why: 'The mapping function runs while the bin is locked; long work blocks other writers, and recursive updates of the same map can throw IllegalStateException or deadlock.',
+          fix: 'Keep mapping functions short and side-effect free; for expensive loads use a caching library or store a CompletableFuture as the value.',
+        },
+      ],
+      checks: [
+        {
+          id: 'cc3-c1',
+          kind: 'predict-output',
+          dimension: 'runtime',
+          prompt: 'What does this program print?',
+          code: `import java.util.concurrent.*;
+
+public class Main {
+    public static void main(String[] args) throws InterruptedException {
+        CountDownLatch latch = new CountDownLatch(2);
+        latch.countDown();
+        latch.countDown();
+        latch.countDown();
+        System.out.print(latch.getCount() + " ");
+        System.out.print(latch.await(0, TimeUnit.SECONDS) + " ");
+        Semaphore s = new Semaphore(1);
+        System.out.print(s.tryAcquire() + " ");
+        System.out.println(s.tryAcquire());
+    }
+}`,
+          options: [
+            { id: 'a', text: '-1 true true false' },
+            { id: 'b', text: '0 true true false' },
+            { id: 'c', text: '0 false true true' },
+            { id: 'd', text: '0 true true true' },
+          ],
+          correctOptionId: 'b',
+          explanation: 'A latch never goes below zero: extra countDown() calls are ignored. await returns true immediately because the count is zero. The semaphore has one permit, so the first tryAcquire succeeds and the second fails without blocking.',
+        },
+        {
+          id: 'cc3-c2',
+          kind: 'mcq',
+          dimension: 'conceptual',
+          prompt: 'A service handles every request on its own virtual thread and calls a partner API that allows at most 10 concurrent calls. What is the best tool?',
+          options: [
+            { id: 'a', text: 'A fixed pool of 10 virtual threads' },
+            { id: 'b', text: 'A Semaphore(10) around the partner API call' },
+            { id: 'c', text: 'A CountDownLatch(10)' },
+            { id: 'd', text: 'synchronized on the API client' },
+          ],
+          correctOptionId: 'b',
+          explanation: 'A Semaphore caps concurrent access while each request keeps its own cheap virtual thread. Pooling virtual threads defeats their purpose, a latch is one-shot, and synchronized would allow only one call at a time.',
+        },
+        {
+          id: 'cc3-c3',
+          kind: 'mcq',
+          dimension: 'interview',
+          prompt: 'What is the key difference between CountDownLatch and CyclicBarrier?',
+          options: [
+            { id: 'a', text: 'CountDownLatch works only with virtual threads' },
+            { id: 'b', text: 'A latch is one-shot and its count is decremented by any threads (which need not wait); a barrier makes a fixed group of threads wait for each other and resets for the next round' },
+            { id: 'c', text: 'CyclicBarrier cannot run an action when it trips' },
+            { id: 'd', text: 'They are interchangeable' },
+          ],
+          correctOptionId: 'b',
+          explanation: 'Latch: waiters and counters can be different threads, and once open it stays open. Barrier: the same parties both arrive and wait, an optional action runs when the last arrives, and it is reusable.',
+        },
+        {
+          id: 'cc3-c4',
+          kind: 'multi-select',
+          dimension: 'conceptual',
+          prompt: 'Which statements about BlockingQueue are true? Select all that apply.',
+          options: [
+            { id: 'a', text: 'put() waits while a bounded queue is full' },
+            { id: 'b', text: 'take() waits while the queue is empty' },
+            { id: 'c', text: 'offer() on a full ArrayBlockingQueue returns false instead of waiting' },
+            { id: 'd', text: 'new LinkedBlockingQueue<>() is unbounded unless you pass a capacity' },
+            { id: 'e', text: 'ArrayBlockingQueue grows automatically when it is full' },
+          ],
+          correctOptionIds: ['a', 'b', 'c', 'd'],
+          explanation: 'ArrayBlockingQueue has a fixed capacity; that is exactly what provides back-pressure. LinkedBlockingQueue defaults to a capacity of Integer.MAX_VALUE.',
+        },
+        {
+          id: 'cc3-c5',
+          kind: 'mcq',
+          dimension: 'coding',
+          prompt: 'Many threads group orders by customer into `ConcurrentHashMap<String, List<Order>> byCustomer`. Which line is thread-safe?',
+          options: [
+            { id: 'a', text: 'if (!byCustomer.containsKey(id)) byCustomer.put(id, new ArrayList<>()); byCustomer.get(id).add(order);' },
+            { id: 'b', text: 'byCustomer.computeIfAbsent(id, k -> new CopyOnWriteArrayList<>()).add(order);' },
+            { id: 'c', text: 'byCustomer.computeIfAbsent(id, k -> new ArrayList<>()).add(order);' },
+            { id: 'd', text: 'byCustomer.putIfAbsent(id, new ArrayList<>()); byCustomer.get(id).add(order);' },
+          ],
+          correctOptionId: 'b',
+          explanation: 'computeIfAbsent creates the list atomically, and the list must itself be thread-safe because add() runs outside the map\'s lock. Option c shares a plain ArrayList between threads; a and d also race on the list. (For write-heavy lists, ConcurrentLinkedQueue is a better value type than CopyOnWriteArrayList.)',
+        },
+        {
+          id: 'cc3-c6',
+          kind: 'mcq',
+          dimension: 'conceptual',
+          prompt: 'Where is CopyOnWriteArrayList a good fit?',
+          options: [
+            { id: 'a', text: 'A log buffer that receives thousands of appends per second' },
+            { id: 'b', text: 'A list of event listeners that is iterated on every event and changed only when a component registers' },
+            { id: 'c', text: 'A work queue between producers and consumers' },
+            { id: 'd', text: 'A large list that is sorted frequently' },
+          ],
+          correctOptionId: 'b',
+          explanation: 'Every write copies the entire array, but reads and iteration need no locking and never throw ConcurrentModificationException. That trade-off only pays off when reads vastly outnumber writes.',
+        },
+      ],
+      challengeIds: [],
+      masteryCriteria: [
+        'Build a bounded producer-consumer pipeline that shuts down cleanly and prints deterministic results.',
+        'Choose between CountDownLatch, CyclicBarrier, Phaser and Semaphore for a coordination problem.',
+        'Replace check-then-act map code with computeIfAbsent, compute or merge.',
+        'Explain the trade-offs of CopyOnWriteArrayList and unbounded queues.',
+      ],
+      relatedLessonIds: ['cc-synchronization', 'cc-threads', 'c-collections-overview', 'c-hashmap'],
+      revision: [
+        { id: 'r1', question: 'What does a bounded BlockingQueue give a producer-consumer pipeline?', answer: 'Back-pressure: put() blocks while the queue is full, so producers slow to the consumers\' pace instead of exhausting memory. take() blocks while it is empty.' },
+        { id: 'r2', question: 'CountDownLatch vs CyclicBarrier vs Semaphore?', answer: 'Latch: wait once until N events have happened. Barrier: N threads wait for each other, repeatedly. Semaphore: at most N threads inside a section at once.' },
+        { id: 'r3', question: 'How do you stop consumer threads that block on take()?', answer: 'Send one poison-pill element per consumer, or interrupt them (take() throws InterruptedException), or shut down the executor that runs them.' },
+        { id: 'r4', question: 'Why is CopyOnWriteArrayList safe to iterate while others modify it?', answer: 'Each write creates a new array; an iterator keeps reading the snapshot it started with, so it never sees a partial change and never throws ConcurrentModificationException.' },
       ],
     },
   ],

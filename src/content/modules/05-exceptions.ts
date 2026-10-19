@@ -20,8 +20,8 @@ export const exceptionsModule: CurriculumModule = {
       difficulty: 'beginner',
       prerequisites: ['o-inheritance'],
       versionNotes: [
-        { feature: 'Multi-catch (catch (A | B e))', since: 8, note: 'Available since Java 7' },
-        { feature: 'Helpful NullPointerException messages', since: 17, note: 'JEP 358, on by default since Java 15' },
+        { feature: 'Multi-catch (catch (A | B e))', since: 7 },
+        { feature: 'Helpful NullPointerException messages', since: 14, note: 'JEP 358; on by default since Java 15' },
       ],
       objectives: [
         'Classify exceptions as checked, unchecked or errors.',
@@ -31,7 +31,14 @@ export const exceptionsModule: CurriculumModule = {
       ],
       plainEnglish: `An **exception** is Java's way of saying "something went wrong and I cannot continue normally". When one is **thrown**, Java stops the current code and jumps to the nearest matching \`catch\` block up the call stack. If nobody catches it, the thread ends and the stack trace is printed.
 
-A \`finally\` block always runs — whether the \`try\` finished normally, returned early or threw — which makes it the place for clean-up.`,
+A \`finally\` block always runs — whether the \`try\` finished normally, returned early or threw — which makes it the place for clean-up.
+
+**Three families of problems:**
+- **Checked exceptions** (e.g. \`IOException\`): things that can go wrong even in correct code, such as a missing file. The compiler *forces* you to either \`catch\` them or declare them with \`throws\` on your method.
+- **Unchecked exceptions** (\`RuntimeException\` and its subclasses, e.g. \`NullPointerException\`, \`ArithmeticException\`): usually bugs or bad input. The compiler does not force you to handle them.
+- **Errors** (e.g. \`OutOfMemoryError\`): the JVM itself is in trouble. Do not try to catch these.
+
+**Two keywords that look alike:** \`throw\` (singular) *throws an exception now*: \`throw new IllegalArgumentException("...")\`. \`throws\` (plural) goes in a method signature and *warns callers* that it might: \`void load() throws IOException\`.`,
       technical: `### The hierarchy
 \`\`\`
 Throwable
@@ -123,6 +130,51 @@ caller handled: port out of range: 70000`,
 }`,
           expectedOutput: `Cannot invoke "Main$Address.city()" because the return value of "Main$Customer.address()" is null`,
           explanation: 'Since Java 15 the JVM describes exactly which expression was null, which makes chained calls much easier to debug.',
+        },
+        {
+          id: 'e-basics-checked-unchecked',
+          title: 'Checked vs unchecked, throw vs throws, and multi-catch',
+          runnable: true,
+          code: `import java.io.IOException;
+
+public class Main {
+    // Checked: callers must catch IOException or declare it themselves.
+    static String readConfig(String name) throws IOException {
+        if (name.isEmpty()) throw new IOException("config name is empty");
+        return "loaded " + name;
+    }
+
+    // Unchecked: dividing by zero throws ArithmeticException, no throws clause needed.
+    static int divide(int a, int b) {
+        return a / b;
+    }
+
+    public static void main(String[] args) {
+        try {
+            System.out.println(readConfig("app.properties"));
+            System.out.println(readConfig(""));
+            System.out.println("never printed");
+        } catch (IOException e) {
+            System.out.println("checked: " + e.getMessage());
+        }
+
+        String[] inputs = {"10", "zero", "0"};
+        for (String in : inputs) {
+            try {
+                System.out.println(divide(100, Integer.parseInt(in)));
+            } catch (NumberFormatException | ArithmeticException e) {
+                System.out.println("unchecked: " + e.getClass().getSimpleName());
+            }
+        }
+    }
+}`,
+          expectedOutput: `loaded app.properties
+checked: config name is empty
+10
+unchecked: NumberFormatException
+unchecked: ArithmeticException`,
+          explanation:
+            'Delete `throws IOException` from readConfig and the program no longer compiles — that is what "checked" means. The unchecked exceptions compile either way; the multi-catch handles two unrelated types with one block. Notice that "never printed" is skipped: once an exception is thrown, the rest of the try block does not run.',
         },
       ],
       walkthrough: {
@@ -299,7 +351,7 @@ public class Main {
       difficulty: 'intermediate',
       prerequisites: ['e-basics'],
       versionNotes: [
-        { feature: 'try-with-resources', since: 8, note: 'Available since Java 7' },
+        { feature: 'try-with-resources', since: 7 },
         { feature: 'Effectively final variables as resources', since: 9 },
       ],
       objectives: [
@@ -309,7 +361,15 @@ public class Main {
       ],
       plainEnglish: `Files, database connections and network sockets must be **closed** when you are done, or the program slowly runs out of them. Writing \`close()\` in a \`finally\` block is easy to get wrong.
 
-**try-with-resources** does it for you: declare the resource in parentheses after \`try\`, and Java closes it automatically, even if an exception is thrown.`,
+**try-with-resources** does it for you: declare the resource in parentheses after \`try\`, and Java closes it automatically, even if an exception is thrown.
+
+\`\`\`java
+try (BufferedReader reader = Files.newBufferedReader(path)) {
+    return reader.readLine();
+} // reader.close() is called here on every path
+\`\`\`
+
+Anything whose class implements \`AutoCloseable\` can go in the parentheses — including your own classes. You can still add \`catch\` and \`finally\` blocks after it, exactly like a normal \`try\`.`,
       technical: `### Mechanics
 \`try (A a = ...; B b = ...) { body }\` works with any \`AutoCloseable\` (\`Closeable\` is the I/O subtype whose close throws IOException). Resources are closed in **reverse** order of declaration, after the body and before any catch/finally of the same statement. Since Java 9 you can list an existing effectively final variable: \`try (connection) { ... }\`.
 
@@ -396,6 +456,49 @@ suppressed: close failed: B`,
 }`,
           expectedOutput: `42`,
           explanation: 'The exception never reaches the caller. javac -Xlint warns "finally clause cannot complete normally" — treat that warning as an error.',
+        },
+        {
+          id: 'e-resources-reader',
+          title: 'Manual finally vs try-with-resources with a real reader',
+          runnable: true,
+          code: `import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.StringReader;
+
+public class Main {
+    // The old way: correct, but easy to get wrong.
+    static int countLinesManually(String text) throws IOException {
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new StringReader(text));
+            int count = 0;
+            while (reader.readLine() != null) count++;
+            return count;
+        } finally {
+            if (reader != null) reader.close();
+        }
+    }
+
+    // The modern way: same behaviour, and close failures become suppressed exceptions.
+    static int countLines(String text) throws IOException {
+        try (BufferedReader reader = new BufferedReader(new StringReader(text))) {
+            int count = 0;
+            while (reader.readLine() != null) count++;
+            return count;
+        }
+    }
+
+    public static void main(String[] args) throws IOException {
+        System.out.println(countLinesManually("alpha\\nbeta\\ngamma"));
+        System.out.println(countLines("alpha\\nbeta\\ngamma"));
+        System.out.println(countLines(""));
+    }
+}`,
+          expectedOutput: `3
+3
+0`,
+          explanation:
+            'Both methods close the reader on every path, but the try-with-resources version needs no null check, cannot forget the close, and keeps the original exception if close() also fails. Closing the outer BufferedReader also closes the StringReader it wraps.',
         },
       ],
       walkthrough: {
@@ -554,7 +657,9 @@ public class Main {
 
 - Check inputs at the start of a method and fail immediately with a clear message ("fail fast").
 - When a low-level problem (a database error) crosses into business code, wrap it in an exception that makes sense at that level, keeping the original as the **cause**.
-- Handle an exception once: either deal with it, or pass it on — not log-and-rethrow at every layer.`,
+- Handle an exception once: either deal with it, or pass it on — not log-and-rethrow at every layer.
+
+**Writing your own exception** takes only a few lines: extend \`RuntimeException\` (unchecked) or \`Exception\` (checked), pass a message to \`super(...)\`, and add fields for any data the caller needs. Name it after the *problem* and end the name with \`Exception\`: \`InsufficientFundsException\`, not \`WithdrawError\`.`,
       technical: `### Fail fast
 \`Objects.requireNonNull(order, "order")\`, \`IllegalArgumentException\` for invalid arguments, \`IllegalStateException\` for calls at the wrong time. Validation at the boundary keeps corrupted data from travelling deep into the system where failures are harder to diagnose.
 
@@ -642,6 +747,59 @@ public class Main {
 404: Order not found: B-9
 503: Failed to load order timeout (cause: Connection timed out, SQLState 08S01)
 400: orderId`,
+        },
+        {
+          id: 'e-design-custom-checked',
+          title: 'A custom checked exception that carries data',
+          runnable: true,
+          code: `class InsufficientFundsException extends Exception {
+    private final long balance;
+    private final long requested;
+
+    InsufficientFundsException(long balance, long requested) {
+        super("balance " + balance + " is less than requested " + requested);
+        this.balance = balance;
+        this.requested = requested;
+    }
+
+    long shortfall() { return requested - balance; }
+}
+
+class Account {
+    private long balance;
+
+    Account(long balance) { this.balance = balance; }
+
+    void withdraw(long amount) throws InsufficientFundsException {
+        if (amount <= 0) throw new IllegalArgumentException("amount must be positive but was " + amount);
+        if (amount > balance) throw new InsufficientFundsException(balance, amount);
+        balance -= amount;
+    }
+
+    long balance() { return balance; }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Account account = new Account(100);
+        long[] requests = {30, 500, -5};
+        for (long amount : requests) {
+            try {
+                account.withdraw(amount);
+                System.out.println("withdrew " + amount + ", left " + account.balance());
+            } catch (InsufficientFundsException e) {
+                System.out.println("declined: short by " + e.shortfall());
+            } catch (IllegalArgumentException e) {
+                System.out.println("bug in caller: " + e.getMessage());
+            }
+        }
+    }
+}`,
+          expectedOutput: `withdrew 30, left 70
+declined: short by 430
+bug in caller: amount must be positive but was -5`,
+          explanation:
+            'Insufficient funds is an expected business outcome the caller can act on (show "declined", offer a smaller amount), so it is a checked exception with a `shortfall()` accessor. A negative amount is a programming error in the caller, so it is the standard unchecked IllegalArgumentException. The balance is checked before it is changed, so a failed withdrawal leaves the account untouched (failure atomicity).',
         },
       ],
       walkthrough: {

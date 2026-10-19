@@ -136,7 +136,7 @@ export function describeDiagram(d: Diagram): string {
     parts.push(`Connections: ${d.edges.map((e) => `${label(e.from)} ${e.both ? 'and' : 'to'} ${label(e.to)}${e.label ? ` (${e.label})` : ''}`).join('; ')}.`);
   }
   if (d.groups?.length) parts.push(`Groups: ${d.groups.map((g) => g.label).join('; ')}.`);
-  return parts.join(' ');
+  return parts.join(' ').replace(/`/g, '');
 }
 
 /**

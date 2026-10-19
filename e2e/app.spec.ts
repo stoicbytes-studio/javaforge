@@ -1,4 +1,15 @@
+import type { Page } from '@playwright/test';
+
 import { expect, test } from './fixtures';
+
+/** Lessons open on the Concept view; practice lives in the Practice tab (phone) or the lesson view (desktop). */
+async function openPractice(page: Page) {
+  const desktopSwitch = page.getByRole('tab', { name: 'Lesson & practice' });
+  const phoneTab = page.getByRole('tab', { name: /^Practice/ }).first();
+  await expect(desktopSwitch.or(phoneTab)).toBeVisible();
+  if (await desktopSwitch.isVisible()) await desktopSwitch.click();
+  else await phoneTab.click();
+}
 
 const isMobile = (name: string) => name === 'mobile';
 
@@ -37,7 +48,7 @@ test.describe('shell and navigation', () => {
 test.describe('learning loop', () => {
   test('answering a knowledge check records evidence and updates progress', async ({ page, supabase: _ }) => {
     await page.goto('/learn/fundamentals/f-first-program');
-    await page.getByRole('tab', { name: /Practice/ }).first().click();
+    await openPractice(page);
     await page.getByText('Main.class containing platform-independent bytecode').click();
     await page.getByRole('button', { name: 'Check answer' }).first().click();
     await expect(page.getByText(/correct/i).first()).toBeVisible();
@@ -48,11 +59,11 @@ test.describe('learning loop', () => {
 
   test('progress survives a reload (local-first persistence)', async ({ page, supabase: _ }) => {
     await page.goto('/learn/fundamentals/f-first-program');
-    await page.getByRole('tab', { name: /Practice/ }).first().click();
+    await openPractice(page);
     await page.getByText('Main.class containing platform-independent bytecode').click();
     await page.getByRole('button', { name: 'Check answer' }).first().click();
     await page.reload();
-    await page.getByRole('tab', { name: /Practice/ }).first().click();
+    await openPractice(page);
     await expect(page.getByText(/correct/i).first()).toBeVisible();
   });
 });

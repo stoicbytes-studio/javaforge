@@ -6,6 +6,7 @@ import { charsPerLine, describeDiagram, diagramSize, edgePoints, groupRect, node
 import { useTheme } from '@/theme/ThemeProvider';
 import { fonts, radius, spacing } from '@/theme/tokens';
 import type { Diagram, DiagramTone } from '@/types/curriculum';
+import { Inline } from './Markdown';
 import { Text } from './Text';
 
 const LABEL_SIZE = 13;
@@ -181,9 +182,9 @@ export function DiagramView({ diagram }: { diagram: Diagram }) {
             {diagram.kind === 'concept' ? 'Illustration' : diagram.kind === 'flow' ? 'Flow' : 'Architecture'}
           </Text>
         </View>
-        <Text variant="heading" style={{ flex: 1 }}>
-          {diagram.title}
-        </Text>
+        <View style={{ flex: 1 }}>
+          <Inline text={diagram.title} variant="heading" />
+        </View>
       </View>
       <View accessible accessibilityRole="image" accessibilityLabel={describeDiagram(diagram)} style={{ alignItems: scrolls ? 'stretch' : 'center' }}>
         {available === 0 ? (
@@ -196,9 +197,7 @@ export function DiagramView({ diagram }: { diagram: Diagram }) {
           svg
         )}
       </View>
-      <Text variant="small" color="textMuted">
-        {diagram.caption}
-      </Text>
+      <Inline text={diagram.caption} variant="small" color="textMuted" />
       {scrolls ? (
         <Text variant="caption" color="textSubtle" style={{ textTransform: 'none', letterSpacing: 0 }}>
           Scroll sideways to see the whole diagram.

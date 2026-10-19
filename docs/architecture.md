@@ -44,6 +44,12 @@ which lets Node scripts load them directly:
   Java versions page states only verified final/preview status.
 - `npm run seed:generate` mirrors the content into the public Postgres tables.
 
+Each lesson's concept page lives in `src/content/concepts/<module>.ts`, keyed
+by lesson id. Diagrams are grid data (`src/lib/diagram.ts`) rendered as SVG by
+`DiagramView` on every platform; `scripts/check-concepts.mjs`
+and the concept test validate layout (no overlaps, text fits) and require all
+five sections on every lesson.
+
 Modules that are not written yet are shown as "planned" with their topic
 outline; the content test suite fails if a module has neither lessons nor a
 plan.

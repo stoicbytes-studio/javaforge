@@ -208,7 +208,7 @@ public class Main {
         'Use ArrayDeque as both stack and queue.',
         'Explain why LinkedList is rarely the right choice.',
       ],
-      relatedLessonIds: ['c-hashmap', 'c-sorted', 'a-complexity'],
+      relatedLessonIds: ['c-hashmap', 'c-sorted', 'c-queues-stacks', 'a-complexity'],
       revision: [
         { id: 'r1', question: 'Which class should you use for a stack in modern Java?', answer: 'ArrayDeque, through the Deque interface (push/pop/peek).' },
         { id: 'r2', question: 'What order does iterating a PriorityQueue give?', answer: 'An unspecified heap order; only successive poll() calls return elements in priority order.' },
@@ -971,6 +971,360 @@ public class Main {
         { id: 'r1', question: 'How do fail-fast iterators detect modification?', answer: 'They compare the collection\'s modCount with the value captured when the iterator was created, in next(); a mismatch throws ConcurrentModificationException.' },
         { id: 'r2', question: 'unmodifiableList vs List.copyOf?', answer: 'unmodifiableList is a read-only live view of the backing list; List.copyOf is an immutable snapshot that rejects nulls.' },
         { id: 'r3', question: 'What can you do and not do with Arrays.asList?', answer: 'You can set elements (writing through to the array) but cannot add or remove; it is fixed-size.' },
+      ],
+    },
+
+    // -----------------------------------------------------------------------
+    {
+      id: 'c-queues-stacks',
+      moduleId: 'collections',
+      title: 'Stacks, queues, deques and priority queues',
+      summary: 'LIFO vs FIFO, why ArrayDeque replaces Stack, throwing vs special-value methods, heap-ordered PriorityQueue and a first look at BlockingQueue.',
+      estimatedMinutes: 30,
+      difficulty: 'intermediate',
+      prerequisites: ['c-collections-overview'],
+      versionNotes: [
+        { feature: 'Queue, PriorityQueue, BlockingQueue', since: 5 },
+        { feature: 'Deque and ArrayDeque', since: 6 },
+        { feature: 'Deque is a SequencedCollection (getFirst, getLast, reversed)', since: 21 },
+      ],
+      objectives: [
+        'Explain LIFO (stack) and FIFO (queue) order and pick the right one for a problem.',
+        'Use ArrayDeque through the Deque interface as both a stack and a queue, and explain why it replaces java.util.Stack.',
+        'Choose between the throwing (add/remove/element) and special-value (offer/poll/peek) Queue methods.',
+        'Use PriorityQueue with a Comparator and explain why iterating it is not sorted.',
+        'Recognise when a BlockingQueue is needed instead.',
+      ],
+      plainEnglish: `Many programs need to hold work "for later" and then take it out in a particular order:
+
+- A **stack** is like a pile of plates: the last plate you put on top is the first one you take off. This is **LIFO** — last in, first out. Undo history, the browser Back button and matching brackets all work this way.
+- A **queue** is like a line at a coffee shop: the first person to join is the first served. This is **FIFO** — first in, first out. Print jobs, messages and breadth-first search work this way.
+- A **deque** ("deck", double-ended queue) lets you add and remove at **both** ends, so one object can act as either a stack or a queue.
+- A **priority queue** is like a hospital emergency room: whoever is most urgent goes next, no matter when they arrived.
+
+In modern Java you use \`ArrayDeque\` for stacks and queues and \`PriorityQueue\` for "most important first".`,
+      technical: `### The interfaces
+- \`Queue<E>\` (Java 5): add at the tail, remove at the head.
+- \`Deque<E>\` (Java 6) extends Queue: operations at both ends (\`addFirst\`/\`offerFirst\`, \`pollLast\`, …) plus stack methods \`push\` = \`addFirst\`, \`pop\` = \`removeFirst\`, \`peek\` = \`peekFirst\`. Since Java 21 a Deque is also a \`SequencedCollection\`.
+
+### Two families of methods
+Each Queue operation comes in two forms:
+- **Throws** on failure: \`add(e)\` (IllegalStateException when a bounded queue is full), \`remove()\` and \`element()\` (NoSuchElementException when empty).
+- **Returns a special value**: \`offer(e)\` returns \`false\` when full, \`poll()\` and \`peek()\` return \`null\` when empty.
+
+Use \`offer\`/\`poll\`/\`peek\` when "empty" or "full" is a normal situation; use the throwing forms when it would be a bug. Because \`null\` means "empty", most queues (ArrayDeque, PriorityQueue, all BlockingQueues) **reject null elements**.
+
+### ArrayDeque
+A resizable circular array with head and tail indexes: amortised O(1) at both ends, no per-element node objects, good cache locality. It is faster than \`LinkedList\` for queue use and replaces the legacy \`Stack\` class, which extends \`Vector\` (every method synchronised) and exposes index operations like \`add(0, x)\` that break stack discipline. Note that a \`Stack\` prints bottom-to-top while an ArrayDeque used with push prints top-to-bottom.
+
+### PriorityQueue
+An unbounded **binary min-heap** stored in an array. \`offer\` and \`poll\` are O(log n), \`peek\` is O(1), \`remove(Object)\` and \`contains\` are O(n). Order comes from natural ordering or a \`Comparator\` (\`Comparator.reverseOrder()\` gives a max-heap). Only the head is guaranteed to be the smallest: **iteration and toString show heap order, not sorted order**, and ties have no guaranteed order — add a tie-breaker to the comparator when it matters. Do not change an element's priority fields while it sits in the queue; remove it and re-insert it.
+
+### BlockingQueue (preview)
+\`java.util.concurrent.BlockingQueue\` adds a third family: \`put\` waits while full, \`take\` waits while empty, and \`offer(e, timeout, unit)\`/\`poll(timeout, unit)\` wait for a limited time. Implementations such as \`ArrayBlockingQueue\` (bounded), \`LinkedBlockingQueue\` and \`PriorityBlockingQueue\` are the backbone of producer-consumer designs and thread pools; they are covered with concurrency.`,
+      whyItExists: `Ordering work is one of the most common needs in software — undo stacks, job queues, schedulers, graph searches. Standard interfaces with clear method contracts let you express the order you need (LIFO, FIFO or by priority) and swap in a thread-safe or bounded implementation later without rewriting callers.`,
+      whenToUse: [
+        'Use Deque<T> stack = new ArrayDeque<>() for stacks: undo, backtracking, depth-first search, bracket matching.',
+        'Use Queue<T> queue = new ArrayDeque<>() for FIFO work lists and breadth-first search.',
+        'Use PriorityQueue for "always process the most urgent next": schedulers, Dijkstra, top-k, merging sorted streams.',
+        'Use a BlockingQueue when producer and consumer threads hand work to each other.',
+      ],
+      whenNotToUse: [
+        'Do not use java.util.Stack or Vector in new code.',
+        'Do not iterate or print a PriorityQueue expecting sorted order — poll repeatedly or sort a copy.',
+        'Do not store null in queues; null is the "empty" signal of poll and peek.',
+        'Do not share an ArrayDeque or PriorityQueue between threads — use a concurrent or blocking queue.',
+      ],
+      examples: [
+        {
+          id: 'deque-basics',
+          title: 'One ArrayDeque as a stack, one as a queue',
+          runnable: true,
+          code: `import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        Deque<String> stack = new ArrayDeque<>();       // LIFO: last in, first out
+        stack.push("home");
+        stack.push("cart");
+        stack.push("checkout");
+        System.out.println("stack " + stack + ", peek = " + stack.peek());
+        System.out.println("pop: " + stack.pop() + ", then " + stack.pop());
+
+        Queue<String> queue = new ArrayDeque<>();       // FIFO: first in, first out
+        queue.offer("job-1");
+        queue.offer("job-2");
+        queue.offer("job-3");
+        System.out.println("queue " + queue + ", peek = " + queue.peek());
+        System.out.println("poll: " + queue.poll() + ", then " + queue.poll());
+
+        Queue<String> empty = new ArrayDeque<>();
+        System.out.println("poll on empty: " + empty.poll());
+        System.out.println("peek on empty: " + empty.peek());
+        try {
+            empty.remove();
+        } catch (NoSuchElementException e) {
+            System.out.println("remove on empty: NoSuchElementException");
+        }
+        try {
+            empty.offer(null);
+        } catch (NullPointerException e) {
+            System.out.println("ArrayDeque rejects null elements");
+        }
+    }
+}`,
+          expectedOutput: `stack [checkout, cart, home], peek = checkout
+pop: checkout, then cart
+queue [job-1, job-2, job-3], peek = job-1
+poll: job-1, then job-2
+poll on empty: null
+peek on empty: null
+remove on empty: NoSuchElementException
+ArrayDeque rejects null elements`,
+          explanation: 'push and pop work at the head, so the most recent page comes out first. offer adds at the tail and poll removes from the head, so jobs come out in arrival order.',
+        },
+        {
+          id: 'priority-heap',
+          title: 'PriorityQueue: heap order vs poll order, and custom comparators',
+          runnable: true,
+          code: `import java.util.*;
+
+public class Main {
+    record Task(String name, int priority) {}
+
+    public static void main(String[] args) {
+        PriorityQueue<Integer> minHeap = new PriorityQueue<>(List.of(5, 1, 4, 2, 3));
+        System.out.println("iteration (heap order): " + minHeap);
+        List<Integer> polled = new ArrayList<>();
+        while (!minHeap.isEmpty()) polled.add(minHeap.poll());
+        System.out.println("poll order: " + polled);
+
+        PriorityQueue<Integer> maxHeap = new PriorityQueue<>(Comparator.reverseOrder());
+        maxHeap.addAll(List.of(5, 1, 4, 2, 3));
+        System.out.println("max first: " + maxHeap.poll() + ", " + maxHeap.poll());
+
+        PriorityQueue<Task> tasks = new PriorityQueue<>(
+            Comparator.comparingInt(Task::priority).thenComparing(Task::name));
+        tasks.offer(new Task("write report", 3));
+        tasks.offer(new Task("fix outage", 1));
+        tasks.offer(new Task("answer email", 3));
+        tasks.offer(new Task("deploy hotfix", 2));
+        while (!tasks.isEmpty()) {
+            Task t = tasks.poll();
+            System.out.println(t.priority() + " " + t.name());
+        }
+    }
+}`,
+          expectedOutput: `iteration (heap order): [1, 2, 4, 5, 3]
+poll order: [1, 2, 3, 4, 5]
+max first: 5, 4
+1 fix outage
+2 deploy hotfix
+3 answer email
+3 write report`,
+          explanation: 'Printing the queue shows the internal heap array, where only the first element is guaranteed to be the smallest. The name tie-breaker makes the order of the two priority-3 tasks deterministic.',
+        },
+        {
+          id: 'blocking-preview',
+          title: 'A bounded BlockingQueue (single-threaded preview)',
+          runnable: true,
+          code: `import java.util.concurrent.*;
+
+public class Main {
+    public static void main(String[] args) throws InterruptedException {
+        BlockingQueue<String> inbox = new ArrayBlockingQueue<>(2);   // bounded: capacity 2
+        System.out.println(inbox.offer("a") + " " + inbox.offer("b") + " " + inbox.offer("c"));
+        System.out.println("remaining capacity: " + inbox.remainingCapacity());
+        try {
+            inbox.add("c");
+        } catch (IllegalStateException e) {
+            System.out.println("add on full queue: " + e.getMessage());
+        }
+        boolean accepted = inbox.offer("c", 10, TimeUnit.MILLISECONDS);
+        System.out.println("offer with timeout: " + accepted);
+        System.out.println("take: " + inbox.take() + ", poll: " + inbox.poll() + ", poll: " + inbox.poll());
+    }
+}`,
+          expectedOutput: `true true false
+remaining capacity: 0
+add on full queue: Queue full
+offer with timeout: false
+take: a, poll: b, poll: null`,
+          explanation: 'With one thread nobody can make room, so offer returns false, add throws and the timed offer gives up after 10 ms. In a real producer-consumer program, put and take would wait for another thread instead.',
+        },
+      ],
+      walkthrough: {
+        exampleId: 'deque-basics',
+        steps: [
+          { lines: [5, 5], text: 'Declare the variable as Deque so the stack methods (push, pop, peek) are available, and choose ArrayDeque as the implementation.' },
+          { lines: [6, 9], text: 'push adds to the head each time, so the deque reads [checkout, cart, home] from top to bottom; peek looks at the top without removing it.' },
+          { lines: [10, 10], text: 'pop removes from the head: the most recently pushed page comes out first. That is LIFO.' },
+          { lines: [12, 17], text: 'The same class used through the Queue interface: offer adds at the tail and poll removes from the head, so job-1 (the oldest) is served first. That is FIFO.' },
+          { lines: [19, 21], text: 'On an empty queue the special-value methods return null instead of failing.' },
+          { lines: [22, 26], text: 'remove() is the throwing twin of poll(): on an empty queue it throws NoSuchElementException.' },
+          { lines: [27, 31], text: 'Because null means "empty" for poll and peek, ArrayDeque refuses to store null at all.' },
+        ],
+      },
+      realWorld: {
+        title: 'A job scheduler that ran jobs in the wrong order',
+        scenario: `A reporting service kept pending jobs in a \`PriorityQueue<Job>\` ordered by deadline. An admin page listed "upcoming jobs" by iterating the queue, and the on-call engineer was confused: the page showed a job due next week above one due in five minutes. Nothing was wrong with the scheduler — \`poll()\` always returned the earliest deadline — but iteration walks the heap array, which is only partially ordered.
+
+A second, real bug hid behind it: when a job was rescheduled, the code changed its \`deadline\` field while it was still inside the queue, so the heap was never re-ordered and the job ran at its old time. The fix was to \`remove\` the job, update it and \`offer\` it again (and to build the admin list from a sorted copy).`,
+      },
+      commonMistakes: [
+        {
+          mistake: 'Using java.util.Stack for a stack.',
+          why: 'Stack extends Vector: every call is synchronised, it allows index-based inserts that break LIFO, and its iteration order is bottom-to-top.',
+          fix: 'Use Deque<T> stack = new ArrayDeque<>() with push, pop and peek.',
+          code: `Deque<Character> brackets = new ArrayDeque<>();
+brackets.push('(');
+char open = brackets.pop();`,
+        },
+        {
+          mistake: 'Calling remove() or element() when an empty queue is a normal case.',
+          why: 'They throw NoSuchElementException on an empty queue.',
+          fix: 'Use poll() and peek(), which return null, and check the result (or check isEmpty() first).',
+        },
+        {
+          mistake: 'Printing or iterating a PriorityQueue to show items in priority order.',
+          why: 'The iterator walks the internal heap array, which is only partially ordered.',
+          fix: 'Poll repeatedly, or copy into a list and sort it: new ArrayList<>(pq) then list.sort(comparator).',
+        },
+        {
+          mistake: 'Changing the field a PriorityQueue orders by while the element is inside it.',
+          why: 'The heap only re-orders on insert and removal, so the element keeps its stale position.',
+          fix: 'Remove the element, change it, then offer it again — or use immutable elements.',
+        },
+      ],
+      checks: [
+        {
+          id: 'c5-c1',
+          kind: 'predict-output',
+          dimension: 'runtime',
+          prompt: 'What does this print?',
+          code: `import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        Stack<Integer> legacy = new Stack<>();
+        Deque<Integer> modern = new ArrayDeque<>();
+        for (int i = 1; i <= 3; i++) {
+            legacy.push(i);
+            modern.push(i);
+        }
+        System.out.println(legacy + " " + modern + " " + legacy.pop() + modern.pop());
+    }
+}`,
+          options: [
+            { id: 'a', text: '[1, 2, 3] [3, 2, 1] 33' },
+            { id: 'b', text: '[3, 2, 1] [3, 2, 1] 33' },
+            { id: 'c', text: '[1, 2, 3] [1, 2, 3] 33' },
+            { id: 'd', text: '[1, 2, 3] [3, 2, 1] 31' },
+          ],
+          correctOptionId: 'a',
+          explanation: 'Both pop 3 (the last pushed), but they print differently: Stack is a Vector that appends at the end, so it prints bottom-to-top; ArrayDeque.push adds at the head, so it prints top-to-bottom.',
+          hints: ['Stack extends Vector. Where does Vector add new elements?'],
+        },
+        {
+          id: 'c5-c2',
+          kind: 'multi-select',
+          dimension: 'conceptual',
+          prompt: 'Which Queue methods return a special value (null or false) instead of throwing when the queue is empty or full? Select all that apply.',
+          options: [
+            { id: 'a', text: 'add(e)' },
+            { id: 'b', text: 'offer(e)' },
+            { id: 'c', text: 'remove()' },
+            { id: 'd', text: 'poll()' },
+            { id: 'e', text: 'element()' },
+            { id: 'f', text: 'peek()' },
+          ],
+          correctOptionIds: ['b', 'd', 'f'],
+          explanation: 'offer returns false when a bounded queue is full; poll and peek return null when empty. add, remove and element are the throwing twins.',
+          hints: ['The methods pair up: add/offer, remove/poll, element/peek.'],
+        },
+        {
+          id: 'c5-c3',
+          kind: 'predict-output',
+          dimension: 'runtime',
+          prompt: 'What does this print?',
+          code: `import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        Deque<Integer> d = new ArrayDeque<>();
+        d.offer(1);
+        d.offer(2);
+        d.push(3);
+        d.offerLast(4);
+        System.out.println(d.poll() + " " + d.pop() + " " + d.pollLast() + " " + d);
+    }
+}`,
+          options: [
+            { id: 'a', text: '1 2 4 [3]' },
+            { id: 'b', text: '3 1 4 [2]' },
+            { id: 'c', text: '3 4 2 [1]' },
+            { id: 'd', text: '1 3 4 [2]' },
+          ],
+          correctOptionId: 'b',
+          explanation: 'offer adds at the tail: [1, 2]. push adds at the head: [3, 1, 2]. offerLast: [3, 1, 2, 4]. poll and pop both remove from the head (3, then 1), pollLast removes 4, leaving [2].',
+          hints: ['Write the deque out after every call; poll and pop both take from the head.'],
+        },
+        {
+          id: 'c5-c4',
+          kind: 'predict-output',
+          dimension: 'runtime',
+          prompt: 'What does this print?',
+          code: `import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        PriorityQueue<String> pq = new PriorityQueue<>();
+        pq.add("pear");
+        pq.add("apple");
+        pq.add("fig");
+        pq.add("banana");
+        System.out.println(pq.peek() + " " + pq.size());
+        System.out.println(pq.poll() + " " + pq.poll());
+    }
+}`,
+          options: [
+            { id: 'a', text: 'pear 4\npear apple' },
+            { id: 'b', text: 'apple 4\napple banana' },
+            { id: 'c', text: 'apple 3\nbanana fig' },
+            { id: 'd', text: 'banana 4\napple banana' },
+          ],
+          correctOptionId: 'b',
+          explanation: 'With natural ordering the head is always the alphabetically smallest string. peek does not remove, so the size stays 4; each poll removes the current smallest.',
+        },
+        {
+          id: 'c5-c5',
+          kind: 'mcq',
+          dimension: 'conceptual',
+          prompt: 'A web crawler thread finds URLs and four worker threads download them. If downloads fall behind, the finder should wait rather than use unlimited memory. What fits best?',
+          options: [
+            { id: 'a', text: 'An ArrayDeque shared by all threads' },
+            { id: 'b', text: 'A bounded ArrayBlockingQueue: the finder calls put, workers call take' },
+            { id: 'c', text: 'A PriorityQueue with a comparator on URL length' },
+            { id: 'd', text: 'java.util.Stack, because its methods are synchronised' },
+          ],
+          correctOptionId: 'b',
+          explanation: 'A bounded BlockingQueue is thread-safe and applies back-pressure: put blocks when it is full and take blocks when it is empty. ArrayDeque and PriorityQueue are not thread-safe, and Stack is LIFO with no waiting.',
+        },
+      ],
+      challengeIds: [],
+      masteryCriteria: [
+        'Choose stack, queue or priority queue from a problem description and justify it.',
+        'Use ArrayDeque for both stack and queue, and explain why Stack is legacy.',
+        'Pick the throwing or special-value Queue method deliberately.',
+        'Explain why PriorityQueue iteration is not sorted, and write multi-key priority comparators.',
+      ],
+      relatedLessonIds: ['c-collections-overview', 'c-sorted', 'a-complexity', 'cc-synchronization'],
+      revision: [
+        { id: 'r1', question: 'What is the difference between LIFO and FIFO?', answer: 'LIFO (stack): the last element added is the first removed. FIFO (queue): the first element added is the first removed.' },
+        { id: 'r2', question: 'Which Queue methods throw and which return special values?', answer: 'add/remove/element throw (IllegalStateException when full, NoSuchElementException when empty); offer/poll/peek return false or null instead.' },
+        { id: 'r3', question: 'Why use ArrayDeque instead of Stack?', answer: 'Stack extends Vector: synchronised on every call, exposes index operations that break LIFO, and is legacy. ArrayDeque is a fast, unsynchronised circular array with O(1) operations at both ends.' },
+        { id: 'r4', question: 'What are the costs of PriorityQueue operations, and what does iteration return?', answer: 'offer and poll O(log n), peek O(1), remove(Object)/contains O(n). Iteration returns heap order, which is not sorted.' },
+        { id: 'r5', question: 'What does a BlockingQueue add?', answer: 'Methods that wait: put blocks while full, take blocks while empty, and timed offer/poll wait up to a limit. It is the standard tool for producer-consumer hand-off between threads.' },
       ],
     },
   ],
