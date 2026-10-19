@@ -3,6 +3,8 @@ import type { CodingChallenge, CurriculumModule, KnowledgeCheck, Lesson } from '
 import type { BugHunt, Incident, InterviewQuestion, JvmScenario, Project } from '@/types/practice';
 
 import { collectionsChallenges } from './challenges/collections';
+import { concurrencyChallenges } from './challenges/concurrency';
+import { ioChallenges } from './challenges/io';
 import { exceptionsChallenges } from './challenges/exceptions';
 import { functionalChallenges } from './challenges/functional';
 import { fundamentalsChallenges } from './challenges/fundamentals';
@@ -17,6 +19,8 @@ import { exceptionsModule } from './modules/05-exceptions';
 import { functionalModule } from './modules/07-functional';
 import { collectionsModule } from './modules/06-collections';
 import { jvmRuntimeModule } from './modules/08-jvm-runtime';
+import { concurrencyModule } from './modules/09-concurrency';
+import { ioModule } from './modules/10-io';
 import { INTERVIEW_QUESTION_LIST } from './interview/questions';
 import { JVM_SCENARIO_LIST } from './jvm/scenarios';
 import { PLANNED_MODULES } from './modules/planned';
@@ -30,7 +34,7 @@ import { PROJECT_LIST } from './practice/projects';
  * into the public Postgres tables.
  */
 
-const WRITTEN_MODULES: CurriculumModule[] = [fundamentalsModule, platformModule, oopModule, typesModule, exceptionsModule, collectionsModule, functionalModule, jvmRuntimeModule];
+const WRITTEN_MODULES: CurriculumModule[] = [fundamentalsModule, platformModule, oopModule, typesModule, exceptionsModule, collectionsModule, functionalModule, jvmRuntimeModule, concurrencyModule, ioModule];
 
 const writtenIds = new Set(WRITTEN_MODULES.map((m) => m.id));
 export const MODULES: CurriculumModule[] = [
@@ -38,7 +42,7 @@ export const MODULES: CurriculumModule[] = [
   ...PLANNED_MODULES.filter((m) => !writtenIds.has(m.id)),
 ].sort((a, b) => a.order - b.order);
 
-export const CHALLENGES: CodingChallenge[] = [...fundamentalsChallenges, ...platformChallenges, ...oopChallenges, ...typesChallenges, ...exceptionsChallenges, ...collectionsChallenges, ...functionalChallenges];
+export const CHALLENGES: CodingChallenge[] = [...fundamentalsChallenges, ...platformChallenges, ...oopChallenges, ...typesChallenges, ...exceptionsChallenges, ...collectionsChallenges, ...functionalChallenges, ...concurrencyChallenges, ...ioChallenges];
 export const INTERVIEW_QUESTIONS: InterviewQuestion[] = INTERVIEW_QUESTION_LIST;
 export const BUG_HUNTS: BugHunt[] = BUG_HUNT_LIST;
 export const INCIDENTS: Incident[] = INCIDENT_LIST;
