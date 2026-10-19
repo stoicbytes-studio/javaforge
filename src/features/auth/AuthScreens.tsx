@@ -90,9 +90,9 @@ function AuthFrame({ title, subtitle, children, footer }: { title: string; subti
             </Card>
           )}
           {footer}
-          <Link href="/" style={{ alignSelf: 'center' }}>
+          <Link href={auth.configured ? '/welcome' : '/'} style={{ alignSelf: 'center' }}>
             <Text variant="small" color="textMuted">
-              Continue without an account
+              {auth.configured ? 'Back to the home page' : 'Continue without an account'}
             </Text>
           </Link>
         </View>
@@ -176,7 +176,7 @@ export function SignInScreen() {
       </Link>
       <Button label="Sign in" onPress={() => submit()} loading={formState.isSubmitting} fullWidth />
       <Text variant="small" color="textSubtle">
-        Progress you made on this device without an account is merged into your account after you sign in.
+        Progress you made on this device before signing in is merged into your account.
       </Text>
     </AuthFrame>
   );

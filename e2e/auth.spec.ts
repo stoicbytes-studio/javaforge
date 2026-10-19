@@ -61,10 +61,10 @@ test.describe('sign-in and sign-up', () => {
 });
 
 test.describe('admin dashboard', () => {
-  test('signed-out visitors are asked to sign in', async ({ page }) => {
+  test('signed-out visitors cannot open the admin dashboard', async ({ page }) => {
     await mockSupabase(page);
     await page.goto('/admin');
-    await expect(page.getByText('Sign in to continue')).toBeVisible();
+    await expect(page).toHaveURL(/\/welcome$/);
   });
 
   test('learners without admin rights are refused and see no admin menu', async ({ page }, info) => {

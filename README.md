@@ -33,6 +33,9 @@ demonstrated and what to practise next.
   simulated incidents using metrics, logs and diagnostics.
 - **Projects**: nine milestone-based builds, from an expense tracker to a
   production-ready service.
+- **Landing page and access control**: visitors see a landing page first; with
+  Supabase configured, the learning portal opens only after sign-in (builds
+  without Supabase stay open, local-only).
 - **Accounts and admin**: optional sign-up/sign-in with email confirmation
   and password reset, and an admin dashboard with learner, activity and
   content-health reports ([docs/admin.md](docs/admin.md)).

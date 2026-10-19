@@ -1,9 +1,9 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 const isMobile = (name: string) => name === 'mobile';
 
 test.describe('shell and navigation', () => {
-  test('dashboard shows an honest empty state and a first mission for a new learner', async ({ page }) => {
+  test('dashboard shows an honest empty state and a first mission for a new learner', async ({ page, supabase: _ }) => {
     await page.goto('/');
     // No invented mastery, streaks or XP before the learner has demonstrated anything.
     await expect(page.getByRole('heading', { name: 'No learning evidence yet' })).toBeVisible();
@@ -11,7 +11,7 @@ test.describe('shell and navigation', () => {
     await expect(page).toHaveURL(/\/learn\/fundamentals\/f-first-program$/);
   });
 
-  test('uses a sidebar on desktop and bottom tabs on mobile', async ({ page }, info) => {
+  test('uses a sidebar on desktop and bottom tabs on mobile', async ({ page, supabase: _ }, info) => {
     await page.goto('/');
     if (isMobile(info.project.name)) {
       await expect(page.getByRole('tablist')).toBeVisible();
@@ -22,20 +22,20 @@ test.describe('shell and navigation', () => {
     }
   });
 
-  test('curriculum lists all seventeen modules', async ({ page }) => {
+  test('curriculum lists all seventeen modules', async ({ page, supabase: _ }) => {
     await page.goto('/learn');
     await expect(page.getByRole('heading', { name: 'Learning roadmap' })).toBeVisible();
     for (let n = 1; n <= 17; n++) await expect(page.getByText(`Module ${n}`, { exact: true })).toBeVisible();
   });
 
-  test('unknown routes show a not-found screen', async ({ page }) => {
+  test('unknown routes show a not-found screen', async ({ page, supabase: _ }) => {
     await page.goto('/definitely-not-a-route');
     await expect(page.getByText(/not found/i).first()).toBeVisible();
   });
 });
 
 test.describe('learning loop', () => {
-  test('answering a knowledge check records evidence and updates progress', async ({ page }) => {
+  test('answering a knowledge check records evidence and updates progress', async ({ page, supabase: _ }) => {
     await page.goto('/learn/fundamentals/f-first-program');
     await page.getByRole('tab', { name: /Practice/ }).first().click();
     await page.getByText('Main.class containing platform-independent bytecode').click();
@@ -46,7 +46,7 @@ test.describe('learning loop', () => {
     await expect(page.getByRole('heading', { name: 'No learning evidence yet' })).toHaveCount(0);
   });
 
-  test('progress survives a reload (local-first persistence)', async ({ page }) => {
+  test('progress survives a reload (local-first persistence)', async ({ page, supabase: _ }) => {
     await page.goto('/learn/fundamentals/f-first-program');
     await page.getByRole('tab', { name: /Practice/ }).first().click();
     await page.getByText('Main.class containing platform-independent bytecode').click();
@@ -58,18 +58,18 @@ test.describe('learning loop', () => {
 });
 
 test.describe('honesty guarantees', () => {
-  test('playground explains simulation mode when no executor is configured', async ({ page }) => {
+  test('playground explains simulation mode when no executor is configured', async ({ page, supabase: _ }) => {
     await page.goto('/practice');
     await expect(page.getByText(/simulation/i).first()).toBeVisible();
   });
 
-  test('Java versions page separates final and preview features', async ({ page }) => {
+  test('Java versions page separates final and preview features', async ({ page, supabase: _ }) => {
     await page.goto('/learn/java-versions');
     await expect(page.getByText(/Java 21/).first()).toBeVisible();
     await expect(page.getByText(/preview/i).first()).toBeVisible();
   });
 
-  test('JVM lab states that visualisations are simplified models', async ({ page }) => {
+  test('JVM lab states that visualisations are simplified models', async ({ page, supabase: _ }) => {
     await page.goto('/jvm-lab');
     await expect(page.getByText(/simplified|model/i).first()).toBeVisible();
   });
