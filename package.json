@@ -51,7 +51,9 @@
     "copy:monaco": "node scripts/copy-monaco.mjs",
     "export:web": "node scripts/copy-monaco.mjs && expo export --platform web",
     "e2e": "playwright test",
-    "postinstall": "node scripts/copy-monaco.mjs"
+    "postinstall": "node scripts/copy-monaco.mjs",
+    "seed:generate": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/generate-seed.mjs",
+    "test:db": "bash supabase/tests/run.sh"
   },
   "private": true,
   "jest": {

@@ -49,3 +49,4 @@ playwright-report/
 executor/target/
 .env
 executor/target/
+supabase/seed.sql

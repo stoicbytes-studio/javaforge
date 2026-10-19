@@ -26,7 +26,7 @@ const contentDir = join(root, 'src', 'content');
 const argv = process.argv.slice(2);
 const executorFlag = argv.indexOf('--executor');
 const executorUrl = executorFlag >= 0 ? argv[executorFlag + 1] : undefined;
-const filter = argv.find((a, i) => !a.startsWith('--') && i !== executorFlag + 1);
+const filter = argv.find((a, i) => !a.startsWith('--') && (executorFlag < 0 || i !== executorFlag + 1));
 
 function walk(dir) {
   return readdirSync(dir).flatMap((name) => {
