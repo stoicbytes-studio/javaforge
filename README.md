@@ -81,6 +81,10 @@ npm run seed:generate      # writes supabase/seed.sql from src/content
 
 Then sign up in the app and make yourself an admin; see [docs/admin.md](docs/admin.md).
 
+## Deploying
+
+Step-by-step guide for Vercel + Supabase: [docs/deployment.md](docs/deployment.md).
+
 ## Scripts
 
 | Command | What it does |
