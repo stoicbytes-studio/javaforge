@@ -16,11 +16,13 @@ import { typesModule } from './modules/04-types';
 import { exceptionsModule } from './modules/05-exceptions';
 import { functionalModule } from './modules/07-functional';
 import { collectionsModule } from './modules/06-collections';
+import { jvmRuntimeModule } from './modules/08-jvm-runtime';
 import { INTERVIEW_QUESTION_LIST } from './interview/questions';
 import { JVM_SCENARIO_LIST } from './jvm/scenarios';
 import { PLANNED_MODULES } from './modules/planned';
 import { BUG_HUNT_LIST } from './practice/bugHunts';
 import { INCIDENT_LIST } from './practice/incidents';
+import { PROJECT_LIST } from './practice/projects';
 
 /**
  * Public curriculum content. Lives in the app bundle so the learning journey
@@ -28,7 +30,7 @@ import { INCIDENT_LIST } from './practice/incidents';
  * into the public Postgres tables.
  */
 
-const WRITTEN_MODULES: CurriculumModule[] = [fundamentalsModule, platformModule, oopModule, typesModule, exceptionsModule, collectionsModule, functionalModule];
+const WRITTEN_MODULES: CurriculumModule[] = [fundamentalsModule, platformModule, oopModule, typesModule, exceptionsModule, collectionsModule, functionalModule, jvmRuntimeModule];
 
 const writtenIds = new Set(WRITTEN_MODULES.map((m) => m.id));
 export const MODULES: CurriculumModule[] = [
@@ -40,7 +42,7 @@ export const CHALLENGES: CodingChallenge[] = [...fundamentalsChallenges, ...plat
 export const INTERVIEW_QUESTIONS: InterviewQuestion[] = INTERVIEW_QUESTION_LIST;
 export const BUG_HUNTS: BugHunt[] = BUG_HUNT_LIST;
 export const INCIDENTS: Incident[] = INCIDENT_LIST;
-export const PROJECTS: Project[] = [];
+export const PROJECTS: Project[] = PROJECT_LIST;
 export const JVM_SCENARIOS: JvmScenario[] = JVM_SCENARIO_LIST;
 
 export const LESSONS: Lesson[] = MODULES.flatMap((m) => m.lessons);
