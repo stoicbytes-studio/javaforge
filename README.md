@@ -11,7 +11,7 @@ demonstrated and what to practise next.
 
 ## What's inside
 
-- **Curriculum**: 17 modules and 77 lessons, from fundamentals, the JVM
+- **Curriculum**: 17 modules and 78 lessons, from fundamentals, the JVM
   platform, OOP, types, exceptions, collections and functional Java to JVM
   runtime internals, concurrency and virtual threads, I/O, JDBC, testing,
   design patterns, DSA, Spring Boot, performance and production engineering.
@@ -26,7 +26,7 @@ demonstrated and what to practise next.
   prompts.
 - **Java version updates**: Java 8 → 27, separating final features from
   previews. Every claim is checked by compiling probes on real JDKs 8–27.
-- **Playground and challenges**: 47 coding, debugging and boss challenges with
+- **Playground and challenges**: 70 coding, debugging and boss challenges with
   tests, hints and solutions. Monaco editor on web. Code runs in a sandboxed
   execution service; when none is available, the app says so and switches to
   an honest simulation mode.
@@ -98,6 +98,7 @@ Step-by-step guide for Vercel + Supabase: [docs/deployment.md](docs/deployment.m
 | Command | What it does |
 | --- | --- |
 | `npm run typecheck` | TypeScript (strict) |
+| `npm run lint` | ESLint with the Expo config (`eslint.config.js`) |
 | `npm test` | Jest unit and component tests |
 | `npm run verify:java [filter]` | Compiles and runs all Java in the content on a local JDK 21+ (`--executor URL` to go through the API) |
 | `npm run e2e` | Playwright against a test web export with a mocked Supabase (`npm run e2e:build` first) |

@@ -48,7 +48,7 @@ for (const file of walk(contentDir)) {
       else if (isChallenge(item)) challenges.push(item);
       else if (item && typeof item === 'object' && Array.isArray(item.checks) && item.moduleId && (file.endsWith('-more.ts') || file.includes(join('modules', 'extra')))) extraLessons.push(item);
     }
-    if (file.endsWith(join('interview', 'questions.ts')) && Array.isArray(value)) questions = value;
+    if (file.includes(join('content', 'interview')) && Array.isArray(value)) questions = [...questions, ...value];
   }
 }
 const { ACHIEVEMENTS } = await import(pathToFileURL(join(root, 'src', 'features', 'gamification', 'achievements.ts')).href);

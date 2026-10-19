@@ -14,6 +14,7 @@ import { fundamentalsChallenges } from './challenges/fundamentals';
 import { oopChallenges } from './challenges/oop';
 import { platformChallenges } from './challenges/platform';
 import { runtimeIoJdbcChallenges } from './challenges/runtime-io-jdbc';
+import { springTestingProdChallenges } from './challenges/spring-testing-prod';
 import { productionChallenges } from './challenges/production';
 import { testingChallenges } from './challenges/testing';
 import { typesChallenges } from './challenges/types';
@@ -58,7 +59,7 @@ const oopModule: CurriculumModule = { ...oopCore, lessons: [...oopCore.lessons, 
 
 const WRITTEN_MODULES: CurriculumModule[] = [fundamentalsModule, platformModule, oopModule, typesModule, exceptionsModule, collectionsModule, functionalModule, jvmRuntimeModule, concurrencyModule, ioModule, jdbcModule, testingModule, designModule, dsaModule, springModule, performanceModule, productionModule];
 
-export const CHALLENGES: CodingChallenge[] = [...fundamentalsChallenges, ...platformChallenges, ...oopChallenges, ...typesChallenges, ...exceptionsChallenges, ...collectionsChallenges, ...functionalChallenges, ...concurrencyChallenges, ...ioChallenges, ...testingChallenges, ...designChallenges, ...dsaChallenges, ...productionChallenges, ...coreExtraChallenges, ...runtimeIoJdbcChallenges];
+export const CHALLENGES: CodingChallenge[] = [...fundamentalsChallenges, ...platformChallenges, ...oopChallenges, ...typesChallenges, ...exceptionsChallenges, ...collectionsChallenges, ...functionalChallenges, ...concurrencyChallenges, ...ioChallenges, ...testingChallenges, ...designChallenges, ...dsaChallenges, ...productionChallenges, ...coreExtraChallenges, ...runtimeIoJdbcChallenges, ...springTestingProdChallenges];
 
 /**
  * Completes each written module: appends lessons kept in modules/extra, attaches
