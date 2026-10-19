@@ -26,7 +26,7 @@ export function ProgressBar({
       accessibilityValue={{ min: 0, max: 100, now: pct, text: `${pct}%` }}
       style={[styles.track, { height, backgroundColor: colors.surfaceAlt }]}
     >
-      <View style={[styles.fill, { width: `${pct}%`, backgroundColor: color ?? colors.primary }]} />
+      <View style={[styles.fill, { width: `${pct}%`, backgroundColor: color ?? colors.brandStrong }]} />
     </View>
   );
 }
@@ -61,7 +61,7 @@ export function ProgressRing({
           cx={size / 2}
           cy={size / 2}
           r={r}
-          stroke={color ?? colors.primary}
+          stroke={color ?? colors.brandStrong}
           strokeWidth={stroke}
           fill="none"
           strokeDasharray={`${c} ${c}`}

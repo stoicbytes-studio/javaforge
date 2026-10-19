@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { BrandMark } from '@/components/BrandMark';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { Icon, type IconName } from '@/components/Icon';
@@ -80,11 +81,7 @@ export function LandingScreen() {
         <View style={styles.container}>
           <View style={styles.navInner}>
             <View style={styles.brand}>
-              <View style={[styles.logo, { backgroundColor: colors.primaryMuted, borderColor: colors.primary }]}>
-                <Text variant="small" weight="800" color="primary" mono>
-                  JF
-                </Text>
-              </View>
+              <BrandMark />
               <Text variant="heading" weight="800">
                 JavaForge
               </Text>
@@ -250,7 +247,6 @@ const styles = StyleSheet.create({
   nav: { paddingBottom: spacing.sm },
   navInner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   brand: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  logo: { width: 36, height: 36, borderRadius: radius.md, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap' },
   pill: { paddingHorizontal: spacing.md, paddingVertical: 4, borderRadius: radius.pill },
   stats: { flexDirection: 'row', flexWrap: 'wrap', borderWidth: 1, borderRadius: radius.lg, paddingVertical: spacing.md },

@@ -38,6 +38,7 @@ import { PLANNED_MODULES } from './modules/planned';
 import { BUG_HUNT_LIST } from './practice/bugHunts';
 import { INCIDENT_LIST } from './practice/incidents';
 import { PROJECT_LIST } from './practice/projects';
+import { CONCEPTS } from './concepts';
 
 /**
  * Public curriculum content. Lives in the app bundle so the learning journey
@@ -47,9 +48,15 @@ import { PROJECT_LIST } from './practice/projects';
 
 const WRITTEN_MODULES: CurriculumModule[] = [fundamentalsModule, platformModule, oopModule, typesModule, exceptionsModule, collectionsModule, functionalModule, jvmRuntimeModule, concurrencyModule, ioModule, jdbcModule, testingModule, designModule, dsaModule, springModule, performanceModule, productionModule];
 
+/** Attaches each lesson's concept page (interview definition, mnemonic, diagrams...). */
+const withConcepts = (m: CurriculumModule): CurriculumModule => ({
+  ...m,
+  lessons: m.lessons.map((l) => (CONCEPTS[l.id] ? { ...l, concepts: CONCEPTS[l.id] } : l)),
+});
+
 const writtenIds = new Set(WRITTEN_MODULES.map((m) => m.id));
 export const MODULES: CurriculumModule[] = [
-  ...WRITTEN_MODULES,
+  ...WRITTEN_MODULES.map(withConcepts),
   ...PLANNED_MODULES.filter((m) => !writtenIds.has(m.id)),
 ].sort((a, b) => a.order - b.order);
 

@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, View, type StyleProp, type ViewProps, type ViewStyle } from 'react-native';
 import { Link, type Href } from 'expo-router';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 
 import { useTheme } from '@/theme/ThemeProvider';
 import { radius, spacing } from '@/theme/tokens';
@@ -26,7 +26,6 @@ export function Card({ style, children, tone = 'default', ...rest }: ViewProps &
   );
 }
 
-type PressState = { pressed: boolean; hovered?: boolean; focused?: boolean };
 
 /** A card that navigates. Rendered as a real link on web for keyboard and middle-click support. */
 export function LinkCard({
@@ -41,20 +40,26 @@ export function LinkCard({
   accessibilityLabel?: string;
 }) {
   const { colors } = useTheme();
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  // Link's asChild slot drops style functions on web, so hover/focus are tracked in
+  // state and the slot receives one flat style object.
+  const flat = StyleSheet.flatten([
+    styles.card,
+    { backgroundColor: hovered ? colors.surfaceAlt : colors.surface, borderColor: hovered ? colors.borderStrong : colors.border },
+    focused && { outlineColor: colors.focus, outlineWidth: 2, outlineStyle: 'solid' },
+    style,
+  ] as StyleProp<ViewStyle>);
   return (
     <Link href={href} asChild>
       <Pressable
         accessibilityRole="link"
         accessibilityLabel={accessibilityLabel}
-        style={(state) => {
-          const { pressed, hovered, focused } = state as PressState;
-          return [
-            styles.card,
-            { backgroundColor: hovered || pressed ? colors.surfaceAlt : colors.surface, borderColor: hovered ? colors.borderStrong : colors.border },
-            focused && { outlineColor: colors.focus, outlineWidth: 2, outlineStyle: 'solid' },
-            style,
-          ] as StyleProp<ViewStyle>;
-        }}
+        onHoverIn={() => setHovered(true)}
+        onHoverOut={() => setHovered(false)}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        style={flat}
       >
         {children}
       </Pressable>
@@ -75,20 +80,24 @@ export function PressableLink({
   accessibilityLabel?: string;
 }) {
   const { colors } = useTheme();
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const flat = StyleSheet.flatten([
+    { borderRadius: radius.sm },
+    hovered && { opacity: 0.8 },
+    focused && { outlineColor: colors.focus, outlineWidth: 2, outlineStyle: 'solid' },
+    style,
+  ] as StyleProp<ViewStyle>);
   return (
     <Link href={href} asChild>
       <Pressable
         accessibilityRole="link"
         accessibilityLabel={accessibilityLabel}
-        style={(state) => {
-          const { pressed, hovered, focused } = state as PressState;
-          return [
-            { borderRadius: radius.sm },
-            (hovered || pressed) && { opacity: 0.8 },
-            focused && { outlineColor: colors.focus, outlineWidth: 2, outlineStyle: 'solid' },
-            style,
-          ] as StyleProp<ViewStyle>;
-        }}
+        onHoverIn={() => setHovered(true)}
+        onHoverOut={() => setHovered(false)}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        style={flat}
       >
         {children}
       </Pressable>

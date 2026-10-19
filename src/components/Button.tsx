@@ -36,8 +36,8 @@ export function Button({
 }: ButtonProps) {
   const { colors } = useTheme();
   const palette = {
-    primary: { bg: colors.primary, fg: colors.onPrimary, border: colors.primary },
-    secondary: { bg: colors.surfaceAlt, fg: colors.text, border: colors.borderStrong },
+    primary: { bg: colors.brand, fg: colors.onBrand, border: colors.brandStrong },
+    secondary: { bg: colors.surface, fg: colors.text, border: colors.borderStrong },
     ghost: { bg: 'transparent', fg: colors.text, border: 'transparent' },
     danger: { bg: colors.dangerMuted, fg: colors.danger, border: colors.danger },
     success: { bg: colors.success, fg: colors.onPrimary, border: colors.success },

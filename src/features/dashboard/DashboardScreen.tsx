@@ -254,7 +254,11 @@ export function DashboardScreen() {
 function MissionHero({ mission }: { mission: Mission }) {
   const { colors } = useTheme();
   return (
-    <LinkCard href={mission.href as never} accessibilityLabel={`Today's mission: ${mission.title}`} style={{ borderColor: colors.primary }}>
+    <LinkCard
+      href={mission.href as never}
+      accessibilityLabel={`Today's mission: ${mission.title}`}
+      style={{ backgroundColor: colors.brandMuted, borderColor: colors.brand, borderWidth: 1.5, padding: spacing.xl }}
+    >
       <View style={{ gap: spacing.sm }}>
         <View style={styles.rowBetween}>
           <Badge label="Today's mission" tone="primary" icon="target" />

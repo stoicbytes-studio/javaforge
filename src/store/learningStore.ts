@@ -63,7 +63,7 @@ export interface LearningActions {
 
 export const DEFAULT_SETTINGS: Settings = {
   // Dark-first: light mode is opt-in (or follows the OS when set to "system").
-  theme: 'dark',
+  theme: 'light',
   motion: 'system',
   dailyMinutes: 30,
   executionMode: 'auto',
@@ -234,8 +234,18 @@ export const useLearningStore = create<LearningState & LearningActions>()(
     }),
     {
       name: 'javaforge-learning-v1',
-      version: 1,
+      version: 2,
       storage: createJSONStorage(() => AsyncStorage),
+      // v2 introduced the yellow-and-white design and made light the default.
+      // Version 1 stored the old default ('dark') for everyone, so move those to light;
+      // learners can still pick dark or system in Settings.
+      migrate: (persisted, version) => {
+        const state = persisted as Partial<LearningState> | undefined;
+        if (version < 2 && state?.settings?.theme === 'dark') {
+          return { ...state, settings: { ...state.settings, theme: 'light' } } as LearningState;
+        }
+        return state as LearningState;
+      },
     },
   ),
 );

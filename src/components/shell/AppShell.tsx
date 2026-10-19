@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Link } from 'expo-router';
 
+import { BrandMark } from '@/components/BrandMark';
 import { Icon, type IconName } from '@/components/Icon';
 import { Text } from '@/components/Text';
 import { useIsAdmin } from '@/features/admin/adminApi';
@@ -91,11 +92,7 @@ function Sidebar({ collapsed }: { collapsed: boolean }) {
       style={[styles.sidebar, collapsed && styles.sidebarCollapsed, { backgroundColor: colors.surface, borderRightColor: colors.border }]}
     >
       <View style={[styles.brand, collapsed && { justifyContent: 'center', paddingHorizontal: 0 }]}>
-        <View style={[styles.logo, { backgroundColor: colors.primaryMuted, borderColor: colors.primary }]}>
-          <Text variant="small" weight="800" color="primary" mono>
-            JF
-          </Text>
-        </View>
+        <BrandMark />
         {!collapsed ? (
           <View>
             <Text variant="heading" weight="800">
@@ -234,7 +231,6 @@ const styles = StyleSheet.create({
   sidebar: { width: 248, borderRightWidth: 1, paddingVertical: spacing.lg, paddingHorizontal: spacing.md, gap: spacing.lg },
   sidebarCollapsed: { width: 84, paddingHorizontal: spacing.sm },
   brand: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.sm, marginBottom: spacing.sm },
-  logo: { width: 36, height: 36, borderRadius: radius.md, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   sideItem: {
     flexDirection: 'row',
     alignItems: 'center',

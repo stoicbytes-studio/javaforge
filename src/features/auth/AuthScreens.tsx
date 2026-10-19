@@ -6,6 +6,7 @@ import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 're
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { z } from 'zod';
 
+import { BrandMark } from '@/components/BrandMark';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { FormField } from '@/components/FormField';
@@ -63,11 +64,7 @@ function AuthFrame({ title, subtitle, children, footer }: { title: string; subti
       >
         <View style={styles.column}>
           <View style={styles.brand}>
-            <View style={[styles.logo, { backgroundColor: colors.primaryMuted, borderColor: colors.primary }]}>
-              <Text variant="small" weight="800" color="primary" mono>
-                JF
-              </Text>
-            </View>
+            <BrandMark />
             <Text variant="heading" weight="800">
               JavaForge
             </Text>
@@ -320,7 +317,6 @@ const styles = StyleSheet.create({
   scroll: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: spacing.lg },
   column: { width: '100%', maxWidth: 420, alignSelf: 'center', gap: spacing.lg },
   brand: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  logo: { width: 36, height: 36, borderRadius: radius.md, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   notice: { flexDirection: 'row', gap: spacing.sm, alignItems: 'flex-start', padding: spacing.md, borderRadius: radius.md },
   footer: { flexDirection: 'row', justifyContent: 'center', gap: spacing.xs, flexWrap: 'wrap' },
 });
