@@ -5,7 +5,7 @@ export const dsaModule: CurriculumModule = {
   order: 14,
   title: 'Data Structures, Algorithms and Problem Solving',
   shortTitle: 'DSA',
-  summary: 'Reasoning about complexity, the core problem-solving patterns used in interviews and production, and recursion with dynamic programming.',
+  summary: 'Reasoning about complexity, the core data structures and the JDK classes behind them, sorting and searching, the problem-solving patterns used in interviews and production, and recursion with dynamic programming.',
   level: 'advanced',
   prerequisites: ['collections'],
   bossChallengeId: 'boss-route-planner',
@@ -363,12 +363,917 @@ for (String email : emails) {
         'Recall the complexity of core operations for the main Java collections.',
         'Explain when Big-O reasoning is enough and when to measure with JMH or a profiler.',
       ],
-      relatedLessonIds: ['c-collections-overview', 'c-hashmap', 'a-patterns', 'r-memory-areas'],
+      relatedLessonIds: ['c-collections-overview', 'c-hashmap', 'a-data-structures', 'a-sorting-searching', 'a-patterns', 'r-memory-areas'],
       revision: [
         { id: 'r1', question: 'What does O(n^2) tell you about doubling the input?', answer: 'The work roughly quadruples. Constants and lower-order terms are ignored; only the growth rate matters.' },
         { id: 'r2', question: 'Why is ArrayList.add amortised O(1)?', answer: 'Capacity grows by about 50% when full, so the total cost of all copies over n adds is O(n); averaged per add, that is O(1).' },
         { id: 'r3', question: 'Name three library calls that are O(n) and dangerous inside loops.', answer: 'List.contains / indexOf, ArrayList.remove(0) or add(0, x), and String concatenation with + (each copies the whole string).' },
         { id: 'r4', question: 'When should you measure instead of reason?', answer: 'When comparing options with the same growth rate, when constants, caching or allocation matter, or to find where real production time goes — using a profiler or JMH, not a single cold timing.' },
+      ],
+    },
+    // -----------------------------------------------------------------------
+    {
+      id: 'a-data-structures',
+      moduleId: 'dsa',
+      title: 'Core data structures: arrays, linked lists, stacks, queues, trees, heaps, hash tables and graphs',
+      summary: 'What each core structure is, the cost of its operations, which Java class implements it, and how to represent trees and graphs yourself.',
+      estimatedMinutes: 50,
+      difficulty: 'intermediate',
+      prerequisites: ['a-complexity', 'c-collections-overview'],
+      objectives: [
+        'Describe arrays, linked lists, stacks, queues, trees, heaps, hash tables and graphs and the cost of their core operations.',
+        'Name the JDK class that implements each structure: ArrayList, LinkedList, ArrayDeque, PriorityQueue, TreeMap/TreeSet and HashMap/HashSet.',
+        'Implement a singly linked list and a binary search tree with insert, search and in-order traversal.',
+        'Distinguish binary trees, binary search trees, balanced BSTs, heaps and tries.',
+        'Choose between an adjacency list and an adjacency matrix for a graph.',
+      ],
+      plainEnglish: `A **data structure** is a way of arranging data in memory so that the operations you need are cheap. There is no best structure — each one makes some operations fast by making others slow.
+
+- **Array**: a row of numbered boxes side by side. Jump to box i instantly; inserting in the middle means shifting everything after it.
+- **Linked list**: a chain of nodes, each pointing to the next. Adding at the front is instant; finding item 500 means walking 500 links.
+- **Stack**: a pile of plates — last in, first out (undo history, the call stack).
+- **Queue**: a line at a counter — first in, first out (jobs waiting to be processed).
+- **Tree**: nodes with children, like folders inside folders. A **binary search tree** keeps smaller keys to the left and larger to the right, so each step discards half of what is left.
+- **Heap**: a tree that always keeps the smallest (or largest) item on top — perfect for "what is next?".
+- **Hash table**: turns a key into an array index, so lookups by key are (almost) instant.
+- **Graph**: dots connected by lines — cities and roads, people and friendships, services and the calls between them.
+
+Java already provides excellent implementations of most of these. Writing a couple by hand once teaches you what the library is doing for you.`,
+      technical: `### Linear structures
+- **Array** — contiguous memory, fixed size. Index O(1); insert/delete in the middle O(n); search O(n) unsorted, O(log n) sorted. Java: \`int[]\`, \`String[]\`; \`ArrayList\` is a resizable array (amortised O(1) append).
+- **Linked list** — nodes holding a value and a reference to the next (and, if doubly linked, previous) node. Insert/remove at a known node O(1); access by index O(n); poor cache locality and about 24–32 extra bytes per node. Java: \`LinkedList\` (doubly linked, implements \`List\` and \`Deque\`).
+- **Stack (LIFO)** — push, pop, peek O(1). Java: \`ArrayDeque\` via \`push\`/\`pop\`/\`peek\`. The legacy \`Stack\` class extends \`Vector\` (synchronized, exposes index access) and should not be used in new code.
+- **Queue (FIFO)** / **deque** (both ends) — offer/poll at the ends O(1). Java: \`ArrayDeque\` (a circular array, faster than \`LinkedList\` and rejects null). Concurrent code uses \`BlockingQueue\` implementations.
+
+### Non-linear structures
+- **Binary tree** — each node has at most two children. Traversals: pre-order (node, left, right), **in-order** (left, node, right), post-order (left, right, node), and level-order (BFS with a queue).
+- **Binary search tree (BST)** — for every node, keys in the left subtree are smaller and keys in the right are larger, so an in-order traversal yields sorted keys. Search/insert/delete are O(h), where h is the height: O(log n) if balanced, **O(n) if keys arrive in sorted order** (the tree degenerates into a list).
+- **Balanced BST** — red-black or AVL trees re-balance on insert/delete to keep h = O(log n). Java: \`TreeMap\`/\`TreeSet\` are **red-black trees**, giving O(log n) get/put/remove plus ordered queries (\`floorKey\`, \`ceilingKey\`, \`headMap\`, \`subMap\`).
+- **Binary heap** — a complete binary tree stored in an array (children of i at 2i+1 and 2i+2) where every parent is ≤ its children (min-heap). peek O(1), offer/poll O(log n), building from n items O(n). Java: \`PriorityQueue\` (min-heap by default; pass a comparator for max).
+- **Trie (prefix tree)** — each edge is a character; lookups cost O(length of key), independent of how many keys are stored. Great for autocomplete and prefix matching. No JDK class — usually a node with a \`Map<Character, Node>\` or a 26-element array.
+- **Hash table** — an array of buckets; \`hash(key)\` picks the bucket. get/put/remove expected O(1), worst case O(n) (or O(log n) in Java 8+ tree bins). No ordering. Java: \`HashMap\`/\`HashSet\` (separate chaining, resize at load factor 0.75), \`LinkedHashMap\` (insertion or access order).
+- **Graph** — vertices V and edges E; directed or undirected, weighted or unweighted, cyclic or acyclic (a DAG). Two representations:
+  - **Adjacency list** (\`List<List<Integer>>\` or \`Map<V, List<V>>\`): O(V + E) memory, iterate neighbours in O(degree). The default for sparse, real-world graphs.
+  - **Adjacency matrix** (\`boolean[V][V]\` or \`int[V][V]\` of weights): O(V^2) memory, edge check O(1). Good for small or dense graphs.
+  The JDK has no general graph type; build one from collections.
+
+### Picking a structure
+Start from the operations: "lookup by key" → HashMap; "sorted keys or nearest key" → TreeMap; "always the smallest next" → PriorityQueue; "both ends" → ArrayDeque; "by index, mostly appends" → ArrayList. Choose \`LinkedList\` only when you really insert or remove through an iterator in the middle of long lists — \`ArrayList\` and \`ArrayDeque\` win almost everywhere else because contiguous memory is cache-friendly.`,
+      whyItExists: `Every algorithm runs on top of a data structure, and the structure usually decides the complexity: the same "find duplicates" code is O(n^2) on a list and O(n) with a hash set. Knowing the core structures — and which JDK class implements each — lets you pick the right tool in seconds, read library and framework code, and answer the most common interview questions.`,
+      whenToUse: [
+        'Use ArrayList for indexed, mostly-append data; ArrayDeque for stacks and queues.',
+        'Use HashMap/HashSet for fast lookup by key when order does not matter.',
+        'Use TreeMap/TreeSet when you need sorted iteration or floor/ceiling/range queries.',
+        'Use PriorityQueue when you repeatedly need the smallest or largest remaining item.',
+        'Model relationships (routes, dependencies, social links) as a graph with adjacency lists.',
+        'Use a trie for prefix search over many strings.',
+      ],
+      whenNotToUse: [
+        'Do not hand-write linked lists, trees or hash tables in production when a JDK collection fits — use them to learn.',
+        'Do not use the legacy Stack or Vector classes in new code; use ArrayDeque or ArrayList.',
+        'Do not use LinkedList for random access by index.',
+        'Do not use an adjacency matrix for large sparse graphs: a million vertices would need a trillion cells.',
+      ],
+      examples: [
+        {
+          id: 'a4-linked-list',
+          title: 'A hand-written singly linked list',
+          runnable: true,
+          code: `public class Main {
+    // A minimal singly linked list of ints: each node points to the next one.
+    static class Node {
+        int value;
+        Node next;
+        Node(int value, Node next) { this.value = value; this.next = next; }
+    }
+
+    static class IntList {
+        private Node head;
+        private Node tail;
+        private int size;
+
+        void addFirst(int v) {                 // O(1): new node points at the old head
+            head = new Node(v, head);
+            if (tail == null) tail = head;
+            size++;
+        }
+
+        void addLast(int v) {                  // O(1) because we keep a tail pointer
+            Node n = new Node(v, null);
+            if (tail == null) head = tail = n;
+            else { tail.next = n; tail = n; }
+            size++;
+        }
+
+        boolean remove(int v) {                // O(n): must find the node before it
+            Node prev = null;
+            for (Node cur = head; cur != null; prev = cur, cur = cur.next) {
+                if (cur.value == v) {
+                    if (prev == null) head = cur.next; else prev.next = cur.next;
+                    if (cur == tail) tail = prev;
+                    size--;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        void reverse() {                       // O(n) time, O(1) extra space
+            Node prev = null, cur = head;
+            tail = head;
+            while (cur != null) {
+                Node next = cur.next;
+                cur.next = prev;
+                prev = cur;
+                cur = next;
+            }
+            head = prev;
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder("[");
+            for (Node cur = head; cur != null; cur = cur.next) {
+                sb.append(cur.value);
+                if (cur.next != null) sb.append(" -> ");
+            }
+            return sb.append("] size=").append(size).toString();
+        }
+    }
+
+    public static void main(String[] args) {
+        IntList list = new IntList();
+        list.addLast(2);
+        list.addLast(3);
+        list.addFirst(1);
+        list.addLast(4);
+        System.out.println(list);
+        System.out.println("remove 3: " + list.remove(3) + " " + list);
+        System.out.println("remove 9: " + list.remove(9));
+        list.reverse();
+        System.out.println("reversed: " + list);
+        list.addLast(0);
+        System.out.println("addLast 0: " + list);
+    }
+}`,
+          expectedOutput: `[1 -> 2 -> 3 -> 4] size=4
+remove 3: true [1 -> 2 -> 4] size=3
+remove 9: false
+reversed: [4 -> 2 -> 1] size=3
+addLast 0: [4 -> 2 -> 1 -> 0] size=4`,
+          explanation: 'Keeping both head and tail references makes addFirst and addLast O(1). remove must walk to the node before the target, so it is O(n). reverse re-points every next reference in a single pass — a classic interview exercise. Note that tail becomes the old head after reversing.',
+        },
+        {
+          id: 'a4-bst',
+          title: 'Binary search tree: insert, search, in-order traversal',
+          runnable: true,
+          code: `import java.util.*;
+
+public class Main {
+    static class Node {
+        final int key;
+        Node left, right;
+        Node(int key) { this.key = key; }
+    }
+
+    // Recursive insert: smaller keys go left, larger go right, duplicates ignored.
+    static Node insert(Node root, int key) {
+        if (root == null) return new Node(key);
+        if (key < root.key) root.left = insert(root.left, key);
+        else if (key > root.key) root.right = insert(root.right, key);
+        return root;
+    }
+
+    static boolean contains(Node root, int key) {
+        Node cur = root;
+        while (cur != null) {
+            if (key == cur.key) return true;
+            cur = key < cur.key ? cur.left : cur.right;   // discard half the tree
+        }
+        return false;
+    }
+
+    // In-order: left subtree, node, right subtree => keys in sorted order.
+    static void inOrder(Node node, List<Integer> out) {
+        if (node == null) return;
+        inOrder(node.left, out);
+        out.add(node.key);
+        inOrder(node.right, out);
+    }
+
+    static int height(Node node) {
+        return node == null ? 0 : 1 + Math.max(height(node.left), height(node.right));
+    }
+
+    public static void main(String[] args) {
+        Node root = null;
+        for (int k : new int[] {50, 30, 70, 20, 40, 60, 80, 30}) root = insert(root, k);
+        List<Integer> sorted = new ArrayList<>();
+        inOrder(root, sorted);
+        System.out.println("in-order: " + sorted);
+        System.out.println("height: " + height(root));
+        System.out.println("contains 60: " + contains(root, 60) + ", contains 65: " + contains(root, 65));
+
+        Node skewed = null;
+        for (int k = 1; k <= 7; k++) skewed = insert(skewed, k);   // sorted input
+        System.out.println("skewed height: " + height(skewed));
+    }
+}`,
+          expectedOutput: `in-order: [20, 30, 40, 50, 60, 70, 80]
+height: 3
+contains 60: true, contains 65: false
+skewed height: 7`,
+          explanation: 'Seven keys in a well-shaped tree need only 3 levels, so a search makes at most 3 comparisons. Inserting the same keys in sorted order builds a chain 7 levels tall: every search becomes a linear walk. This is exactly the problem red-black trees (TreeMap) solve by re-balancing.',
+        },
+        {
+          id: 'a4-jdk-structures',
+          title: 'The JDK implementations in action',
+          runnable: true,
+          code: `import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        // Stack (LIFO) and queue (FIFO) with ArrayDeque
+        Deque<String> stack = new ArrayDeque<>();
+        stack.push("a"); stack.push("b"); stack.push("c");
+        Deque<String> queue = new ArrayDeque<>();
+        queue.offer("a"); queue.offer("b"); queue.offer("c");
+        System.out.println("stack pop: " + stack.pop() + ", queue poll: " + queue.poll());
+
+        // Binary heap: poll always returns the smallest
+        PriorityQueue<Integer> heap = new PriorityQueue<>(List.of(42, 7, 19, 3, 25));
+        StringBuilder order = new StringBuilder();
+        while (!heap.isEmpty()) order.append(heap.poll()).append(' ');
+        System.out.println("heap order: " + order.toString().trim());
+
+        // Red-black tree: sorted keys and nearest-key queries in O(log n)
+        TreeMap<Integer, String> tiers = new TreeMap<>(Map.of(0, "free", 100, "silver", 1000, "gold"));
+        System.out.println("tier for 250: " + tiers.floorEntry(250).getValue()
+            + ", next threshold: " + tiers.higherKey(250));
+
+        // Hash table: expected O(1) counting
+        Map<String, Integer> counts = new HashMap<>();
+        for (String w : "to be or not to be".split(" ")) counts.merge(w, 1, Integer::sum);
+        System.out.println("count of 'be': " + counts.get("be"));
+
+        // Graph: adjacency list vs adjacency matrix for edges 0-1, 0-2, 2-3
+        int n = 4;
+        int[][] edges = {{0, 1}, {0, 2}, {2, 3}};
+        List<List<Integer>> adj = new ArrayList<>();
+        for (int i = 0; i < n; i++) adj.add(new ArrayList<>());
+        boolean[][] matrix = new boolean[n][n];
+        for (int[] e : edges) {
+            adj.get(e[0]).add(e[1]); adj.get(e[1]).add(e[0]);
+            matrix[e[0]][e[1]] = matrix[e[1]][e[0]] = true;
+        }
+        System.out.println("neighbours of 0 (list): " + adj.get(0));
+        System.out.println("edge 1-3? (matrix): " + matrix[1][3]);
+    }
+}`,
+          expectedOutput: `stack pop: c, queue poll: a
+heap order: 3 7 19 25 42
+tier for 250: silver, next threshold: 1000
+count of 'be': 2
+neighbours of 0 (list): [1, 2]
+edge 1-3? (matrix): false`,
+          explanation: 'One ArrayDeque serves as both a stack (push/pop at the head) and a queue (offer at the tail, poll at the head). PriorityQueue returns elements in priority order only through poll. TreeMap answers "which tier does 250 fall into?" with floorEntry in O(log n). The adjacency list stores only real edges; the matrix answers "is there an edge?" in O(1) but uses n x n cells.',
+        },
+      ],
+      walkthrough: {
+        exampleId: 'a4-bst',
+        steps: [
+          { lines: [4, 8], text: 'A node holds a key and references to two children. A null reference means "no subtree here".' },
+          { lines: [10, 16], text: 'Insert follows the BST rule recursively: go left for smaller keys, right for larger, and create a node when it reaches an empty spot. Equal keys are ignored, so the tree behaves like a set.' },
+          { lines: [18, 25], text: 'Search is a loop, not recursion: at each node compare once and continue into one subtree only. The cost is the height of the tree, O(log n) when balanced.' },
+          { lines: [27, 33], text: 'In-order traversal visits the left subtree, then the node, then the right subtree. Because of the BST rule, this produces keys in ascending order.' },
+          { lines: [35, 37], text: 'Height is 1 plus the taller child subtree; an empty tree has height 0.' },
+          { lines: [39, 46], text: 'Inserting 50, 30, 70, 20, 40, 60, 80 builds a perfectly balanced tree of height 3; the duplicate 30 is skipped. 65 is not found after following 50 → 70 → 60 → empty right child.' },
+          { lines: [48, 50], text: 'Sorted input always goes right, producing a degenerate tree of height 7 — effectively a linked list with O(n) operations.' },
+        ],
+      },
+      realWorld: {
+        title: 'Choosing structures for a ride-hailing dispatcher',
+        scenario: `A dispatch service matched riders to drivers. Driver profiles lived in a \`HashMap<DriverId, Driver>\` for O(1) lookup by id. Waiting ride requests were a \`PriorityQueue\` ordered by request time and rider tier, so the next request to serve was always one \`poll\` away. Surge-pricing bands were a \`TreeMap<Integer, Multiplier>\` keyed by demand level, queried with \`floorEntry\`. The road network was a weighted graph stored as adjacency lists, because each intersection connects to only a handful of roads — a matrix for 2 million intersections would have needed 4 trillion cells.
+
+The first prototype had kept waiting requests in an \`ArrayList\` and scanned it for the best one on every dispatch: O(n) per match. Switching to the heap made each match O(log n), and dispatch latency stopped growing with the evening rush.`,
+      },
+      commonMistakes: [
+        {
+          mistake: 'Using java.util.Stack or LinkedList as the default stack or queue.',
+          why: 'Stack is a synchronized Vector subclass with index access; LinkedList allocates a node per element and has poor cache locality.',
+          fix: 'Use ArrayDeque: push/pop for a stack, offer/poll for a queue.',
+          code: `Deque<Integer> stack = new ArrayDeque<>();
+stack.push(1);
+int top = stack.pop();`,
+        },
+        {
+          mistake: 'Assuming a plain binary search tree is always O(log n).',
+          why: 'Its height depends on insertion order; sorted input produces a chain with O(n) operations.',
+          fix: 'Use a self-balancing tree (TreeMap/TreeSet), or shuffle input when building a simple BST.',
+        },
+        {
+          mistake: 'Expecting PriorityQueue iteration or toString to be sorted.',
+          why: 'A heap only guarantees that the root is the minimum; the array behind it is only partially ordered.',
+          fix: 'Call poll repeatedly to get elements in order, or copy into a list and sort it.',
+        },
+        {
+          mistake: 'Losing the rest of a linked list when inserting or reversing.',
+          why: 'Overwriting node.next before saving the old reference cuts the chain, and the remaining nodes become unreachable.',
+          fix: 'Save next in a local variable first, then re-point references.',
+        },
+        {
+          mistake: 'Building an adjacency matrix for a big sparse graph.',
+          why: 'Memory is O(V^2) regardless of how few edges exist.',
+          fix: 'Use adjacency lists: memory O(V + E), neighbour iteration O(degree).',
+        },
+      ],
+      checks: [
+        {
+          id: 'a4-c1',
+          kind: 'predict-output',
+          dimension: 'runtime',
+          prompt: 'ArrayDeque used from both ends. What does this print?',
+          code: `import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        Deque<Integer> d = new ArrayDeque<>();
+        d.push(1);
+        d.push(2);
+        d.offerLast(3);
+        System.out.println(d.pop() + " " + d.pollLast() + " " + d.peek());
+    }
+}`,
+          options: [
+            { id: 'a', text: '2 3 1' },
+            { id: 'b', text: '1 3 2' },
+            { id: 'c', text: '2 1 3' },
+            { id: 'd', text: '3 2 1' },
+          ],
+          correctOptionId: 'a',
+          explanation: 'push adds at the head, so after two pushes the deque is [2, 1]; offerLast appends 3 at the tail: [2, 1, 3]. pop removes the head (2), pollLast removes the tail (3), and peek shows the remaining head (1).',
+        },
+        {
+          id: 'a4-c2',
+          kind: 'mcq',
+          dimension: 'interview',
+          prompt: 'Which statement about TreeMap is correct?',
+          options: [
+            { id: 'a', text: 'It is a hash table that sorts keys when you iterate' },
+            { id: 'b', text: 'It is a red-black tree: get/put/remove are O(log n) and keys are kept in sorted order' },
+            { id: 'c', text: 'It is a binary heap, so only the smallest key is quick to reach' },
+            { id: 'd', text: 'It is a plain BST, so sorted insertions make it O(n)' },
+          ],
+          correctOptionId: 'b',
+          explanation: 'TreeMap is a self-balancing red-black tree. Re-balancing keeps the height O(log n) whatever the insertion order, and in-order iteration returns sorted keys.',
+        },
+        {
+          id: 'a4-c3',
+          kind: 'predict-output',
+          dimension: 'coding',
+          prompt: 'What does this print?',
+          code: `import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        TreeMap<Integer, String> m = new TreeMap<>();
+        m.put(10, "a");
+        m.put(30, "b");
+        m.put(20, "c");
+        System.out.println(m.firstKey() + " " + m.floorKey(25) + " " + m.ceilingKey(31) + " " + m.keySet());
+    }
+}`,
+          options: [
+            { id: 'a', text: '10 20 null [10, 20, 30]' },
+            { id: 'b', text: '10 30 30 [10, 30, 20]' },
+            { id: 'c', text: '10 20 30 [10, 20, 30]' },
+            { id: 'd', text: '10 25 null [10, 30, 20]' },
+          ],
+          correctOptionId: 'a',
+          explanation: 'Keys are kept sorted regardless of insertion order. floorKey(25) is the greatest key ≤ 25 (20); ceilingKey(31) is the least key ≥ 31, and there is none, so it returns null.',
+        },
+        {
+          id: 'a4-c4',
+          kind: 'multi-select',
+          dimension: 'conceptual',
+          prompt: 'Which statements are true? Select all that apply.',
+          options: [
+            { id: 'a', text: 'In-order traversal of a binary search tree visits keys in ascending order' },
+            { id: 'b', text: 'A binary heap keeps all elements fully sorted in its backing array' },
+            { id: 'c', text: 'Looking up a word in a trie costs time proportional to the word length, not the number of words stored' },
+            { id: 'd', text: 'LinkedList.get(i) is O(1) because it is a List' },
+            { id: 'e', text: 'PriorityQueue.peek is O(1) and poll is O(log n)' },
+          ],
+          correctOptionIds: ['a', 'c', 'e'],
+          explanation: 'A heap only guarantees the parent-child ordering, not a sorted array. LinkedList.get(i) walks nodes from the nearer end, O(n).',
+        },
+        {
+          id: 'a4-c5',
+          kind: 'mcq',
+          dimension: 'interview',
+          prompt: 'A road network has 1,000,000 intersections and about 3,000,000 road segments. How should you store it for route finding?',
+          options: [
+            { id: 'a', text: 'Adjacency matrix: O(1) edge checks are worth it' },
+            { id: 'b', text: 'Adjacency lists: about V + E entries, and BFS/Dijkstra only iterate neighbours' },
+            { id: 'c', text: 'A single sorted array of intersection names' },
+            { id: 'd', text: 'A TreeMap from intersection to every other intersection' },
+          ],
+          correctOptionId: 'b',
+          explanation: 'The graph is sparse: each node has a few neighbours. A matrix would need 10^12 cells; adjacency lists need memory proportional to V + E, and traversal algorithms run in O(V + E).',
+        },
+        {
+          id: 'a4-c6',
+          kind: 'mcq',
+          dimension: 'debugging',
+          prompt: 'A team built a plain (unbalanced) BST of user ids, inserting ids as they were assigned: 1, 2, 3, ... Lookups got slower as users grew. Why?',
+          options: [
+            { id: 'a', text: 'BSTs are always O(n)' },
+            { id: 'b', text: 'Sorted insertions make every new node a right child, so the tree is a chain of height n and lookups are O(n)' },
+            { id: 'c', text: 'Integer keys hash badly' },
+            { id: 'd', text: 'The garbage collector moves tree nodes' },
+          ],
+          correctOptionId: 'b',
+          explanation: 'An unbalanced BST is only as good as its shape. Ascending keys degenerate it into a linked list. A red-black tree (TreeMap) or a HashMap fixes it.',
+        },
+      ],
+      challengeIds: [],
+      masteryCriteria: [
+        'State the cost of the core operations of every structure in the lesson and the JDK class that implements it.',
+        'Implement a singly linked list (add, remove, reverse) and a BST (insert, search, in-order) from memory.',
+        'Explain why a plain BST can degrade to O(n) and how red-black trees prevent it.',
+        'Choose between adjacency list and matrix for a given graph and justify it.',
+      ],
+      relatedLessonIds: ['a-complexity', 'a-sorting-searching', 'c-collections-overview', 'c-hashmap', 'c-sorted', 'a-patterns'],
+      revision: [
+        { id: 'r1', question: 'Which JDK class should you use for a stack, and for a queue?', answer: 'ArrayDeque for both: push/pop/peek for a stack, offer/poll/peek for a queue. Avoid the legacy Stack class.' },
+        { id: 'r2', question: 'What property defines a binary search tree, and what does in-order traversal produce?', answer: 'Every key in a node\'s left subtree is smaller and every key in its right subtree is larger. In-order traversal (left, node, right) yields the keys in sorted order.' },
+        { id: 'r3', question: 'What data structure is TreeMap, and PriorityQueue?', answer: 'TreeMap is a red-black (self-balancing binary search) tree with O(log n) operations; PriorityQueue is an array-based binary min-heap with O(log n) offer/poll and O(1) peek.' },
+        { id: 'r4', question: 'Adjacency list or adjacency matrix?', answer: 'List for sparse graphs (O(V + E) memory, fast neighbour iteration); matrix for small or dense graphs or when O(1) edge checks matter (O(V^2) memory).' },
+        { id: 'r5', question: 'When is a trie better than a HashSet of strings?', answer: 'When you need prefix queries (autocomplete, "all words starting with ab"): a trie walks the prefix in O(prefix length), while a hash set must scan every key.' },
+      ],
+    },
+    // -----------------------------------------------------------------------
+    {
+      id: 'a-sorting-searching',
+      moduleId: 'dsa',
+      title: 'Sorting and searching algorithms',
+      summary: 'Linear and binary search; bubble, selection and insertion sort for intuition; merge, quick, heap and counting sort; stability, in-place sorting, and what Java\'s own sort methods use.',
+      estimatedMinutes: 50,
+      difficulty: 'intermediate',
+      prerequisites: ['a-complexity', 'a-data-structures'],
+      versionNotes: [
+        { feature: 'Dual-pivot quicksort for primitive arrays in Arrays.sort', since: 7 },
+        { feature: 'TimSort for object arrays and Collections.sort', since: 7 },
+        { feature: 'List.sort as a default method', since: 8 },
+      ],
+      objectives: [
+        'Implement linear search and binary search and state their complexity.',
+        'Explain how bubble, selection, insertion, merge, quick, heap and counting sort work.',
+        'Compare sorting algorithms by best, average and worst case, extra space, and stability.',
+        'Explain what Arrays.sort and List.sort use in Java and why objects need a stable sort.',
+        'Use Arrays.binarySearch correctly, including its negative insertion-point result.',
+      ],
+      plainEnglish: `**Searching** means finding an item. If the data is unsorted you must look at every item (linear search). If it is sorted you can open the middle, see which half the item must be in, and throw the other half away — **binary search** finds one item among a million in about 20 steps.
+
+**Sorting** puts items in order, and it is worth learning a few algorithms because they teach the main ideas of algorithm design:
+
+- **Bubble, selection and insertion sort** compare neighbours or pick the minimum again and again. Simple, but O(n^2) — fine for 20 items, hopeless for a million. Insertion sort is still useful for tiny or nearly-sorted inputs.
+- **Merge sort** splits the list in half, sorts each half and merges them — always O(n log n).
+- **Quick sort** picks a pivot and partitions smaller items to its left and larger to its right — usually the fastest in practice.
+- **Heap sort** uses a heap to pull out the largest item repeatedly.
+- **Counting sort** does not compare at all: it counts how many times each small integer appears.
+
+A sort is **stable** if items with equal keys keep their original order — important when you sort by one field after another. In real Java code you almost never write a sort: you call \`Arrays.sort\` or \`list.sort\`, but knowing what they do helps you use them well.`,
+      technical: `### Searching
+- **Linear search** — O(n), works on anything, including unsorted and linked data.
+- **Binary search** — O(log n) on sorted random-access data. Keep the invariant explicit: closed range [lo, hi] with \`while (lo <= hi)\`, or half-open [lo, hi) with \`while (lo < hi)\`. Compute \`mid = lo + (hi - lo) / 2\` to avoid int overflow. \`Arrays.binarySearch\` / \`Collections.binarySearch\` return the index if found, otherwise \`-(insertionPoint) - 1\`; with duplicates the index returned is unspecified.
+- On a \`TreeMap\`/\`TreeSet\`, \`floor\`/\`ceiling\` give binary-search-like queries on dynamic data.
+
+### Elementary sorts (for intuition)
+- **Bubble sort** — repeatedly swap adjacent out-of-order pairs. O(n^2) average/worst; O(n) best with an early-exit flag. Stable, in place.
+- **Selection sort** — repeatedly select the minimum of the unsorted part and swap it to the front. Always O(n^2) comparisons but only O(n) swaps. In place, **not stable**.
+- **Insertion sort** — grow a sorted prefix by inserting the next element into place. O(n^2) worst, **O(n) on nearly-sorted input**. Stable, in place. Real libraries use it for small sub-arrays.
+
+### Efficient comparison sorts
+- **Merge sort** — divide in half, sort recursively, merge. O(n log n) in every case, **stable**, needs O(n) extra space. Good for linked lists and external (on-disk) sorting.
+- **Quick sort** — partition around a pivot, recurse on both sides. O(n log n) expected, O(n^2) worst (e.g. sorted input with a first/last-element pivot), O(log n) stack space. In place, **not stable**. Random or median-of-three pivots make the worst case unlikely.
+- **Heap sort** — build a max-heap in O(n), then swap the root to the end and sift down, n times. O(n log n) worst case, O(1) extra space, not stable, and cache-unfriendly, so usually slower than quicksort in practice.
+- **Lower bound**: any comparison sort needs Ω(n log n) comparisons in the worst case, because it must distinguish n! possible orderings and each comparison yields one bit.
+
+### Non-comparison sorts
+- **Counting sort** — for integers in a small range [0, k): count occurrences, then emit. O(n + k) time and space; can be made stable with prefix sums. **Radix sort** applies a stable counting sort digit by digit (O(d·(n + k))).
+
+### What Java uses
+- \`Arrays.sort(int[])\` and other **primitive** arrays: **dual-pivot quicksort** (Yaroslavskiy, Bentley and Bloch; JDK 7+), with insertion sort for tiny ranges and, since JDK 14, a heap-sort fallback that guarantees O(n log n). Stability does not matter for primitives — equal ints are indistinguishable.
+- \`Arrays.sort(Object[])\`, \`Collections.sort\`, \`List.sort\`: **TimSort**, a stable, adaptive merge sort derived from Python. O(n log n) worst case and close to O(n) on already-sorted or partially sorted data.
+- \`Arrays.parallelSort\` splits large arrays across the common ForkJoinPool.
+Comparators must be consistent (a total order); TimSort may throw \`IllegalArgumentException: Comparison method violates its general contract!\` when they are not.`,
+      whyItExists: `Sorting and searching are the most common operations in computing: indexes, leaderboards, reports, deduplication, merging data from two systems. The algorithms behind them also teach the core design techniques — brute force, divide and conquer, partitioning, using a data structure (heap), and exploiting a limited key range — that appear in every other algorithm.`,
+      whenToUse: [
+        'Use binary search whenever data is sorted and supports random access.',
+        'Call Arrays.sort or List.sort in real code; supply a Comparator built with Comparator.comparing and thenComparing.',
+        'Rely on stability to sort by several keys: sort by the secondary key first, then by the primary key (or use thenComparing).',
+        'Consider counting or radix sort for large arrays of small integers.',
+        'Use insertion sort only for tiny or nearly-sorted arrays.',
+      ],
+      whenNotToUse: [
+        'Do not hand-write sorts in production code; the JDK sorts are tuned and tested.',
+        'Do not binary-search unsorted data or a LinkedList — results are wrong or O(n) anyway.',
+        'Do not sort just to find a minimum, maximum or top-k element; a single pass or a heap is cheaper.',
+        'Do not use subtraction-based comparators that can overflow.',
+      ],
+      examples: [
+        {
+          id: 'a5-sorts',
+          title: 'Merge, quick, heap and counting sort',
+          runnable: true,
+          code: `import java.util.*;
+
+public class Main {
+    // Merge sort: split in half, sort each half, merge. O(n log n) always, stable, O(n) extra space.
+    static void mergeSort(int[] a, int[] tmp, int lo, int hi) {   // sorts a[lo..hi)
+        if (hi - lo < 2) return;
+        int mid = (lo + hi) >>> 1;
+        mergeSort(a, tmp, lo, mid);
+        mergeSort(a, tmp, mid, hi);
+        int i = lo, j = mid, k = lo;
+        while (i < mid && j < hi) tmp[k++] = a[i] <= a[j] ? a[i++] : a[j++];   // <= keeps it stable
+        while (i < mid) tmp[k++] = a[i++];
+        while (j < hi) tmp[k++] = a[j++];
+        System.arraycopy(tmp, lo, a, lo, hi - lo);
+    }
+
+    // Quick sort (Lomuto partition): in place, O(n log n) expected, O(n^2) worst case.
+    static void quickSort(int[] a, int lo, int hi) {              // sorts a[lo..hi]
+        if (lo >= hi) return;
+        int pivot = a[hi], p = lo;
+        for (int i = lo; i < hi; i++) {
+            if (a[i] < pivot) swap(a, i, p++);
+        }
+        swap(a, p, hi);                    // pivot lands in its final position
+        quickSort(a, lo, p - 1);
+        quickSort(a, p + 1, hi);
+    }
+
+    // Heap sort: build a max-heap, then move the max to the end n times. O(n log n), in place, unstable.
+    static void heapSort(int[] a) {
+        for (int i = a.length / 2 - 1; i >= 0; i--) siftDown(a, i, a.length);
+        for (int end = a.length - 1; end > 0; end--) {
+            swap(a, 0, end);
+            siftDown(a, 0, end);
+        }
+    }
+
+    static void siftDown(int[] a, int i, int size) {
+        while (2 * i + 1 < size) {
+            int child = 2 * i + 1;
+            if (child + 1 < size && a[child + 1] > a[child]) child++;
+            if (a[i] >= a[child]) return;
+            swap(a, i, child);
+            i = child;
+        }
+    }
+
+    // Counting sort: no comparisons at all. O(n + k) for values in [0, k).
+    static int[] countingSort(int[] a, int k) {
+        int[] count = new int[k];
+        for (int x : a) count[x]++;
+        int[] out = new int[a.length];
+        int idx = 0;
+        for (int v = 0; v < k; v++) {
+            while (count[v]-- > 0) out[idx++] = v;
+        }
+        return out;
+    }
+
+    static void swap(int[] a, int i, int j) { int t = a[i]; a[i] = a[j]; a[j] = t; }
+
+    public static void main(String[] args) {
+        int[] data = {5, 2, 9, 1, 5, 6, 3, 8};
+
+        int[] m = data.clone();
+        mergeSort(m, new int[m.length], 0, m.length);
+        System.out.println("merge:    " + Arrays.toString(m));
+
+        int[] q = data.clone();
+        quickSort(q, 0, q.length - 1);
+        System.out.println("quick:    " + Arrays.toString(q));
+
+        int[] h = data.clone();
+        heapSort(h);
+        System.out.println("heap:     " + Arrays.toString(h));
+
+        System.out.println("counting: " + Arrays.toString(countingSort(data, 10)));
+
+        int[] jdk = data.clone();
+        Arrays.sort(jdk);                  // dual-pivot quicksort for primitives
+        System.out.println("JDK:      " + Arrays.toString(jdk));
+    }
+}`,
+          expectedOutput: `merge:    [1, 2, 3, 5, 5, 6, 8, 9]
+quick:    [1, 2, 3, 5, 5, 6, 8, 9]
+heap:     [1, 2, 3, 5, 5, 6, 8, 9]
+counting: [1, 2, 3, 5, 5, 6, 8, 9]
+JDK:      [1, 2, 3, 5, 5, 6, 8, 9]`,
+          explanation: 'Four very different strategies produce the same result. Merge sort divides and merges (stable, extra array); quick sort partitions in place around a pivot; heap sort turns the array into a max-heap and repeatedly moves the largest element to the end; counting sort never compares elements at all.',
+        },
+        {
+          id: 'a5-stability',
+          title: 'Stability and adaptivity: insertion vs selection sort vs List.sort',
+          runnable: true,
+          code: `import java.util.*;
+
+public class Main {
+    record Order(String customer, int priority) {}
+
+    static long comparisons = 0;
+
+    // Insertion sort: stable, in place, O(n^2) worst, O(n) on already-sorted input.
+    static void insertionSort(Order[] a) {
+        for (int i = 1; i < a.length; i++) {
+            Order key = a[i];
+            int j = i - 1;
+            while (j >= 0 && greater(a[j], key)) {   // strictly greater: equal keys keep their order
+                a[j + 1] = a[j];
+                j--;
+            }
+            a[j + 1] = key;
+        }
+    }
+
+    // Selection sort: in place, always O(n^2), and NOT stable (the long-distance swap reorders equals).
+    static void selectionSort(Order[] a) {
+        for (int i = 0; i < a.length - 1; i++) {
+            int min = i;
+            for (int j = i + 1; j < a.length; j++) {
+                if (greater(a[min], a[j])) min = j;
+            }
+            Order t = a[i]; a[i] = a[min]; a[min] = t;
+        }
+    }
+
+    static boolean greater(Order x, Order y) {
+        comparisons++;
+        return x.priority() > y.priority();
+    }
+
+    static String names(Order[] a) {
+        StringBuilder sb = new StringBuilder();
+        for (Order o : a) sb.append(o.customer()).append(o.priority()).append(' ');
+        return sb.toString().trim();
+    }
+
+    public static void main(String[] args) {
+        Order[] input = {
+            new Order("Ann", 2), new Order("Bob", 1), new Order("Cat", 2),
+            new Order("Dan", 1), new Order("Eve", 3)
+        };
+
+        Order[] ins = input.clone();
+        insertionSort(ins);
+        System.out.println("insertion: " + names(ins));
+
+        Order[] sel = input.clone();
+        selectionSort(sel);
+        System.out.println("selection: " + names(sel));
+
+        List<Order> list = new ArrayList<>(Arrays.asList(input));
+        list.sort(Comparator.comparingInt(Order::priority));   // TimSort: stable
+        System.out.println("List.sort: " + names(list.toArray(new Order[0])));
+
+        Order[] sorted = ins.clone();
+        comparisons = 0;
+        insertionSort(sorted);
+        System.out.println("insertion on sorted input: " + comparisons + " comparisons");
+        comparisons = 0;
+        selectionSort(sorted);
+        System.out.println("selection on sorted input: " + comparisons + " comparisons");
+    }
+}`,
+          expectedOutput: `insertion: Bob1 Dan1 Ann2 Cat2 Eve3
+selection: Bob1 Dan1 Cat2 Ann2 Eve3
+List.sort: Bob1 Dan1 Ann2 Cat2 Eve3
+insertion on sorted input: 4 comparisons
+selection on sorted input: 10 comparisons`,
+          explanation: 'Ann and Cat both have priority 2 and Ann came first. Insertion sort and List.sort (TimSort) keep Ann before Cat — they are stable. Selection sort swaps Ann far down the array and reverses them. On already-sorted input insertion sort needs only n - 1 comparisons, while selection sort always makes n(n - 1)/2.',
+        },
+        {
+          id: 'a5-search',
+          title: 'Linear vs binary search on a million sorted numbers',
+          runnable: true,
+          code: `import java.util.*;
+
+public class Main {
+    static int steps;
+
+    static int linearSearch(int[] a, int target) {
+        steps = 0;
+        for (int i = 0; i < a.length; i++) {
+            steps++;
+            if (a[i] == target) return i;
+        }
+        return -1;
+    }
+
+    static int binarySearch(int[] sorted, int target) {
+        steps = 0;
+        int lo = 0, hi = sorted.length - 1;          // closed range [lo, hi]
+        while (lo <= hi) {
+            steps++;
+            int mid = lo + (hi - lo) / 2;
+            if (sorted[mid] == target) return mid;
+            if (sorted[mid] < target) lo = mid + 1;
+            else hi = mid - 1;
+        }
+        return -(lo + 1);                             // same convention as Arrays.binarySearch
+    }
+
+    public static void main(String[] args) {
+        int[] a = new int[1_000_000];
+        for (int i = 0; i < a.length; i++) a[i] = i * 2;   // sorted even numbers
+
+        int idx = linearSearch(a, 1_999_998);
+        System.out.println("linear: index " + idx + " in " + steps + " steps");
+        idx = binarySearch(a, 1_999_998);
+        System.out.println("binary: index " + idx + " in " + steps + " steps");
+
+        idx = binarySearch(a, 7);
+        System.out.println("binary for 7: " + idx + " -> insert at " + (-idx - 1));
+        System.out.println("Arrays.binarySearch for 7: " + Arrays.binarySearch(a, 7));
+    }
+}`,
+          expectedOutput: `linear: index 999999 in 1000000 steps
+binary: index 999999 in 20 steps
+binary for 7: -5 -> insert at 4
+Arrays.binarySearch for 7: -5`,
+          explanation: 'Linear search checks every element up to the target; binary search halves the range each step, so log2(1,000,000) ≈ 20 steps is the most it ever needs. When the target is missing it returns -(insertionPoint) - 1, matching Arrays.binarySearch: 7 would go at index 4, between 6 and 8.',
+        },
+      ],
+      walkthrough: {
+        exampleId: 'a5-sorts',
+        steps: [
+          { lines: [4, 9], text: 'Merge sort works on the half-open range [lo, hi). Ranges of size 0 or 1 are already sorted. Otherwise it splits at the midpoint (>>> 1 avoids overflow) and sorts both halves recursively.' },
+          { lines: [10, 14], text: 'Merging takes the smaller head of the two sorted halves each step. Using <= takes from the left half on ties, which is what makes merge sort stable. The merged run is copied back from the temporary array: O(n) extra space.' },
+          { lines: [17, 27], text: 'Quick sort uses the last element as pivot. Everything smaller is swapped into the prefix before index p; finally the pivot is swapped into position p, where it stays forever. Both sides are then sorted recursively. With an already-sorted array and this pivot choice, every partition is maximally lopsided: O(n^2).' },
+          { lines: [29, 36], text: 'Heap sort first builds a max-heap bottom-up in O(n). Then it repeatedly swaps the maximum (index 0) with the last unsorted slot and restores the heap on the shrunken range.' },
+          { lines: [38, 46], text: 'siftDown pushes an element down to the larger child until both children are smaller — O(log n) per call. The children of i live at 2i + 1 and 2i + 2: the heap is stored in the array itself.' },
+          { lines: [48, 58], text: 'Counting sort tallies how many times each value occurs, then writes values out in order. No comparisons, O(n + k) — but only for small integer ranges.' },
+        ],
+      },
+      realWorld: {
+        title: 'A leaderboard that kept re-ordering ties',
+        scenario: `A gaming leaderboard sorted players by score and showed ties in the order they reached that score. A developer "optimised" the code by copying scores into a custom in-place quicksort over an array of player objects. Overnight, players with equal scores started jumping around between page refreshes, and support tickets arrived: quicksort is not stable, so the earlier ordering by achievement time was lost.
+
+The fix was to delete the custom sort and use \`players.sort(Comparator.comparingInt(Player::score).reversed().thenComparing(Player::achievedAt))\` — TimSort is stable, and the explicit tie-breaker made the intent obvious. The same team later replaced a full re-sort on every score update with a \`TreeSet\` keyed by (score, time), turning each update into O(log n).`,
+      },
+      commonMistakes: [
+        {
+          mistake: 'Binary searching data that is not sorted (or sorted with a different comparator).',
+          why: 'Binary search relies on the order to discard half the range; on unsorted data it returns arbitrary results without any error.',
+          fix: 'Sort with the same comparator first, or use a HashSet/HashMap for membership tests.',
+        },
+        {
+          mistake: 'Treating any negative result of Arrays.binarySearch as -1.',
+          why: 'A miss returns -(insertionPoint) - 1, which carries useful information and is rarely -1.',
+          fix: 'Check result < 0 for "not found", and compute the insertion point as -result - 1.',
+        },
+        {
+          mistake: 'Writing comparators as (a, b) -> a.score - b.score.',
+          why: 'Subtraction overflows for large or negative values and silently breaks the ordering; TimSort may even throw "Comparison method violates its general contract".',
+          fix: 'Use Integer.compare or Comparator.comparingInt.',
+          code: `players.sort(Comparator.comparingInt(Player::score).reversed()
+                       .thenComparing(Player::name));`,
+        },
+        {
+          mistake: 'Assuming quicksort is always O(n log n).',
+          why: 'With a poor pivot rule (first or last element) on sorted or all-equal input, every partition is lopsided and the sort becomes O(n^2).',
+          fix: 'Use random or median-of-three pivots and three-way partitioning — or just call Arrays.sort.',
+        },
+        {
+          mistake: 'Sorting a whole list to find the k largest items.',
+          why: 'Sorting is O(n log n) and needs the whole list in memory.',
+          fix: 'Use a size-k min-heap (O(n log k)), or a single pass for k = 1.',
+        },
+      ],
+      checks: [
+        {
+          id: 'a5-c1',
+          kind: 'predict-output',
+          dimension: 'runtime',
+          prompt: 'List.sort is stable. What does this print?',
+          code: `import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        List<String> words = new ArrayList<>(List.of("pear", "fig", "kiwi", "apple", "date"));
+        words.sort(Comparator.comparingInt(String::length));
+        System.out.println(words);
+    }
+}`,
+          options: [
+            { id: 'a', text: '[fig, pear, kiwi, date, apple]' },
+            { id: 'b', text: '[fig, date, kiwi, pear, apple]' },
+            { id: 'c', text: '[fig, kiwi, pear, date, apple]' },
+            { id: 'd', text: '[apple, date, fig, kiwi, pear]' },
+          ],
+          correctOptionId: 'a',
+          explanation: 'Words are ordered by length only. pear, kiwi and date all have length 4, and a stable sort keeps them in their original relative order. Alphabetical order would need thenComparing(Comparator.naturalOrder()).',
+        },
+        {
+          id: 'a5-c2',
+          kind: 'predict-output',
+          dimension: 'coding',
+          prompt: 'What does this print?',
+          code: `import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        int[] a = {10, 20, 30, 40};
+        System.out.println(Arrays.binarySearch(a, 40) + " " + Arrays.binarySearch(a, 25));
+    }
+}`,
+          options: [
+            { id: 'a', text: '3 -1' },
+            { id: 'b', text: '3 -3' },
+            { id: 'c', text: '4 -2' },
+            { id: 'd', text: '3 2' },
+          ],
+          correctOptionId: 'b',
+          explanation: '40 is at index 3. 25 is missing; it would be inserted at index 2 (before 30), so the result is -(2) - 1 = -3.',
+        },
+        {
+          id: 'a5-c3',
+          kind: 'mcq',
+          dimension: 'interview',
+          prompt: 'What do Arrays.sort(int[]) and List.sort use, and why are they different?',
+          options: [
+            { id: 'a', text: 'Both use bubble sort for simplicity' },
+            { id: 'b', text: 'Primitives use dual-pivot quicksort (stability is irrelevant for equal primitives); objects use TimSort, a stable merge sort, because equal objects can still be distinguishable' },
+            { id: 'c', text: 'Primitives use heap sort; objects use counting sort' },
+            { id: 'd', text: 'Both use TimSort' },
+          ],
+          correctOptionId: 'b',
+          explanation: 'Two equal ints are indistinguishable, so an unstable but very fast in-place quicksort is fine. Two objects with equal sort keys can differ in other fields, so object sorts must be stable.',
+        },
+        {
+          id: 'a5-c4',
+          kind: 'multi-select',
+          dimension: 'conceptual',
+          prompt: 'Which statements are correct? Select all that apply.',
+          options: [
+            { id: 'a', text: 'Merge sort is O(n log n) in the worst case and stable' },
+            { id: 'b', text: 'Quick sort is O(n log n) in the worst case' },
+            { id: 'c', text: 'Heap sort is O(n log n) in the worst case and needs only O(1) extra space' },
+            { id: 'd', text: 'Insertion sort runs in O(n) on already-sorted input' },
+            { id: 'e', text: 'Selection sort is stable' },
+            { id: 'f', text: 'Counting sort can beat O(n log n) because it does not compare elements' },
+          ],
+          correctOptionIds: ['a', 'c', 'd', 'f'],
+          explanation: 'Quick sort is O(n log n) expected but O(n^2) in the worst case. Selection sort swaps elements over long distances, which can reorder equal keys, so it is not stable.',
+        },
+        {
+          id: 'a5-c5',
+          kind: 'mcq',
+          dimension: 'debugging',
+          prompt: 'A hand-written quicksort always picks the last element as the pivot. It is fast on random data but takes minutes on a large array that is already sorted. Why?',
+          options: [
+            { id: 'a', text: 'Sorted arrays cause cache misses' },
+            { id: 'b', text: 'Each partition puts every element on one side, so recursion depth is n and the total work is O(n^2)' },
+            { id: 'c', text: 'The JIT cannot compile recursive methods' },
+            { id: 'd', text: 'Quicksort must sort descending first' },
+          ],
+          correctOptionId: 'b',
+          explanation: 'The last element of a sorted range is its maximum, so the partition is n-1 vs 0 every time: n + (n-1) + ... = O(n^2) comparisons and O(n) stack depth (StackOverflowError is possible). Random or median-of-three pivots fix it.',
+        },
+        {
+          id: 'a5-c6',
+          kind: 'mcq',
+          dimension: 'interview',
+          prompt: 'Why can no comparison-based sort beat O(n log n) in the worst case?',
+          options: [
+            { id: 'a', text: 'Because CPUs can only compare two numbers per cycle' },
+            { id: 'b', text: 'Because there are n! possible orderings and each comparison only halves the remaining possibilities, so about log2(n!) ≈ n log n comparisons are needed' },
+            { id: 'c', text: 'Because recursion always costs log n' },
+            { id: 'd', text: 'It can; TimSort is O(n) in the worst case' },
+          ],
+          correctOptionId: 'b',
+          explanation: 'This is the decision-tree lower bound. TimSort is O(n) only in the best case (already sorted runs). Non-comparison sorts such as counting and radix sort escape the bound by exploiting the structure of the keys.',
+        },
+      ],
+      challengeIds: [],
+      masteryCriteria: [
+        'Write binary search (closed or half-open form) without off-by-one or overflow bugs.',
+        'Implement merge sort and quick sort from memory and state best, average and worst case, space and stability.',
+        'Explain what Arrays.sort and List.sort use and why object sorts must be stable.',
+        'Pick a suitable sorting or selection approach for a given input (nearly sorted, small integers, top-k).',
+      ],
+      relatedLessonIds: ['a-complexity', 'a-data-structures', 'a-patterns', 'a-recursion-dp', 'c-sorted'],
+      revision: [
+        { id: 'r1', question: 'What does "stable sort" mean and when does it matter?', answer: 'Elements with equal keys keep their original relative order. It matters when sorting objects by one key after another, or when the existing order (e.g. by time) must be preserved for ties.' },
+        { id: 'r2', question: 'Best, average and worst case of quick sort and merge sort?', answer: 'Quick sort: O(n log n), O(n log n), O(n^2); in place, not stable. Merge sort: O(n log n) in all cases; O(n) extra space, stable.' },
+        { id: 'r3', question: 'What does Arrays.binarySearch return for a missing key?', answer: '-(insertionPoint) - 1, where insertionPoint is the index at which the key would be inserted to keep the array sorted.' },
+        { id: 'r4', question: 'Which algorithms does the JDK use for sorting?', answer: 'Dual-pivot quicksort for primitive arrays (with insertion sort for small ranges and a heap-sort fallback since JDK 14); TimSort, a stable adaptive merge sort, for objects (Arrays.sort(Object[]), Collections.sort, List.sort).' },
+        { id: 'r5', question: 'Why is insertion sort still used inside library sorts?', answer: 'It is stable, in place, has tiny constant factors and runs in O(n) on nearly-sorted data, so it beats O(n log n) algorithms on small sub-arrays.' },
       ],
     },
     // -----------------------------------------------------------------------
@@ -769,7 +1674,7 @@ public class Main {
         'Solve top-k with a bounded heap and state O(n log k).',
         'Talk through clarify, brute force, optimise and test for a new problem.',
       ],
-      relatedLessonIds: ['a-complexity', 'a-recursion-dp', 'c-hashmap', 'c-sorted'],
+      relatedLessonIds: ['a-complexity', 'a-data-structures', 'a-sorting-searching', 'a-recursion-dp', 'c-hashmap', 'c-sorted'],
       revision: [
         { id: 'r1', question: 'When does a sliding window work, and when does it not?', answer: 'For contiguous ranges where extending or shrinking the window moves the measured quantity in a predictable direction (e.g. distinct characters, sums of non-negative numbers). With negative numbers, use prefix sums plus a map.' },
         { id: 'r2', question: 'Write the safe midpoint formula.', answer: 'mid = lo + (hi - lo) / 2, or (lo + hi) >>> 1.' },
