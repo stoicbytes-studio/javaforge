@@ -17,7 +17,8 @@ import { testingChallenges } from './challenges/testing';
 import { typesChallenges } from './challenges/types';
 import { fundamentalsModule } from './modules/01-fundamentals';
 import { platformModule } from './modules/02-platform';
-import { oopModule } from './modules/03-oop';
+import { oopModule as oopCore } from './modules/03-oop';
+import { oopMoreLessons } from './modules/03-oop-more';
 import { typesModule } from './modules/04-types';
 import { exceptionsModule } from './modules/05-exceptions';
 import { functionalModule } from './modules/07-functional';
@@ -45,6 +46,9 @@ import { CONCEPTS } from './concepts';
  * works offline and without an account; scripts/generate-seed.mjs mirrors it
  * into the public Postgres tables.
  */
+
+/** OOP lessons kept in a companion file are appended to the module. */
+const oopModule: CurriculumModule = { ...oopCore, lessons: [...oopCore.lessons, ...oopMoreLessons] };
 
 const WRITTEN_MODULES: CurriculumModule[] = [fundamentalsModule, platformModule, oopModule, typesModule, exceptionsModule, collectionsModule, functionalModule, jvmRuntimeModule, concurrencyModule, ioModule, jdbcModule, testingModule, designModule, dsaModule, springModule, performanceModule, productionModule];
 

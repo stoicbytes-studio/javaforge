@@ -34,7 +34,7 @@ export const oopModule: CurriculumModule = {
 \`new\` allocates an object on the heap, runs field initialisers and the constructor, and returns a reference. Variables of class type hold references, never objects.
 
 ### Constructors
-A constructor has the class name and no return type. If you declare none, the compiler adds a public no-argument constructor; declaring any constructor removes that default. \`this(...)\` delegates to another constructor and must be the first statement (Java 22–24 previewed relaxing this; it is not standard in 21).
+A constructor has the class name and no return type. If you declare none, the compiler adds a public no-argument constructor; declaring any constructor removes that default. \`this(...)\` delegates to another constructor and must be the first statement (Java 22–24 previewed relaxing this, and Java 25 made it standard via JEP 513; on Java 21 the rule still applies).
 
 ### Initialisation rules
 - **Fields** get default values (0, false, null) before the constructor runs.
@@ -566,11 +566,765 @@ public class Main {
         'Write the full initialisation order of a two-level hierarchy.',
         'Explain why overridable calls in constructors are dangerous.',
       ],
-      relatedLessonIds: ['o-interfaces', 'o-solid'],
+      relatedLessonIds: ['o-inheritance-types', 'o-polymorphism-types', 'o-interfaces', 'o-solid'],
       revision: [
         { id: 'r1', question: 'What does dynamic dispatch mean?', answer: 'For instance method calls the JVM chooses the implementation based on the runtime class of the object, not the declared type of the variable.' },
         { id: 'r2', question: 'Which members are not polymorphic?', answer: 'Fields, static methods and private methods. Fields and statics are resolved from the declared type (hiding, not overriding).' },
         { id: 'r3', question: 'Why avoid calling overridable methods from a constructor?', answer: 'The subclass override runs before the subclass\'s fields are initialised, so it sees default values (null/0).' },
+      ],
+    },
+
+    // -----------------------------------------------------------------------
+    {
+      id: 'o-inheritance-types',
+      moduleId: 'oop',
+      title: 'Types of inheritance',
+      summary: 'Single, multilevel, hierarchical, multiple and hybrid inheritance — which Java allows for classes, which only through interfaces, and why.',
+      estimatedMinutes: 35,
+      difficulty: 'intermediate',
+      prerequisites: ['o-inheritance'],
+      versionNotes: [
+        { feature: 'Default methods (multiple inheritance of behaviour via interfaces)', since: 8 },
+        { feature: 'Sealed classes and interfaces (restricting who may inherit)', since: 17 },
+      ],
+      objectives: [
+        'Name the five inheritance types and say which Java supports for classes and which only via interfaces.',
+        'Explain the diamond problem and why Java forbids multiple class inheritance.',
+        'Resolve a default-method conflict with `Interface.super.method()`.',
+        'Trace constructor chaining across three or more levels.',
+        'Use `final` to stop inheritance and choose between IS-A and HAS-A.',
+      ],
+      plainEnglish: `Inheritance comes in a few common shapes:
+
+- **Single**: one child, one parent (\`Car extends Vehicle\`).
+- **Multilevel**: a chain — \`ElectricCar extends Car\`, which \`extends Vehicle\`.
+- **Hierarchical**: one parent, many children — \`Car\` and \`Truck\` both extend \`Vehicle\`.
+- **Multiple**: one child with two or more parents. Java does **not** allow this for classes (\`class C extends A, B\` will not compile), but a class can **implement** many interfaces.
+- **Hybrid**: a mix of the above. In Java it is only possible when the "multiple" part comes from interfaces.
+
+Every class you write ultimately extends \`java.lang.Object\`, even when you do not say so.`,
+      technical: `### What Java allows
+A class has exactly one direct superclass (\`Object\` if you write no \`extends\`), so single, multilevel and hierarchical inheritance are supported for classes. An interface may \`extends\` many interfaces and a class may \`implements\` many interfaces, so **multiple inheritance of type** is supported. Since Java 8 default methods also give a limited **multiple inheritance of behaviour**, but never of state: interfaces have no instance fields.
+
+### The diamond problem
+If \`B\` and \`C\` both extend \`A\` and \`D\` extended both, which copy of \`A\`'s fields would \`D\` have, which constructor runs, and whose override of a method wins? C++ answers with virtual inheritance; Java avoids the question for classes entirely.
+
+### Default-method conflict rules (JLS 8.4.8)
+1. **Class wins**: a method from the superclass chain beats any interface default.
+2. **More specific interface wins**: if \`Guard extends Animal\` and both define \`sound()\`, \`Guard\`'s wins — even if the class also reaches \`Animal\` through another path.
+3. Otherwise the class **must** override, and may call a chosen parent with \`Flyer.super.move()\` (only a direct superinterface may be named).
+
+### Constructor chaining across levels
+Every constructor starts with \`this(...)\` or \`super(...)\` (the compiler inserts \`super()\` if you write neither). So \`new ElectricCar()\` runs \`Object()\`, then \`Vehicle\`, then \`Car\`, then \`ElectricCar\` constructor bodies — top-down. If the parent has no no-arg constructor, the child must call \`super(args)\` explicitly.
+
+### Stopping inheritance
+- \`final class\` cannot be extended (\`String\`, \`Integer\`, records).
+- \`final\` method cannot be overridden.
+- \`sealed ... permits\` (Java 17) allows only listed subclasses.
+- A class with only \`private\` constructors cannot be subclassed from outside it.
+
+### IS-A vs HAS-A
+\`extends\`/\`implements\` express IS-A (a \`Car\` is a \`Vehicle\`). A field expresses HAS-A (a \`Car\` has an \`Engine\`). Prefer HAS-A unless substitutability is genuinely intended.`,
+      whyItExists: `Inheritance shapes let you reuse and specialise behaviour along real "is-a" lines. Java deliberately limits class inheritance to a single parent so that object layout, constructor order and method lookup stay unambiguous, while interfaces still give a class many types — the flexibility of multiple inheritance without the diamond's state problems.`,
+      whenToUse: [
+        'Use single or hierarchical inheritance for a genuine is-a family that shares a contract (Shape → Circle, Square).',
+        'Use multilevel inheritance sparingly, when each level adds a real specialisation.',
+        'Use multiple interfaces when a class plays several roles (Comparable, AutoCloseable, Runnable).',
+        'Use `Interface.super.method()` to combine or pick between conflicting defaults explicitly.',
+      ],
+      whenNotToUse: [
+        'Do not build deep multilevel chains: each level couples to everything above it.',
+        'Do not try to simulate multiple class inheritance with default methods that fake state.',
+        'Do not use inheritance for HAS-A relationships; hold a field and delegate instead.',
+      ],
+      examples: [
+        {
+          id: 'o6-forms',
+          title: 'Single, multilevel and hierarchical inheritance with constructor chaining',
+          runnable: true,
+          code: `class Vehicle {
+    final String plate;
+    Vehicle(String plate) {
+        this.plate = plate;
+        System.out.println("Vehicle(" + plate + ")");
+    }
+    String describe() { return "vehicle"; }
+}
+
+class Car extends Vehicle {                 // single: Car -> Vehicle
+    Car(String plate) {
+        super(plate);
+        System.out.println("Car()");
+    }
+    @Override
+    String describe() { return "car, a " + super.describe(); }
+}
+
+class ElectricCar extends Car {             // multilevel: ElectricCar -> Car -> Vehicle
+    ElectricCar(String plate) {
+        super(plate);
+        System.out.println("ElectricCar()");
+    }
+    @Override
+    String describe() { return "electric " + super.describe(); }
+}
+
+class Truck extends Vehicle {               // hierarchical: Car and Truck share Vehicle
+    Truck(String plate) { super(plate); }
+    @Override
+    String describe() { return "truck"; }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        ElectricCar tesla = new ElectricCar("EV-1");
+        System.out.println(tesla.describe());
+        Vehicle lorry = new Truck("TR-9");
+        System.out.println(lorry.describe() + " extends " + Truck.class.getSuperclass().getSimpleName());
+        System.out.println("Vehicle extends " + Vehicle.class.getSuperclass().getSimpleName());
+        System.out.println(tesla instanceof Vehicle);
+    }
+}`,
+          expectedOutput: `Vehicle(EV-1)
+Car()
+ElectricCar()
+electric car, a vehicle
+Vehicle(TR-9)
+truck extends Vehicle
+Vehicle extends Object
+true`,
+          explanation: 'Constructors run top-down because each one calls super(...) first. super.describe() walks back up the chain one level at a time. Vehicle has no explicit extends, so its superclass is Object.',
+        },
+        {
+          id: 'o6-interface-diamond',
+          title: 'Multiple and hybrid inheritance through interfaces',
+          runnable: true,
+          code: `interface Flyer {
+    default String move() { return "fly"; }
+}
+
+interface Swimmer {
+    default String move() { return "swim"; }
+}
+
+abstract class Bird {
+    String name() { return getClass().getSimpleName(); }
+}
+
+// hybrid: one superclass + two interfaces whose defaults clash
+class Duck extends Bird implements Flyer, Swimmer {
+    @Override
+    public String move() {
+        return Flyer.super.move() + " and " + Swimmer.super.move();
+    }
+}
+
+// multiple inheritance of type without any conflict
+class Penguin extends Bird implements Swimmer { }
+
+public class Main {
+    public static void main(String[] args) {
+        Duck duck = new Duck();
+        Flyer asFlyer = duck;
+        Swimmer asSwimmer = duck;
+        System.out.println(duck.name() + ": " + duck.move());
+        System.out.println(asFlyer.move().equals(asSwimmer.move()));
+        System.out.println(new Penguin().name() + ": " + new Penguin().move());
+    }
+}`,
+          expectedOutput: `Duck: fly and swim
+true
+Penguin: swim`,
+          explanation: 'Duck inherits two unrelated move() defaults, so it must override; it combines both with Interface.super calls. Whatever reference type you use, the single Duck override runs.',
+        },
+        {
+          id: 'o6-final-hasa',
+          title: 'final stops inheritance; HAS-A versus IS-A',
+          runnable: true,
+          code: `import java.lang.reflect.Modifier;
+
+final class Money {                       // final: no class may extend Money
+    final long cents;
+    Money(long cents) { this.cents = cents; }
+}
+
+class Account {
+    private final Money balance;          // HAS-A: an Account has a Money
+    Account(Money balance) { this.balance = balance; }
+    final String audit() {                // final: subclasses cannot override
+        return getClass().getSimpleName() + " balance=" + balance.cents;
+    }
+}
+
+class SavingsAccount extends Account {    // IS-A: a SavingsAccount is an Account
+    SavingsAccount(Money opening) { super(opening); }
+    // String audit() { ... }  would not compile: audit() is final in Account
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Account savings = new SavingsAccount(new Money(1_500));
+        System.out.println(savings.audit());
+        System.out.println(savings instanceof Account);
+        System.out.println(Modifier.isFinal(Money.class.getModifiers()));
+        System.out.println(Modifier.isFinal(String.class.getModifiers()));
+    }
+}`,
+          expectedOutput: `SavingsAccount balance=1500
+true
+true
+true`,
+        },
+      ],
+      walkthrough: {
+        exampleId: 'o6-interface-diamond',
+        steps: [
+          { lines: [1, 7], text: 'Two unrelated interfaces each provide a default `move()`. Neither is more specific than the other.' },
+          { lines: [9, 11], text: 'Bird is the single superclass. It has no `move()`, so the "class wins" rule cannot settle the conflict.' },
+          { lines: [14, 14], text: 'Hybrid inheritance: one `extends` plus two `implements`. Without an override this line would be a compile error ("inherits unrelated defaults").' },
+          { lines: [15, 18], text: '`Flyer.super.move()` and `Swimmer.super.move()` call each interface\'s default explicitly. You may only name a direct superinterface here.' },
+          { lines: [22, 22], text: 'Penguin implements only one interface, so there is no conflict and it simply inherits `Swimmer.move()`.' },
+          { lines: [26, 31], text: 'One Duck object, three reference types. Every call dispatches to Duck\'s single override, so both interface views print the same text.' },
+        ],
+      },
+      realWorld: {
+        title: 'A library upgrade that broke compilation',
+        scenario: `A team's \`AuditedList\` implemented both their own \`Auditable\` interface (with a default \`describe()\`) and a third-party \`Describable\` interface. After a minor library upgrade, \`Describable\` gained its own default \`describe()\` and the build failed with "inherits unrelated defaults for describe()".
+
+The fix took two minutes: override \`describe()\` in \`AuditedList\` and delegate to \`Auditable.super.describe()\`. The lesson the team wrote down: adding a default method to a widely implemented interface is *source*-incompatible for classes that already inherit a same-signature default from elsewhere — the diamond problem in Java is a compile-time error, never a silent runtime surprise.`,
+      },
+      commonMistakes: [
+        {
+          mistake: 'Writing `class C extends A, B`.',
+          why: 'Java classes have exactly one direct superclass; this is a syntax error.',
+          fix: 'Extend one class and implement interfaces for the other roles, or compose: hold a B and delegate to it.',
+        },
+        {
+          mistake: 'Forgetting `super(args)` when the parent has no no-arg constructor.',
+          why: 'The compiler inserts `super()`, which does not exist, so you get "constructor Vehicle in class Vehicle cannot be applied to given types".',
+          fix: 'Call the right parent constructor explicitly as the first statement.',
+          code: `class Car extends Vehicle {
+    Car(String plate) { super(plate); }
+}`,
+        },
+        {
+          mistake: 'Calling `Flyer.super.move()` from a class that does not directly implement Flyer.',
+          why: '`X.super.m()` may only name a direct superinterface (or the direct superclass with plain `super`).',
+          fix: 'Implement the interface directly, or call through the intermediate interface that extends it.',
+        },
+        {
+          mistake: 'Modelling HAS-A as IS-A (e.g. `Car extends Engine`).',
+          why: 'Car would expose every Engine method and could be passed wherever an Engine is expected.',
+          fix: 'Give Car an `Engine` field and delegate.',
+        },
+      ],
+      checks: [
+        {
+          id: 'o6-c1',
+          kind: 'multi-select',
+          dimension: 'conceptual',
+          prompt: 'Which inheritance types can Java express using classes alone (only `extends`, no interfaces)?',
+          options: [
+            { id: 'a', text: 'Single' },
+            { id: 'b', text: 'Multilevel' },
+            { id: 'c', text: 'Hierarchical' },
+            { id: 'd', text: 'Multiple' },
+            { id: 'e', text: 'Hybrid' },
+          ],
+          correctOptionIds: ['a', 'b', 'c'],
+          explanation: 'A class has exactly one direct superclass, which allows chains (multilevel) and fan-out (hierarchical) but not several parents. Multiple and hybrid inheritance need interfaces.',
+        },
+        {
+          id: 'o6-c2',
+          kind: 'predict-output',
+          dimension: 'runtime',
+          prompt: 'What does this print?',
+          code: `class A {
+    A() { System.out.print("A"); }
+}
+
+class B extends A {
+    B() {
+        this(0);
+        System.out.print("B");
+    }
+    B(int x) { System.out.print("b" + x); }
+}
+
+class C extends B {
+    C() { System.out.print("C"); }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        new C();
+        System.out.println();
+    }
+}`,
+          options: [
+            { id: 'a', text: 'Ab0BC' },
+            { id: 'b', text: 'CBb0A' },
+            { id: 'c', text: 'ABb0C' },
+            { id: 'd', text: 'Ab0CB' },
+          ],
+          correctOptionId: 'a',
+          hints: ['Every constructor first calls this(...) or super(...), and only then runs its own body.'],
+          explanation: 'C() implicitly calls super() → B() calls this(0) → B(int) implicitly calls super() → A() prints "A". Then the bodies unwind: B(int) prints "b0", B() prints "B", C() prints "C".',
+        },
+        {
+          id: 'o6-c3',
+          kind: 'predict-output',
+          dimension: 'runtime',
+          prompt: 'Dog reaches `Animal.sound()` through two paths. What happens?',
+          code: `interface Animal {
+    default String sound() { return "generic"; }
+}
+
+interface Pet extends Animal { }
+
+interface Guard extends Animal {
+    default String sound() { return "bark"; }
+}
+
+class Dog implements Pet, Guard { }
+
+public class Main {
+    public static void main(String[] args) {
+        System.out.println(new Dog().sound());
+    }
+}`,
+          options: [
+            { id: 'a', text: 'generic' },
+            { id: 'b', text: 'bark' },
+            { id: 'c', text: 'Compile error: Dog inherits unrelated defaults for sound()' },
+            { id: 'd', text: 'Runtime AbstractMethodError' },
+          ],
+          correctOptionId: 'b',
+          explanation: 'This is an interface diamond, but it is not ambiguous: Guard.sound() overrides Animal.sound(), so the more specific interface wins. Pet adds no competing method of its own.',
+        },
+        {
+          id: 'o6-c4',
+          kind: 'predict-output',
+          dimension: 'conceptual',
+          prompt: 'What happens when you compile this?',
+          code: `final class Config {
+    String env() { return "prod"; }
+}
+
+class DevConfig extends Config {
+    @Override
+    String env() { return "dev"; }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        System.out.println(new DevConfig().env());
+    }
+}`,
+          options: [
+            { id: 'a', text: 'dev' },
+            { id: 'b', text: 'prod' },
+            { id: 'c', text: 'Compile error: cannot inherit from final Config' },
+            { id: 'd', text: 'Runtime VerifyError' },
+          ],
+          correctOptionId: 'c',
+          expectCompileError: true,
+          explanation: 'A final class cannot have subclasses. The compiler rejects `extends Config` before any code runs.',
+        },
+        {
+          id: 'o6-c5',
+          kind: 'mcq',
+          dimension: 'interview',
+          prompt: 'Why does Java forbid a class from extending two classes but allow it to implement two interfaces?',
+          options: [
+            { id: 'a', text: 'Interfaces are faster to dispatch than classes' },
+            { id: 'b', text: 'Classes carry state and constructors, so two parents would make field layout, construction order and method choice ambiguous; interfaces carry no instance state and conflicting defaults must be resolved explicitly' },
+            { id: 'c', text: 'The JVM cannot load more than one superclass file at a time' },
+            { id: 'd', text: 'Multiple class inheritance was removed in Java 8 when default methods arrived' },
+          ],
+          correctOptionId: 'b',
+          explanation: 'The diamond problem is mainly about duplicated state and ambiguous behaviour. Interfaces never contribute fields, and Java turns any default-method ambiguity into a compile error the class must resolve.',
+        },
+        {
+          id: 'o6-c6',
+          kind: 'mcq',
+          dimension: 'conceptual',
+          prompt: 'A `Car` needs an engine that can be swapped between petrol and electric at runtime. Which design fits?',
+          options: [
+            { id: 'a', text: '`class Car extends PetrolEngine`' },
+            { id: 'b', text: '`class Car` with a field `private Engine engine` (HAS-A) where Engine is an interface' },
+            { id: 'c', text: '`class Car extends PetrolEngine, ElectricEngine`' },
+            { id: 'd', text: '`interface Car extends Engine` with default methods holding the engine state' },
+          ],
+          correctOptionId: 'b',
+          explanation: 'A car is not an engine; it has one. Composition through an interface-typed field lets you swap implementations at runtime, which inheritance (fixed at compile time) cannot do.',
+        },
+      ],
+      challengeIds: [],
+      masteryCriteria: [
+        'List all five inheritance types with Java\'s support status for each.',
+        'Explain the diamond problem and state the three default-method resolution rules.',
+        'Predict constructor order across three levels including this(...) delegation.',
+        'Choose IS-A vs HAS-A and justify it.',
+      ],
+      relatedLessonIds: ['o-inheritance', 'o-interfaces', 'o-polymorphism-types', 'o-solid'],
+      revision: [
+        { id: 'r1', question: 'Which inheritance types does Java support for classes, and which only via interfaces?', answer: 'Classes: single, multilevel, hierarchical. Multiple and hybrid inheritance are only possible through interfaces (multiple inheritance of type, and of behaviour via default methods, never of state).' },
+        { id: 'r2', question: 'What is the diamond problem?', answer: 'When a class inherits the same member through two parents that share an ancestor, it is ambiguous which state and implementation it gets. Java forbids multiple class inheritance and makes conflicting interface defaults a compile error.' },
+        { id: 'r3', question: 'How do you resolve two conflicting default methods?', answer: 'Override the method in the class and, if needed, call a chosen one with InterfaceName.super.method().' },
+        { id: 'r4', question: 'In what order do constructors run for a three-level hierarchy?', answer: 'Top-down: Object, then grandparent, parent, child — because each constructor calls super(...) (or this(...)) before its own body.' },
+      ],
+    },
+
+    // -----------------------------------------------------------------------
+    {
+      id: 'o-polymorphism-types',
+      moduleId: 'oop',
+      title: 'Types of polymorphism',
+      summary: 'Compile-time overloading, runtime overriding, generics and subtyping — what is decided when, and why fields and static methods do not take part.',
+      estimatedMinutes: 40,
+      difficulty: 'intermediate',
+      prerequisites: ['o-inheritance', 'f-methods'],
+      versionNotes: [
+        { feature: 'Generics (parametric polymorphism)', since: 5 },
+        { feature: 'Pattern matching for instanceof', since: 16 },
+        { feature: 'Type patterns in switch', since: 21 },
+      ],
+      objectives: [
+        'Distinguish compile-time (static) and runtime (dynamic) polymorphism.',
+        'Predict which overload the compiler picks, including widening, boxing and varargs.',
+        'Explain dynamic dispatch and why fields and static methods are hidden, not overridden.',
+        'Recognise parametric, subtype and ad-hoc polymorphism in Java code.',
+        'Upcast safely and downcast with `instanceof` patterns instead of blind casts.',
+      ],
+      plainEnglish: `**Polymorphism** means one name, many forms. Java has several kinds:
+
+- **Compile-time (static)**: several methods share a name but take different parameters (**overloading**). The compiler picks one by looking at the argument types you wrote.
+- **Runtime (dynamic)**: a subclass replaces a parent method (**overriding**). Which version runs is decided while the program runs, by the real object.
+- **Parametric**: one generic method or class works for any type — \`List<T>\`.
+- **Subtype**: a \`Dog\` can be used anywhere an \`Animal\` is expected.
+
+A quick rule: **overloads are chosen by the variable types, overrides by the object.**`,
+      technical: `### Compile-time polymorphism: overload resolution (JLS 15.12.2)
+The compiler finds every applicable method in three phases and stops at the first phase that finds any:
+1. **Strict/loose without boxing or varargs**: exact matches and primitive widening (\`int → long\`), plus reference subtyping.
+2. **With boxing/unboxing** (\`int → Integer\`), still no varargs.
+3. **With varargs**.
+Within a phase it chooses the **most specific** method (one whose parameter types are all subtypes of another's); if none is most specific the call is ambiguous. Consequence: \`f(5)\` prefers \`f(long)\` over \`f(Integer)\`, and \`f(Object)\` (via boxing) over \`f(int...)\`.
+
+### Runtime polymorphism: overriding and dynamic dispatch
+The compiler fixes the method *signature*; the JVM picks the *implementation* from the receiver's runtime class. Conceptually each class has a **virtual method table** (vtable): an array of method slots, where a subclass copies its parent's table and replaces the slots it overrides. \`invokevirtual\` indexes that table, so the call costs about the same no matter how deep the hierarchy. The JIT often removes even that cost by inlining when it sees one receiver type.
+
+### Parametric, subtype and ad-hoc
+- **Parametric**: generics — \`<T> T firstOr(List<T>, T)\` has one body for all \`T\`. Bounded with \`<T extends Comparable<T>>\`.
+- **Subtype (inclusion)**: any \`Notifier\` subclass is accepted where \`Notifier\` is expected. This is what makes dynamic dispatch useful.
+- **Ad-hoc**: one name, separate implementations per type — overloading (and operator \`+\` for numbers vs strings).
+
+### What does NOT take part
+Fields, static methods and private methods are bound at compile time from the declared type. A subclass field or static method with the same name **hides** the parent's; only instance methods are **overridden**.
+
+### Upcasting and downcasting
+Upcasting (\`Notifier n = new EmailNotifier()\`) is implicit and always safe. Downcasting (\`(EmailNotifier) n\`) is checked at runtime and throws \`ClassCastException\` on the wrong type. Prefer \`if (n instanceof EmailNotifier e)\` (Java 16), or a \`switch\` with type patterns over a sealed type (Java 21).`,
+      whyItExists: `Polymorphism lets code depend on *what* something can do instead of *which class* it is. Callers stay unchanged when new implementations appear (Open/Closed), libraries can be written once for all element types (generics), and convenient APIs can accept different argument types under one name (overloading).`,
+      whenToUse: [
+        'Use overriding to replace type-checking if/else chains with polymorphic calls.',
+        'Use overloading for genuinely equivalent operations on different input types (println(int), println(String)).',
+        'Use generics when an algorithm does not care about the element type.',
+        'Use instanceof patterns or sealed-type switches when you truly need the concrete type.',
+      ],
+      whenNotToUse: [
+        'Do not overload with parameter types that are related by boxing or widening (f(long) vs f(Integer)) — callers will be surprised.',
+        'Do not expect fields or static methods to behave polymorphically.',
+        'Do not scatter downcasts through code; it usually means a method belongs on the base type.',
+      ],
+      examples: [
+        {
+          id: 'o7-dispatch',
+          title: 'Runtime polymorphism, hiding and safe downcasting',
+          runnable: true,
+          minJavaVersion: 16,
+          code: `abstract class Notifier {
+    String tag = "notifier";
+    static String channel() { return "generic"; }
+    abstract String send(String msg);
+}
+
+class EmailNotifier extends Notifier {
+    String tag = "email";                          // hides Notifier.tag
+    static String channel() { return "email"; }    // hides Notifier.channel()
+    @Override
+    String send(String msg) { return "Email: " + msg; }
+    String subject() { return "[Alert]"; }
+}
+
+class SmsNotifier extends Notifier {
+    @Override
+    String send(String msg) { return "SMS: " + msg; }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Notifier[] all = { new EmailNotifier(), new SmsNotifier() };   // upcasts
+        for (Notifier n : all) {
+            System.out.println(n.send("disk full"));                  // dynamic dispatch
+        }
+        Notifier first = all[0];
+        System.out.println(first.tag + " " + ((EmailNotifier) first).tag);
+        System.out.println(Notifier.channel() + " " + EmailNotifier.channel());
+        for (Notifier n : all) {
+            if (n instanceof EmailNotifier email) {                    // safe downcast
+                System.out.println("email subject " + email.subject());
+            } else {
+                System.out.println("not email: " + n.getClass().getSimpleName());
+            }
+        }
+    }
+}`,
+          expectedOutput: `Email: disk full
+SMS: disk full
+notifier email
+generic email
+email subject [Alert]
+not email: SmsNotifier`,
+        },
+        {
+          id: 'o7-overloads',
+          title: 'How the compiler picks an overload',
+          runnable: true,
+          code: `public class Main {
+    static String pick(int x)     { return "int"; }
+    static String pick(long x)    { return "long"; }
+    static String pick(Integer x) { return "Integer"; }
+    static String pick(Object x)  { return "Object"; }
+
+    static String take(long x)    { return "long"; }
+    static String take(Integer x) { return "Integer"; }
+
+    static String only(Object x)  { return "Object"; }
+    static String only(int... xs) { return "varargs"; }
+
+    public static void main(String[] args) {
+        byte small = 1;
+        System.out.println(pick(5) + " " + pick(small) + " " + pick(5L));
+        System.out.println(pick(Integer.valueOf(5)) + " " + pick("hi"));
+        System.out.println(take(5));
+        System.out.println(only(7) + " " + only());
+    }
+}`,
+          expectedOutput: `int int long
+Integer Object
+long
+Object varargs`,
+          explanation: 'Phase 1 (no boxing) wins whenever it finds anything: byte widens to int (more specific than long), and int widens to long before it would ever box to Integer. Boxing to Integer then Object (phase 2) beats varargs (phase 3).',
+        },
+        {
+          id: 'o7-parametric',
+          title: 'Parametric polymorphism with generics',
+          runnable: true,
+          code: `import java.util.List;
+
+public class Main {
+    // one body works for every element type T
+    static <T> T firstOr(List<T> items, T fallback) {
+        return items.isEmpty() ? fallback : items.get(0);
+    }
+
+    // bounded: works for any T that can compare itself to another T
+    static <T extends Comparable<T>> T max(List<T> items) {
+        T best = items.get(0);
+        for (T item : items) {
+            if (item.compareTo(best) > 0) best = item;
+        }
+        return best;
+    }
+
+    public static void main(String[] args) {
+        String fruit = firstOr(List.of("kiwi", "fig"), "none");
+        Integer number = firstOr(List.<Integer>of(), -1);
+        System.out.println(fruit + " " + number);
+        System.out.println(max(List.of(3, 9, 4)) + " " + max(List.of("pear", "apple", "plum")));
+    }
+}`,
+          expectedOutput: `kiwi -1
+9 plum`,
+        },
+      ],
+      walkthrough: {
+        exampleId: 'o7-dispatch',
+        steps: [
+          { lines: [1, 5], text: 'The base type declares a field, a static method and an abstract instance method — three members that behave very differently under polymorphism.' },
+          { lines: [7, 13], text: 'EmailNotifier redeclares the field and the static method (hiding) and overrides send (overriding). subject() exists only on EmailNotifier.' },
+          { lines: [22, 25], text: 'Storing subclasses in a Notifier[] is upcasting. The loop calls send through the base type, and dispatch picks each object\'s own override at runtime.' },
+          { lines: [26, 27], text: 'Field access uses the declared type: `first.tag` reads Notifier.tag ("notifier"); after a cast to EmailNotifier the same object shows "email".' },
+          { lines: [28, 28], text: 'Static methods are resolved by the class name you write; there is no object involved, so nothing is dynamic.' },
+          { lines: [29, 35], text: 'The instanceof pattern tests and downcasts in one step and binds `email` only when the test succeeds, so ClassCastException is impossible.' },
+        ],
+      },
+      realWorld: {
+        title: 'The overload that silently changed behaviour',
+        scenario: `A metrics library had \`record(long value)\` and, later, gained \`record(Object tagged)\` for tagged values. Callers passing an \`int\` kept calling \`record(long)\` (widening beats boxing), but callers passing an \`Integer\` read from a map started hitting \`record(Object)\` — and those counts quietly disappeared from dashboards.
+
+Overload resolution happens at compile time from the *static* argument types, so the same number took different paths depending on whether it was boxed. The fix was to rename the new method \`recordTagged(...)\`. Many API style guides (including *Effective Java*, Item 52) advise against overloads with the same arity whose parameter types can be converted into each other.`,
+      },
+      commonMistakes: [
+        {
+          mistake: 'Believing an overload is chosen by the runtime type of the argument.',
+          why: 'Overload selection is compile-time, based on the declared types of the arguments; only the receiver of an overridden method is dynamic.',
+          fix: 'If behaviour must depend on the argument\'s runtime type, move the method onto that type (override it) or use a pattern switch.',
+          code: `Object doc = "report";
+printer.print(doc);   // calls print(Object), even though doc holds a String`,
+        },
+        {
+          mistake: 'Redeclaring a field in a subclass and expecting it to override.',
+          why: 'Fields are hidden, not overridden; access through the parent type sees the parent\'s field.',
+          fix: 'Keep fields private and expose behaviour through overridable methods.',
+        },
+        {
+          mistake: 'Downcasting without checking the type.',
+          why: 'A wrong cast compiles but throws ClassCastException at runtime.',
+          fix: 'Use `if (x instanceof Type t)` or, better, a method on the base type.',
+        },
+      ],
+      checks: [
+        {
+          id: 'o7-c1',
+          kind: 'predict-output',
+          dimension: 'runtime',
+          prompt: 'Static binding meets dynamic binding. What does this print?',
+          code: `class Printer {
+    static String kind() { return "Printer"; }
+    String name() { return "printer"; }
+    String print(Object o) { return "P-Object"; }
+    String print(String s) { return "P-String"; }
+}
+
+class LaserPrinter extends Printer {
+    static String kind() { return "Laser"; }
+    @Override
+    String name() { return "laser"; }
+    @Override
+    String print(Object o) { return "L-Object"; }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Printer p = new LaserPrinter();
+        Object doc = "report";
+        System.out.println(p.kind() + " " + p.name() + " " + p.print(doc));
+    }
+}`,
+          options: [
+            { id: 'a', text: 'Laser laser P-String' },
+            { id: 'b', text: 'Printer laser L-Object' },
+            { id: 'c', text: 'Printer laser P-String' },
+            { id: 'd', text: 'Laser laser L-Object' },
+          ],
+          correctOptionId: 'b',
+          hints: ['Ask two questions per call: which signature does the compiler pick from the declared types, and does the JVM then dispatch on the object?'],
+          explanation: '`kind()` is static, bound to the declared type Printer. `name()` is overridden, so the LaserPrinter version runs. For `print(doc)` the compiler sees an Object argument and fixes the signature print(Object); at runtime that signature dispatches to LaserPrinter\'s override, giving L-Object. print(String) is never considered.',
+        },
+        {
+          id: 'o7-c2',
+          kind: 'predict-output',
+          dimension: 'runtime',
+          prompt: 'Which overloads are chosen?',
+          code: `public class Main {
+    static String f(long x)       { return "long"; }
+    static String f(Integer x)    { return "Integer"; }
+    static String f(Object x)     { return "Object"; }
+    static String g(double... xs) { return "varargs"; }
+    static String g(Double x)     { return "Double"; }
+
+    public static void main(String[] args) {
+        System.out.println(f(3) + " " + f(Integer.valueOf(3)) + " " + g(2.0) + " " + g(2));
+    }
+}`,
+          options: [
+            { id: 'a', text: 'Integer Integer Double Double' },
+            { id: 'b', text: 'long Integer Double varargs' },
+            { id: 'c', text: 'long Object varargs varargs' },
+            { id: 'd', text: 'Integer Integer varargs Double' },
+          ],
+          correctOptionId: 'b',
+          explanation: 'f(3): widening int→long is phase 1, so it beats boxing. f(Integer) matches exactly in phase 1 and is more specific than Object. g(2.0) needs boxing double→Double (phase 2), which beats varargs. g(2) cannot box int to Double (it would box to Integer), so only varargs (phase 3) applies, with int widened to double.',
+        },
+        {
+          id: 'o7-c3',
+          kind: 'mcq',
+          dimension: 'conceptual',
+          prompt: 'A method `static <T> void swap(T[] a, int i, int j)` works for arrays of any reference type with one body. Which kind of polymorphism is this?',
+          options: [
+            { id: 'a', text: 'Ad-hoc polymorphism (overloading)' },
+            { id: 'b', text: 'Parametric polymorphism' },
+            { id: 'c', text: 'Runtime polymorphism (overriding)' },
+            { id: 'd', text: 'Coercion' },
+          ],
+          correctOptionId: 'b',
+          explanation: 'Parametric polymorphism: one implementation abstracts over a type parameter. Ad-hoc polymorphism would need a separate implementation per type.',
+        },
+        {
+          id: 'o7-c4',
+          kind: 'multi-select',
+          dimension: 'interview',
+          prompt: 'Which of these are decided at compile time from declared types (not by the runtime class of an object)?',
+          options: [
+            { id: 'a', text: 'Which overload of a method is called' },
+            { id: 'b', text: 'Which field `ref.name` reads when a subclass redeclares `name`' },
+            { id: 'c', text: 'Which static method `ref.util()` calls' },
+            { id: 'd', text: 'Which override of an instance method runs' },
+            { id: 'e', text: 'Which private method a class calls on itself' },
+          ],
+          correctOptionIds: ['a', 'b', 'c', 'e'],
+          explanation: 'Overload choice, field access, static methods and private methods are all bound statically. Only the implementation of a non-private, non-static, non-final instance method is chosen at runtime.',
+        },
+        {
+          id: 'o7-c5',
+          kind: 'predict-output',
+          dimension: 'debugging',
+          prompt: 'What does this print?',
+          code: `class Animal { }
+class Dog extends Animal { }
+class Cat extends Animal { }
+
+public class Main {
+    public static void main(String[] args) {
+        Animal a = new Cat();
+        if (a instanceof Dog d) {
+            System.out.println("dog " + d);
+        } else {
+            System.out.println("not a dog");
+        }
+        try {
+            Dog forced = (Dog) a;
+            System.out.println("cast ok " + forced);
+        } catch (ClassCastException e) {
+            System.out.println("ClassCastException");
+        }
+    }
+}`,
+          options: [
+            { id: 'a', text: 'not a dog\nClassCastException' },
+            { id: 'b', text: 'not a dog\ncast ok' },
+            { id: 'c', text: 'Compile error: incompatible types Animal and Dog' },
+            { id: 'd', text: 'dog\nClassCastException' },
+          ],
+          correctOptionId: 'a',
+          explanation: 'The cast compiles because an Animal *might* be a Dog, but the object is a Cat, so the JVM\'s checkcast throws ClassCastException. The instanceof pattern simply tests false and never binds `d`.',
+        },
+      ],
+      challengeIds: [],
+      masteryCriteria: [
+        'Name and give a Java example of compile-time, runtime, parametric, subtype and ad-hoc polymorphism.',
+        'Predict overload choice through the widening, boxing and varargs phases.',
+        'Separate what is bound statically (overloads, fields, statics, privates) from what is dispatched dynamically.',
+        'Downcast safely with instanceof patterns.',
+      ],
+      relatedLessonIds: ['o-inheritance', 'o-inheritance-types', 'o-interfaces', 't-generics', 'f-methods'],
+      revision: [
+        { id: 'r1', question: 'Compile-time vs runtime polymorphism in one sentence each?', answer: 'Compile-time: the compiler chooses among overloads using the declared argument types. Runtime: the JVM chooses an override using the receiver object\'s actual class.' },
+        { id: 'r2', question: 'What are the three phases of overload resolution?', answer: '1) without boxing or varargs (exact, widening, subtyping), 2) with boxing/unboxing, 3) with varargs. The first phase that finds an applicable method wins, then the most specific is chosen.' },
+        { id: 'r3', question: 'Why are fields and static methods not polymorphic?', answer: 'They are resolved from the declared type at compile time. Redeclaring them in a subclass hides the parent member rather than overriding it.' },
+        { id: 'r4', question: 'What is a virtual method table?', answer: 'A per-class array of method slots used for dynamic dispatch; a subclass copies its parent\'s table and replaces slots it overrides, so a virtual call is an index lookup at runtime.' },
       ],
     },
 
