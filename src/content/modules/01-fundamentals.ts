@@ -794,7 +794,7 @@ Rewriting the switch as an exhaustive switch expression over the \`Plan\` enum m
         'Explain fall-through and rewrite a classic switch as a switch expression.',
         'Use short-circuit evaluation to write null-safe conditions.',
       ],
-      relatedLessonIds: ['f-methods', 't-type-system'],
+      relatedLessonIds: ['f-methods', 't-wrappers'],
       revision: [
         { id: 'r1', question: 'What is switch fall-through and how do you avoid it?', answer: 'In a classic switch, case labels are entry points and execution continues into later cases without break. Arrow labels/switch expressions never fall through.' },
         { id: 'r2', question: 'Why is `s != null && s.isEmpty()` safe but `s != null & s.isEmpty()` not?', answer: '&& short-circuits and skips the right side when the left is false; & evaluates both sides, so s.isEmpty() throws NullPointerException when s is null.' },
