@@ -54,7 +54,7 @@ const facts = (s) =>
     .sort();
 const same = (a, b) => a.length === b.length && a.every((x, i) => x === b[i]);
 
-const sentences = (s) => s.replace(/`[^`]+`/g, 'code').split(/(?<=[.!?;:])\s+/).filter((x) => /\w/.test(x));
+const sentences = (s) => s.replace(/`[^`]+`/g, 'code').split(/(?<=[.!?;:]\**)\s+/).filter((x) => /\w/.test(x));
 const wordsOf = (s) => s.replace(/`[^`]+`/g, 'code').replace(/[*_]/g, '').match(/[A-Za-z][A-Za-z'-]*/g) ?? [];
 const syllables = (w) => {
   const v = w.toLowerCase().replace(/e$/, '').match(/[aeiouy]+/g);

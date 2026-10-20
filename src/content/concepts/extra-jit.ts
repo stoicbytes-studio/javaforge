@@ -17,7 +17,7 @@ export const jitConcepts: Record<string, LessonConcepts> = {
       source: 'HotSpot Glossary of Terms (OpenJDK); Java Performance by Scott Oaks, chapter on the JIT compiler',
     },
     interviewDefinition:
-      'HotSpot runs bytecode in an **interpreter** that counts method calls and loop back-edges (jumps back to a loop start). Hot code is compiled in the background. First, **C1** compiles quickly and records profiles (tier 3). Then **C2** (tier 4) uses those profiles to **inline** called methods and to **speculate**. For example, it devirtualises monomorphic and bimorphic call sites (sites that saw one or two classes). It also prunes branches never taken, and removes allocations and locks for objects that do not escape. Each speculation is guarded. When a guard fails, or class loading breaks an assumption, the JVM **deoptimises** back to the interpreter. The program behaves exactly the same, and the method is recompiled later.',
+      'HotSpot runs bytecode in an **interpreter** that counts method calls and loop back-edges (jumps back to a loop start). Hot code is compiled in the background. First, **C1** compiles quickly and records profiles (tier 3). Then **C2** (tier 4) uses those profiles to **inline** called methods and to **speculate**. For example, it devirtualises monomorphic and bimorphic call sites (one or two receiver classes). It also prunes untaken branches and removes allocations and locks for objects that do not escape. Each speculation is guarded. When a guard fails, or class loading breaks an assumption, the JVM **deoptimises** back to the interpreter. Behaviour stays identical, and the method is recompiled later.',
     interviewFollowUps: [
       {
         question: 'Why are small methods effectively free in Java?',

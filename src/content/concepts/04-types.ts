@@ -108,7 +108,7 @@ export const typesConcepts: Record<string, LessonConcepts> = {
         title: 'Choosing how to build text',
         caption: 'Plain + is fine inside one expression. Loops need a mutable builder; StringBuffer is only for the rare builder shared between threads.',
         explanation: [
-          'Start at **Need to build text** and ask **One expression?** If every part is joined in a single statement with no loop, follow yes to **+ or formatted()**. The compiler already turns that into one efficient concatenation.',
+          'Start at **Need to build text**, then ask **One expression?** Is every part joined in a single statement with no loop? If so, follow yes to **+ or formatted()**. The compiler already turns that into one efficient concatenation.',
           'If not, ask **Joining a list?** For a collection of parts with a delimiter (separator), follow yes to **String.join** (or `Collectors.joining`). It sizes and joins the result for you.',
           'Otherwise you are appending inside a loop, so ask **Shared by threads?** In almost all code the answer is no. That leads to **StringBuilder**, a mutable buffer without any locking.',
           'Follow yes to **StringBuffer** only when several threads really write to one builder. Its methods are all synchronized, so they are slower.',
@@ -670,7 +670,7 @@ export const typesConcepts: Record<string, LessonConcepts> = {
       source: 'JLS §14.30 and §14.11.1; JEP 286, JEP 394, JEP 440 and JEP 441',
     },
     interviewDefinition:
-      'Modern Java keeps static typing but needs less boilerplate code. `var` (Java 10) infers a local variable\'s type from its initialiser at compile time. **Pattern matching** combines a type test, a cast and a variable binding. It includes `instanceof` patterns (Java 16), plus type patterns in `switch`, `when` guards and nestable **record patterns** (Java 21). Pattern switches must be exhaustive. They reject dominated cases (cases an earlier case already covers). They accept `null` only through an explicit `case null`.',
+      'Modern Java keeps static typing but needs less boilerplate code. `var` (Java 10) infers a local variable\'s type from its initialiser at compile time. **Pattern matching** combines a type test, a cast and a variable binding. It includes `instanceof` patterns (Java 16), plus type patterns in `switch`, `when` guards and nestable **record patterns** (Java 21). Pattern switches must be exhaustive. They must also reject dominated cases (cases an earlier case already covers). They accept `null` only through an explicit `case null`.',
     interviewFollowUps: [
       {
         question: 'Is `var` a keyword?',
