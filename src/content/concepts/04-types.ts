@@ -9,7 +9,7 @@ export const typesConcepts: Record<string, LessonConcepts> = {
       points: [
         'Write text between double quotes: `"Java"`.',
         'Use `length()` to count the characters. Counting starts at 0 for positions.',
-        'Methods like `toUpperCase()` and `substring()` give you a new String.',
+        'Methods like `toUpperCase()` and `substring()` return a String. The original String does not change.',
         'Compare the text of two Strings with `equals()`, not `==`.',
       ],
       example: {
@@ -254,7 +254,7 @@ export const typesConcepts: Record<string, LessonConcepts> = {
         code: 'public class Main {\n  public static void main(String[] args) {\n    Integer count = 5;\n    int plain = count;\n    int number = Integer.parseInt("42");\n    String text = Integer.toString(number + 1);\n    System.out.println(plain + 1);\n    System.out.println(number);\n    System.out.println(text + "!");\n    System.out.println(Integer.MAX_VALUE);\n  }\n}',
         output: '6\n42\n43!\n2147483647',
         runnable: true,
-        explain: 'The first line puts `5` into an `Integer` object. The second line takes it out again as a plain `int`. `parseInt` turns the text `"42"` into a number, and `Integer.MAX_VALUE` is the largest `int`.',
+        explain: '`Integer count = 5` puts `5` into an `Integer` object. `int plain = count` takes it out again as a plain `int`. `parseInt` turns the text `"42"` into a number, and `Integer.MAX_VALUE` is the largest `int`.',
       },
       tip: 'Unboxing a `null` wrapper throws a `NullPointerException`. Check for `null` first.',
     },
@@ -710,12 +710,12 @@ export const typesConcepts: Record<string, LessonConcepts> = {
   // -------------------------------------------------------------------------
   't-modern-types': {
     quick: {
-      definition: 'Modern Java adds features that make code shorter and safer. Examples are `var`, records, sealed types and `switch` with patterns.',
+      definition: '**Modern Java types** are newer features that make code shorter and safer. Examples are `var`, records, sealed types and `switch` with patterns.',
       points: [
-        'A **record** is a short way to write a class that only holds data. Java builds the constructor, getters and `toString` for you.',
+        'A **record** is a short way to write a class that only holds data. Java builds the constructor, the read methods (like `radius()`), `toString`, `equals` and `hashCode` for you.',
         '`var` lets the compiler work out the type of a local variable. It needs Java 10 or newer.',
-        'A `sealed` type lists exactly which classes may extend it.',
-        'A `switch` can match the type of a value, and the compiler checks you covered every case.',
+        'A `sealed` type lists exactly which classes may extend or implement it.',
+        'A `switch` can match the type of a value. With a sealed type, the compiler checks you covered every case.',
       ],
       example: {
         title: 'Records and switch patterns',
@@ -724,7 +724,7 @@ export const typesConcepts: Record<string, LessonConcepts> = {
         runnable: true,
         explain: '`Circle` and `Square` are records, so printing one shows its values. `Shape` is sealed, so only those two shapes exist. The `switch` handles both, and it needs no `default`.',
       },
-      tip: 'Records are final and their fields cannot change. Use a normal class if you need to change values.',
+      tip: 'Records are final and their fields cannot be reassigned. Use a normal class if you need to change values.',
     },
     textbook: {
       definition:

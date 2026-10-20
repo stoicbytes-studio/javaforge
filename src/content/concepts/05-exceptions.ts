@@ -5,11 +5,11 @@ export const exceptionsConcepts: Record<string, LessonConcepts> = {
   // -------------------------------------------------------------------------
   'e-basics': {
     quick: {
-      definition: 'An **exception** is an error that happens while a program runs and stops it. With `try` and `catch`, you can deal with the problem and keep going.',
+      definition: 'An **exception** is an object that Java throws when something goes wrong while the program runs. With `try` and `catch`, you can handle it so the program does not stop.',
       points: [
         'Put risky code inside a `try` block.',
-        'A `catch` block runs only if that kind of exception is thrown.',
-        'A `finally` block always runs, whether or not there was an error.',
+        'A `catch` block runs only if the `try` block throws that kind of exception.',
+        'A `finally` block runs whether or not there was an error.',
         'Use `throw` to create an exception yourself.',
         'Checked exceptions must be caught or declared with `throws`. Unchecked ones do not need this.',
       ],
@@ -487,14 +487,14 @@ export const exceptionsConcepts: Record<string, LessonConcepts> = {
         'Give it a clear message that says what went wrong.',
         'Throw early, when you see bad input. Catch late, where you can really handle it.',
         'Keep the original error as the cause when you wrap one exception in another.',
-        'Never catch an exception just to ignore it.',
+        'Do not catch an exception just to ignore it.',
       ],
       example: {
         title: 'A custom exception',
         code: 'public class Main {\n  static class InvalidAgeException extends Exception {\n    InvalidAgeException(String message) {\n      super(message);\n    }\n  }\n\n  static void setAge(int age) throws InvalidAgeException {\n    if (age < 0) {\n      throw new InvalidAgeException("Age cannot be negative: " + age);\n    }\n    System.out.println("Age set to " + age);\n  }\n\n  public static void main(String[] args) {\n    try {\n      setAge(20);\n      setAge(-5);\n    } catch (InvalidAgeException e) {\n      System.out.println("Error: " + e.getMessage());\n    }\n  }\n}',
         output: 'Age set to 20\nError: Age cannot be negative: -5',
         runnable: true,
-        explain: '`InvalidAgeException` is our own exception type. `setAge` throws it when the age is below zero, and `throws` warns callers about this. The first call works. The second one is caught in `main`.',
+        explain: '`InvalidAgeException` is our own exception type. `setAge` throws it when the age is below zero, and `throws` tells callers to catch it or pass it on. The first call works. The second one is caught in `main`.',
       },
       tip: 'Catch the most specific exception you can. Avoid catching plain `Exception` everywhere.',
     },
