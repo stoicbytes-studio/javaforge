@@ -11,6 +11,38 @@ export const numbersTimeMemory: Record<string, MemoryAid> = {
       'Use `BigDecimal` made from a `String` for money, with an explicit `RoundingMode`.',
       '`int` and `long` overflow silently; `Math.addExact` throws an exception instead.',
     ],
+    types: [
+      {
+        title: 'Numeric types by use case',
+        items: [
+          { name: '`int`', simple: 'Everyday whole numbers like counts and indexes. It rolls over past about 2.1 billion, like an old car odometer.' },
+          { name: '`long`', simple: 'Bigger whole numbers, such as timestamps, file sizes or money counted in cents.' },
+          { name: '`double`', simple: 'Measurements with decimals, like a kitchen scale: quick and close enough, but never exact enough for money.' },
+          { name: '`float`', simple: 'A smaller, less precise double, only worth it for huge arrays where memory matters.' },
+          { name: '`BigDecimal`', simple: 'The careful cashier: counts every cent exactly, with a rounding rule you choose. Slower, but always right.' },
+          { name: '`BigInteger`', simple: 'Whole numbers of any size, for cryptography or huge factorials.' },
+        ],
+      },
+      {
+        title: 'Rounding modes',
+        items: [
+          { name: '`HALF_UP`', simple: 'The school rule: 2.5 becomes 3, because halves always go away from zero.' },
+          { name: '`HALF_EVEN`', simple: 'Banker\'s rounding: halves go to the even neighbour, so 2.5 becomes 2 and 3.5 becomes 4.' },
+          { name: '`DOWN`', simple: 'Just chop off the extra digits: 2.9 becomes 2, like an `(int)` cast.' },
+          { name: '`UP`', simple: 'Always away from zero: 2.1 becomes 3, like counting how many buses you need.' },
+          { name: '`FLOOR` / `CEILING`', simple: 'Always toward minus or plus infinity: FLOOR turns -2.5 into -3, CEILING turns it into -2.' },
+          { name: '`UNNECESSARY`', simple: 'A promise that no rounding is needed; Java throws an error if it would be.' },
+        ],
+      },
+      {
+        title: 'Random number generators',
+        items: [
+          { name: '`Random`', simple: 'A dice machine you can seed so it repeats the same rolls. Fine for games and tests.' },
+          { name: '`ThreadLocalRandom`', simple: 'Every worker gets their own dice, so nobody waits. Best in multi-threaded code.' },
+          { name: '`SecureRandom`', simple: 'Dice that nobody can predict. The only choice for passwords, tokens and keys.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: '`equals` and `compareTo` on `BigDecimal`',
       difference: '`equals` also compares the scale, so `2.0` and `2.00` are different, while `compareTo` only compares the value and says they are equal.',
@@ -45,6 +77,30 @@ export const numbersTimeMemory: Record<string, MemoryAid> = {
       '`Instant` is an exact point on the UTC timeline, good for storing and comparing events.',
       '`LocalDate` and `LocalDateTime` have no time zone; `ZonedDateTime` adds one.',
       'All `java.time` objects are immutable: `plusDays` returns a new object.',
+    ],
+    types: [
+      {
+        title: 'The temporal types',
+        items: [
+          { name: '`Instant`', simple: 'The single moment a plane takes off, the same for everyone on Earth. Use it for timestamps.' },
+          { name: '`LocalDate`', simple: 'A date on a calendar, like a birthday, with no time and no place.' },
+          { name: '`LocalTime`', simple: 'A time on a wall clock, like "the shop opens at 09:00", with no date.' },
+          { name: '`LocalDateTime`', simple: 'An invitation saying "Saturday 20:00" without naming the city. Not a real moment on its own.' },
+          { name: '`ZonedDateTime`', simple: 'The invitation plus the city, such as Lisbon, including its summer time rules.' },
+          { name: '`OffsetDateTime`', simple: 'A date-time plus a fixed shift from UTC, like +02:00. Common in APIs and databases.' },
+          { name: '`Duration`', simple: 'A stopwatch: exact hours, minutes and seconds, ignoring the calendar.' },
+          { name: '`Period`', simple: 'Flipping calendar pages: years, months and days, as in "one month later".' },
+        ],
+      },
+      {
+        title: 'Legacy classes and their replacements',
+        items: [
+          { name: '`java.util.Date`', simple: 'An old timestamp that can be changed after creation. Replace it with Instant.' },
+          { name: '`Calendar`', simple: 'An old, changeable calendar that counts months from 0. Replace it with ZonedDateTime.' },
+          { name: '`SimpleDateFormat`', simple: 'An old formatter that breaks when threads share it. Replace it with DateTimeFormatter.' },
+          { name: '`java.sql.Date` / `Timestamp`', simple: 'Old database date wrappers. Modern drivers accept LocalDate and OffsetDateTime directly.' },
+        ],
+      },
     ],
     confusion: {
       mixedUpWith: '`Duration` and `Period`',

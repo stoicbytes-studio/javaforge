@@ -76,6 +76,28 @@ export const platformMemory: Record<string, MemoryAid> = {
       'It works like a stack: `iload` pushes a value, `iadd` pops two values and pushes their sum.',
       'The JVM verifies bytecode before running it, and everything is referred to by name, not memory address.',
     ],
+    types: [
+      {
+        title: 'Kinds of bytecode instructions',
+        items: [
+          { name: 'Load and store', simple: 'Fetching parts from the shelf onto the work table and putting them back, like `iload` and `istore`.' },
+          { name: 'Arithmetic', simple: 'Doing sums with the parts on the table, like `iadd` adding the top two numbers.' },
+          { name: 'Object creation', simple: 'Building new things, like `new` making an object or `newarray` making a row of boxes.' },
+          { name: 'Control transfer', simple: 'Jumping to another step in the booklet, like "if the number is zero, go to step 9".' },
+          { name: 'Invoke and return', simple: 'Asking a helper to do a job, then handing the answer back, like `invokevirtual` and `ireturn`.' },
+        ],
+      },
+      {
+        title: 'Method invocation instructions',
+        items: [
+          { name: '`invokestatic`', simple: 'Calling a shared tool that belongs to the class, like `Math.max`, with no object involved.' },
+          { name: '`invokevirtual`', simple: 'Asking an object to do its job; the object\'s real class decides exactly how.' },
+          { name: '`invokeinterface`', simple: 'Calling a method through an interface, like asking "any printer" to print a page.' },
+          { name: '`invokespecial`', simple: 'Calling a constructor, a private method or the parent\'s version directly, with no choosing.' },
+          { name: '`invokedynamic`', simple: 'A call that is wired up the first time it runs, used for lambdas and joining strings.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: 'machine code',
       difference: 'Machine code is for one kind of processor. Bytecode is for the JVM, which turns it into machine code on each computer.',
@@ -110,6 +132,32 @@ export const platformMemory: Record<string, MemoryAid> = {
       'A package groups classes and gives each a full name, like `com.shop.Invoice`, matching its folder path.',
       '`import` only lets you write the short name at compile time; it loads nothing at run time.',
       'At run time, class loaders find each class on first use, searching the JDK first, then the classpath.',
+    ],
+    types: [
+      {
+        title: 'Types of packages',
+        items: [
+          { name: 'Built-in packages', simple: 'Shelves that come with the library, like `java.util`; you can use them straight away.' },
+          { name: 'User-defined packages', simple: 'Your own labelled shelves, like `com.shop.billing`, for the classes you write.' },
+          { name: 'Default (unnamed) package', simple: 'Books with no shelf label at all; fine for a quick test, messy for real projects.' },
+        ],
+      },
+      {
+        title: 'Kinds of import declarations',
+        items: [
+          { name: 'Single-type import', simple: 'Giving one book a nickname: `import java.util.List;` lets you just write `List`.' },
+          { name: 'Wildcard import `*`', simple: 'Nicknames for every book on one shelf, but not for the shelves next to it.' },
+          { name: 'Static import', simple: 'Using a helper\'s name directly, like writing `max(a, b)` instead of `Math.max(a, b)`.' },
+        ],
+      },
+      {
+        title: 'Built-in class loaders',
+        items: [
+          { name: 'Bootstrap loader', simple: 'The head librarian, built into the JVM, who guards the core books like `String`.' },
+          { name: 'Platform loader', simple: 'The assistant who fetches the other JDK books, such as the database and XML tools.' },
+          { name: 'Application loader', simple: 'The librarian who finds your own classes and libraries on the classpath.' },
+        ],
+      },
     ],
     confusion: {
       mixedUpWith: '`import` and the classpath',
@@ -146,6 +194,19 @@ export const platformMemory: Record<string, MemoryAid> = {
       'Since Java 10, a feature release ships every six months, in March and September.',
       'LTS releases, such as 17, 21 and 25, get security updates from vendors for years.',
       'Preview features need `--enable-preview` and may change or vanish; final features stay.',
+    ],
+    types: [
+      {
+        title: 'Release and feature types',
+        items: [
+          { name: 'LTS release', simple: 'A collector edition that is kept and fixed for years, like Java 21 or 25; the usual choice at work.' },
+          { name: 'Feature release', simple: 'A regular magazine issue every six months, replaced by the next one quite soon.' },
+          { name: 'Update release', simple: 'A small correction slip for an issue, like 21.0.5: fixes only, nothing new.' },
+          { name: 'Preview feature', simple: 'A "try it" corner: you must opt in with `--enable-preview`, and it may still change.' },
+          { name: 'Incubator module', simple: 'A draft tool still being shaped, kept in a separate box you must add on purpose.' },
+          { name: 'Experimental VM feature', simple: 'A test switch on the engine for brave users; it may become standard or be removed.' },
+        ],
+      },
     ],
     confusion: {
       mixedUpWith: 'the latest release and an LTS release',

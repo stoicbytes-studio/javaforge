@@ -3,6 +3,17 @@ import type { LessonConcepts } from '@/types/curriculum';
 /** Concept pages for the extra "types" lessons on numbers and java.time, keyed by lesson id. */
 export const numbersTimeConcepts: Record<string, LessonConcepts> = {
   't-numbers-math': {
+    textbook: {
+      definition:
+        'Java\'s **primitive numeric types** comprise the integral types `byte`, `short`, `int`, `long` and `char`, whose signed arithmetic uses **two\'s-complement** representation and wraps silently on overflow, and the floating-point types `float` and `double`, whose values and operations follow the **IEEE 754** binary formats. The class `java.math.BigDecimal` represents immutable, **arbitrary-precision** signed decimal numbers as an unscaled integer and a scale, with rounding controlled by a `RoundingMode`; `java.math.BigInteger` represents integers of unbounded size. `java.lang.Math` supplies elementary functions and exact-arithmetic methods that throw `ArithmeticException` on overflow.',
+      terms: [
+        { term: 'Two\'s complement', meaning: 'The binary representation of signed integers used by `int` and `long`; arithmetic is performed modulo 2^n, so overflow wraps around without any error.' },
+        { term: 'IEEE 754 binary floating point', meaning: 'The standard format that stores a sign, an exponent and a binary significand (53 bits for `double`), so most decimal fractions can only be approximated.' },
+        { term: 'Unscaled value and scale', meaning: 'The two parts of a `BigDecimal`: its numeric value equals the unscaled integer multiplied by 10 to the power of minus the scale.' },
+        { term: 'Rounding mode', meaning: 'A rule, given by the enum `java.math.RoundingMode`, that decides how a result is rounded when it must be reduced to fewer digits.' },
+      ],
+      source: 'JLS §4.2; IEEE 754; Javadoc for java.math.BigDecimal and java.lang.Math',
+    },
     interviewDefinition:
       '`float` and `double` are IEEE 754 **binary** floating point: fast and wide-ranged, but most decimal fractions are only approximated, so `0.1 + 0.2` is `0.30000000000000004`. For exact decimal values such as money use **`BigDecimal`** built from a `String`, with an explicit scale and `RoundingMode`, and compare with `compareTo`; for integers beyond 64 bits use `BigInteger`. Primitive integer arithmetic wraps silently, so use `Math.addExact`, `multiplyExact` or `toIntExact` when overflow must be an error, and `Math.floorMod` when a remainder must not be negative.',
     interviewFollowUps: [
@@ -67,6 +78,13 @@ export const numbersTimeConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Why 0.1 is not exact in a double',
         caption: 'The double path rounds an infinite binary fraction to 53 bits, so the stored value is only close to 0.1. The BigDecimal path stores the decimal digits themselves: unscaled value 1 with scale 1.',
+        explanation: [
+          'The top row is the **double (binary)** path. **Literal 0.1** is written in decimal in your source code, but the compiler must convert it to binary.',
+          'In binary, one tenth is **0.000110011…**, a pattern that repeats forever, so it cannot be stored exactly in any fixed number of bits.',
+          '**Round to 53 bits** cuts the infinite fraction to the precision of an IEEE 754 double. The stored value becomes **0.1000000000000000055…**: very close to 0.1, but not equal to it.',
+          'The bottom row is the **BigDecimal (decimal)** path. **"0.1" as String** supplies the decimal digits directly, and **BigDecimal parse** reads them with no binary conversion at all.',
+          'The result is stored as **unscaled 1, scale 1**, meaning 1 times 10 to the power minus 1, which is **Exactly 0.1**. Takeaway: build BigDecimal from a String whenever decimals must add up exactly.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -97,6 +115,13 @@ export const numbersTimeConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Choosing a numeric type',
         caption: 'Start from what the number means. Exactness requirements push you to BigDecimal or BigInteger; range pushes you from int to long to BigInteger; only measurements belong in double.',
+        explanation: [
+          'Start at **What is the number?** and decide what it means before thinking about speed: is it a **Whole count**, or does it fall under **Has fractions**?',
+          'For whole counts begin with **int**, which holds about plus or minus 2.1 billion. If the value may exceed 2^31, move to **long**, which reaches about 9.2 times 10^18.',
+          'If even long may overflow, as with large factorials or cryptography, use **BigInteger**, which has no fixed size limit.',
+          'For values with fractions that must be exact, such as prices and tax, the must be exact arrow leads to **BigDecimal**.',
+          'Only when a tiny rounding error is acceptable, as the dashed arrow says, should you choose **double**, which suits measurements and science. Takeaway: meaning and range decide the type.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -124,6 +149,13 @@ export const numbersTimeConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'The RandomGenerator family (Java 17)',
         caption: 'JEP 356 put one interface above every generator, so code can depend on RandomGenerator and choose the algorithm at the edge. Security still requires SecureRandom.',
+        explanation: [
+          'At the top is **RandomGenerator**, the common interface added in Java 17 by JEP 356. Code can depend on it and choose the actual algorithm elsewhere.',
+          'Every box in the **Implementations** row points up to it. **Random** is the classic seedable 48-bit generator: reproducible, but predictable and contended when threads share it.',
+          '**ThreadLocalRandom** gives each thread its own generator, so there is no contention; it is the default choice for concurrent code that is not security related.',
+          '**SecureRandom** is cryptographically strong and unpredictable. It is the only correct choice for tokens, salts, passwords and keys.',
+          '**LXM / Splittable** generators, obtained with `RandomGenerator.of(name)`, are fast and statistically strong and can split into independent streams for parallel work. Takeaway: pick by need, and use SecureRandom for security.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -217,6 +249,17 @@ export const numbersTimeConcepts: Record<string, LessonConcepts> = {
   },
 
   't-date-time': {
+    textbook: {
+      definition:
+        'The **java.time** API, specified by JSR 310 and introduced in Java 8, is the standard Java library for dates, times, instants and durations, based on the ISO-8601 calendar system. Its principal classes are **immutable** and thread-safe. It distinguishes **machine time**, a position on the time-line represented by `Instant`, from **human time**, represented by local date-time types that carry no time zone and by `ZonedDateTime` and `OffsetDateTime`, which bind a local date-time to a **time zone** or an **offset** from UTC. Amounts of time are modelled by `Duration` and `Period`.',
+      terms: [
+        { term: 'Instant', meaning: 'An instantaneous point on the time-line, measured in seconds and nanoseconds from the epoch 1970-01-01T00:00:00Z.' },
+        { term: 'Local date-time', meaning: 'A date, time or date-time without any time zone or offset, such as `LocalDate`; it describes a calendar or wall-clock reading, not a moment.' },
+        { term: 'ZoneOffset and ZoneId', meaning: 'A `ZoneOffset` is a fixed difference from UTC, such as +02:00; a region `ZoneId` names rules that determine the offset at each instant, including daylight saving time.' },
+        { term: 'Duration and Period', meaning: 'A `Duration` is an exact amount of time in seconds and nanoseconds; a `Period` is a date-based amount in years, months and days.' },
+      ],
+      source: 'JSR 310; Javadoc for the java.time package; ISO 8601',
+    },
     interviewDefinition:
       '`java.time` (JSR 310, Java 8) is an immutable, thread-safe date-time API that separates **machine time** from **human time**. `Instant` is a point on the UTC timeline; `LocalDate`, `LocalTime` and `LocalDateTime` are calendar and wall-clock values with no zone; `ZonedDateTime` adds a region `ZoneId` with its daylight-saving rules and `OffsetDateTime` a fixed offset. `Duration` measures exact time, `Period` calendar amounts. Store instants in UTC, convert to a zone only for display, and inject a `Clock` so code is testable.',
     interviewFollowUps: [
@@ -280,6 +323,13 @@ export const numbersTimeConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'One instant, many wall clocks',
         caption: 'The stored Instant never changes; atZone only chooses how to display it. Notice that the local times and even the offsets differ, yet all three boxes are the same moment.',
+        explanation: [
+          'At the top, the stored **Instant** is 2024-06-01T12:00:00Z: one single moment on the UTC timeline, the same for everyone on Earth.',
+          'The three atZone arrows create the **ZonedDateTime views (display)**: **New York** shows 08:00 at -04:00, **UTC** shows 12:00, and **Kolkata** shows 17:30 at +05:30. The wall-clock readings differ, but the moment is identical.',
+          'The dashed arrow from New York calls toLocalDateTime() and produces **LocalDateTime 08:00**. The zone has been dropped, so nobody can tell which moment that 08:00 refers to.',
+          'At the bottom right, **OffsetDateTime** 14:00 at +02:00 is joined to Kolkata by a two-way dashed same instant arrow: different text on the clock, same moment.',
+          'Takeaway: store and compare Instants, and choose a zone only when you display a time to a person.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -304,6 +354,13 @@ export const numbersTimeConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'The java.time type map',
         caption: 'Human-time types become a moment only when combined with a zone or offset. Conversions go through ZonedDateTime/OffsetDateTime to Instant; Duration and Period are amounts you add to them.',
+        explanation: [
+          'The **Human time** group at the top left holds **LocalDate**, a calendar date, and **LocalTime**, a wall-clock time. `atTime` combines a date and a time into a **LocalDateTime**, which still has no zone.',
+          'Calling atZone(zone) turns a LocalDateTime into a **ZonedDateTime**, which knows its region and its daylight saving rules. Only now does the value identify a real moment.',
+          'A ZonedDateTime converts to and from an **Instant** with toInstant(), the form to store. An **OffsetDateTime**, which carries a fixed offset instead of a region, converts to an Instant the same way.',
+          'In the **Amounts and time source** group, **Period** is added to local values using calendar rules, while **Duration** adds exact seconds; the dashed arrows show that these are amounts, not points in time.',
+          '**Clock** supplies the current Instant through `Instant.now(clock)`, so injecting a Clock lets tests fix "now". Takeaway: human-time types need a zone or offset before they become a moment.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -336,6 +393,13 @@ export const numbersTimeConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'How ZonedDateTime resolves a local time',
         caption: 'The zone rules count how many offsets are valid for the local date-time. One is the normal case; zero is a spring-forward gap; two is an autumn overlap.',
+        explanation: [
+          'The input is a **LocalDateTime + ZoneId**, for example 02:30 in America/New_York. `ZonedDateTime.of` must work out which UTC offset applies to it.',
+          'It asks the zone **ZoneRules** how many offsets are valid for that local date-time. On a normal day the answer is **1 offset**, and that offset is used.',
+          'On the spring forward day the clocks skip an hour, giving **0 offsets: gap**. The local time does not exist, so java.time shifts it later by the length of the gap, to 03:30.',
+          'On the fall back day an hour repeats, giving **2 offsets: overlap**. By default the earlier offset is kept, and the optional dashed arrow shows **withLaterOffsetAtOverlap()** choosing the second occurrence instead.',
+          'Takeaway: on daylight saving change days a local time can be missing or ambiguous, and java.time always resolves it by documented rules.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
