@@ -11,6 +11,26 @@ export const asyncParallelMemory: Record<string, MemoryAid> = {
       'Idle workers steal tasks from busy ones, so all cores stay busy.',
       'Parallel streams help only for large, CPU-heavy, easily split work with no shared state.',
     ],
+    types: [
+      {
+        title: 'Types of fork/join task',
+        items: [
+          { name: '`RecursiveTask<V>`', simple: 'Splits the job and gives back an answer, like friends each counting part of a jar of coins and adding up.' },
+          { name: '`RecursiveAction`', simple: 'Splits the job but returns nothing, like painters each painting their own section of a fence.' },
+          { name: '`CountedCompleter<T>`', simple: 'An advanced task that finishes itself when all its pieces report back, so no thread has to wait.' },
+        ],
+      },
+      {
+        title: 'Parallel-stream sources',
+        items: [
+          { name: 'Arrays and number ranges', simple: 'Easy to cut exactly in half, like a chocolate bar with clear lines. The best case.' },
+          { name: '`ArrayList`', simple: 'Also splits well by position, though boxed numbers add some cost.' },
+          { name: '`HashSet` and `HashMap`', simple: 'Split by buckets, so pieces can be uneven in size.' },
+          { name: '`LinkedList`', simple: 'Must be walked link by link to split, like a paper chain, so speed-ups are small or negative.' },
+          { name: '`Stream.iterate`', simple: 'Each value depends on the one before, so it cannot be shared out at all.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: 'making any slow job faster with `.parallel()`',
       difference: 'Parallel streams split CPU work across cores. They do not help with waiting on I/O, and small inputs often get slower.',
@@ -46,6 +66,38 @@ export const asyncParallelMemory: Record<string, MemoryAid> = {
       '`thenApply` transforms a result; `thenCompose` chains another async step without nesting futures.',
       '`thenCombine` and `allOf` join independent results; `exceptionally` and `handle` deal with failures.',
       'Async methods use the common pool by default, so give slow I/O work its own executor.',
+    ],
+    types: [
+      {
+        title: 'Composition methods',
+        items: [
+          { name: '`thenApply`', simple: 'Change the result when it arrives, like adding sauce to a dish as soon as it is cooked.' },
+          { name: '`thenCompose`', simple: 'Start another background job that needs the first result, then wait for that one instead.' },
+          { name: '`thenCombine`', simple: 'Wait for two independent jobs and put both results together, like food and drinks on one tray.' },
+          { name: '`thenAccept` / `thenRun`', simple: 'Use the result, or just do something, without producing a new value.' },
+          { name: '`allOf`', simple: 'Wait until every job in a group is done.' },
+          { name: '`anyOf`', simple: 'Take whichever job finishes first, like taking the first taxi that arrives.' },
+        ],
+      },
+      {
+        title: 'Error-handling and timeout methods',
+        items: [
+          { name: '`exceptionally`', simple: 'Runs only when something failed and supplies a replacement value, like a backup meal.' },
+          { name: '`handle`', simple: 'Always runs and sees either the value or the error, and decides the final result.' },
+          { name: '`whenComplete`', simple: 'Always runs to watch or log what happened, but cannot change the outcome.' },
+          { name: '`orTimeout`', simple: 'Gives up with an error if the job takes too long. The job itself keeps running.' },
+          { name: '`completeOnTimeout`', simple: 'If the job is too slow, finish with a default value instead.' },
+        ],
+      },
+      {
+        title: 'Ways to create one',
+        items: [
+          { name: '`supplyAsync`', simple: 'Start a background job that returns a value.' },
+          { name: '`runAsync`', simple: 'Start a background job that returns nothing.' },
+          { name: '`completedFuture`', simple: 'A future that is already done, holding a ready answer.' },
+          { name: '`new CompletableFuture<>()`', simple: 'An empty promise that you fill in later yourself with `complete(...)`.' },
+        ],
+      },
     ],
     confusion: {
       mixedUpWith: '`thenApply` and `thenCompose`',

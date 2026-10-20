@@ -11,6 +11,29 @@ export const concurrencyMemory: Record<string, MemoryAid> = {
       'Submit `Runnable` or `Callable` tasks to an `ExecutorService` instead of managing threads by hand.',
       'Virtual threads (Java 21) make waiting cheap, but they do not make calculations faster.',
     ],
+    types: [
+      {
+        title: 'Ways to create concurrent work',
+        items: [
+          { name: 'Subclass `Thread`', simple: 'Build a worker who can only ever do one job. Works, but rarely the right choice today.' },
+          { name: '`Runnable` passed to `Thread`', simple: 'Write the job on a card and hand it to a new worker. No result comes back.' },
+          { name: '`Callable` + `ExecutorService`', simple: 'Hand jobs to a team with a fixed number of workers and get a receipt (`Future`) for each result.' },
+          { name: 'Virtual threads (Java 21)', simple: 'Very cheap workers who step aside while waiting, so you can have one per task, even millions.' },
+          { name: '`CompletableFuture`', simple: 'A chain of steps that runs in the background, like a delivery that triggers the next job when it arrives.' },
+        ],
+      },
+      {
+        title: 'Thread states',
+        items: [
+          { name: 'NEW', simple: 'Created but not started yet, like a hired worker before their first day.' },
+          { name: 'RUNNABLE', simple: 'Working, or ready to work as soon as a CPU is free.' },
+          { name: 'BLOCKED', simple: 'Waiting at a locked door (a `synchronized` block) that another thread is holding.' },
+          { name: 'WAITING', simple: 'Waiting with no time limit until another thread gives a signal.' },
+          { name: 'TIMED_WAITING', simple: 'Waiting with an alarm set, like `sleep(1000)`; it wakes up when time runs out.' },
+          { name: 'TERMINATED', simple: 'Finished for good. A finished thread can never be started again.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: '`start()` and `run()`',
       difference: '`start()` creates a new thread that then calls `run()`. Calling `run()` yourself just runs the code on the current thread.',
@@ -46,6 +69,33 @@ export const concurrencyMemory: Record<string, MemoryAid> = {
       'Visibility: without a happens-before edge, one thread may never see another thread\'s write.',
       'Use `synchronized` or locks for compound actions, atomics for single counters, `volatile` for flags.',
     ],
+    types: [
+      {
+        title: 'Lock types',
+        items: [
+          { name: '`synchronized`', simple: 'The built-in lock on every object. Simple and released automatically, like a bathroom door that unlocks when you leave.' },
+          { name: '`ReentrantLock`', simple: 'A lock you open and close yourself, with extras such as trying for a while and then giving up.' },
+          { name: '`ReentrantReadWriteLock`', simple: 'Many readers may look at once, but a writer needs the room to themselves.' },
+          { name: '`StampedLock`', simple: 'Read optimistically without locking, then check a ticket to see if anyone wrote in the meantime.' },
+        ],
+      },
+      {
+        title: 'Forms of synchronized',
+        items: [
+          { name: 'Synchronized method', simple: 'Locks the whole object for the whole method, like locking the shop while serving one customer.' },
+          { name: 'Static synchronized method', simple: 'Locks the class itself, one lock shared by every object of that class.' },
+          { name: 'Synchronized block', simple: 'Locks only the few lines that touch shared data, so the rest runs freely.' },
+        ],
+      },
+      {
+        title: 'Atomic classes',
+        items: [
+          { name: '`AtomicInteger` / `AtomicLong`', simple: 'A counter that can be safely increased by many threads at once without a lock.' },
+          { name: '`AtomicReference`', simple: 'Swap a whole object in one safe step, like replacing a sign on a door.' },
+          { name: '`LongAdder`', simple: 'Many little tally sheets added up at the end; fastest for busy counters you rarely read.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: '`volatile` and `synchronized`',
       difference: '`volatile` makes each read and write visible, but `count++` on it is still not atomic. `synchronized` gives both.',
@@ -80,6 +130,35 @@ export const concurrencyMemory: Record<string, MemoryAid> = {
       '`BlockingQueue` passes work between producers and consumers and slows producers when full.',
       '`CountDownLatch` waits once for N events; `CyclicBarrier` lets threads meet repeatedly.',
       '`Semaphore` limits how many threads use a resource; `ConcurrentHashMap` offers atomic `merge` and `compute`.',
+    ],
+    types: [
+      {
+        title: 'Synchronizers',
+        items: [
+          { name: '`CountDownLatch`', simple: 'A gate that opens once after N things have happened, like a race that starts when every runner is ready.' },
+          { name: '`CyclicBarrier`', simple: 'A group meeting point: everyone waits until all have arrived, then they all continue, round after round.' },
+          { name: '`Phaser`', simple: 'A barrier where people can join or leave the group between rounds.' },
+          { name: '`Semaphore`', simple: 'A fixed number of passes, like a ride with three seats: at most three threads inside at once.' },
+        ],
+      },
+      {
+        title: 'BlockingQueue implementations',
+        items: [
+          { name: '`ArrayBlockingQueue`', simple: 'A conveyor belt with a fixed number of spaces; the usual choice for a bounded pipeline.' },
+          { name: '`LinkedBlockingQueue`', simple: 'A belt that grows as needed, with no practical limit unless you give it a size.' },
+          { name: '`SynchronousQueue`', simple: 'No belt at all: each item is handed directly from one person to another.' },
+          { name: '`PriorityBlockingQueue`', simple: 'The most important item is always taken first, like a hospital waiting room.' },
+        ],
+      },
+      {
+        title: 'Concurrent collections',
+        items: [
+          { name: '`ConcurrentHashMap`', simple: 'A map many threads can read and update at once, with safe all-in-one updates like `merge`.' },
+          { name: '`CopyOnWriteArrayList`', simple: 'Makes a fresh copy on every change, so readers never wait. Best for small lists that rarely change.' },
+          { name: '`ConcurrentSkipListMap`', simple: 'A thread-safe map that keeps its keys sorted.' },
+          { name: '`ConcurrentLinkedQueue`', simple: 'A thread-safe queue that never blocks: taking from an empty one just returns null.' },
+        ],
+      },
     ],
     confusion: {
       mixedUpWith: '`CountDownLatch` and `CyclicBarrier`',

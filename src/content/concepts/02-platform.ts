@@ -196,6 +196,16 @@ export const platformConcepts: Record<string, LessonConcepts> = {
           { name: 'Android Runtime (ART)', summary: 'Runs Java/Kotlin code compiled to DEX bytecode, not class files, with its own library; it is not a Java SE JVM.', support: 'partial' },
         ],
       },
+      {
+        title: 'Java platform editions',
+        intro: 'The JDK, JRE and JVM on this page belong to Java SE. The other editions either build on it or define a smaller Java for particular kinds of device.',
+        items: [
+          { name: 'Java SE (Standard Edition)', summary: 'The core platform: the language, the JVM and the standard class library. Every JDK implements Java SE, and the other editions are defined relative to it.', support: 'supported' },
+          { name: 'Jakarta EE (formerly Java EE)', summary: 'Specifications for enterprise servers that run on top of Java SE: servlets, persistence (JPA), REST, CDI and more. Run by the Eclipse Foundation since 2017.', support: 'supported', note: 'Packages renamed from javax.* to jakarta.* in Jakarta EE 9 (2020).' },
+          { name: 'Java ME (Micro Edition)', summary: 'A reduced platform for small and embedded devices, best known from older feature phones. Rarely chosen for new projects.', support: 'partial' },
+          { name: 'Java Card', summary: 'A very small subset of the language and VM for smart cards and SIM cards, running applets in a few kilobytes of memory.', support: 'supported' },
+        ],
+      },
     ],
     deepDive: [
       {
@@ -221,6 +231,18 @@ export const platformConcepts: Record<string, LessonConcepts> = {
     ],
   },
   'p-bytecode': {
+    textbook: {
+      definition:
+        '**Bytecode** is the instruction set of the Java Virtual Machine: a sequence of instructions, each consisting of a one-byte **opcode** followed by zero or more operands, that operate on an **operand stack** and an array of local variables within a method\'s frame. Bytecode is stored in the `Code` attribute of each method in a **class file**, a platform-independent binary format that also contains a **constant pool** of literals and symbolic references. Before execution, the JVM **verifies** the bytecode to ensure type safety and structural correctness, then interprets it or compiles it to native machine code.',
+      terms: [
+        { term: 'Opcode', meaning: 'A one-byte operation code identifying a JVM instruction, such as `iadd` or `invokevirtual`; one byte allows at most 256 distinct opcodes.' },
+        { term: 'Operand stack', meaning: 'A last-in, first-out stack in each frame from which instructions pop their inputs and onto which they push their results.' },
+        { term: 'Constant pool', meaning: 'A per-class table of constants, including numeric and string literals and symbolic references to classes, fields and methods, referred to by index.' },
+        { term: 'Class file', meaning: 'The binary format defined in chapter 4 of the JVM Specification, beginning with the magic number `0xCAFEBABE`, that holds one compiled class or interface.' },
+        { term: 'Verification', meaning: 'The check, performed during linking, that bytecode obeys the JVM\'s static and structural constraints, such as type-correct use of the operand stack and locals.' },
+      ],
+      source: 'JVMS chapters 2, 4 and 6',
+    },
     interviewDefinition:
       '**Bytecode** is the JVM\'s instruction set: compact one-byte opcodes for a **stack machine**, stored per method in the `Code` attribute of a `.class` file. A class file starts with the magic number `0xCAFEBABE` and a version (major − 44 = Java release), followed by a **constant pool** of literals and symbolic references, access flags, this/super class, interfaces, fields, methods and attributes. Because bytecode refers to everything by symbolic name rather than address and is **verified** before it runs, the same file executes safely on any compliant JVM.',
     interviewFollowUps: [

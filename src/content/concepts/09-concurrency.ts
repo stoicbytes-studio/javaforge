@@ -3,6 +3,18 @@ import type { LessonConcepts } from '@/types/curriculum';
 /** Concept pages for module 9 (Concurrency), keyed by lesson id. */
 export const concurrencyConcepts: Record<string, LessonConcepts> = {
   'cc-threads': {
+    textbook: {
+      definition:
+        'A **thread** is a single sequential flow of control within a program. A Java program may have many threads executing concurrently, each with its own program counter and JVM stack, while all of them share the heap and the method area. On the Java platform a thread is represented by an instance of `java.lang.Thread` and executes the `run` method of a **task**. Threads are either **platform threads**, each a thin wrapper around an operating-system thread, or **virtual threads** (Java 21), which the JVM schedules onto a small pool of **carrier threads**. An **executor service** decouples the submission of tasks from the threads that run them.',
+      terms: [
+        { term: 'Task', meaning: 'A unit of work, expressed as a `Runnable` (no result) or a `Callable<V>` (returns a value and may throw a checked exception).' },
+        { term: 'Platform thread', meaning: 'A `Thread` implemented as a thin wrapper around an operating-system thread, which it occupies for its entire lifetime.' },
+        { term: 'Virtual thread', meaning: 'A lightweight `Thread` implemented by the JDK that occupies an operating-system thread only while it runs code, not while it blocks.' },
+        { term: 'Carrier thread', meaning: 'A platform thread on which the scheduler mounts a virtual thread to execute it.' },
+        { term: 'Executor service', meaning: 'An `Executor` that manages a set of threads, accepts submitted tasks, returns a `Future` for each and supports orderly shutdown.' },
+      ],
+      source: 'JLS chapter 17; Javadoc for java.lang.Thread and java.util.concurrent.ExecutorService; JEP 444',
+    },
     interviewDefinition:
       'A **thread** is an independent path of execution with its own stack and program counter, sharing the heap with every other thread in the process. Java exposes threads through `Thread`, but production code submits `Runnable`/`Callable` tasks to an **ExecutorService**, which manages a pool and returns a `Future`. Since Java 21, **virtual threads** are cheap JVM-scheduled threads that unmount from their carrier while blocked, so blocking code scales to millions of concurrent tasks — they make waiting cheap, not computing faster.',
     interviewFollowUps: [
@@ -56,6 +68,13 @@ export const concurrencyConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Virtual threads mounted on carriers',
         caption: 'Only virtual threads that are running occupy a carrier. A blocked one unmounts and its stack waits on the heap, so the carrier can immediately run another.',
+        explanation: [
+          'The top row shows virtual threads. **VT: request 1** and **VT: request 2** are running, so each is mounted on a platform thread.',
+          'They run on **Carrier thread 1** and **Carrier thread 2**, which make up the **Carrier pool (ForkJoinPool)** group, and each carrier executes on a real **CPU core**.',
+          '**VT: request 3** is blocked on a database call, so it unmounts: its frames are saved as a **Stack chunk** on the heap and it holds no carrier while it waits.',
+          'The dashed next to mount arrow shows **Thousands more VTs** that are ready and waiting for a free carrier; one mounts as soon as a carrier is released.',
+          'Takeaway: only running virtual threads occupy a carrier, so a few platform threads can serve a huge number of mostly waiting tasks.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -84,6 +103,14 @@ export const concurrencyConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Thread states (Thread.State)',
         caption: 'A thread is NEW until start(), TERMINATED after run() returns, and moves between RUNNABLE and the three waiting states in between. RUNNABLE includes threads blocked in OS-level I/O.',
+        explanation: [
+          'A thread object starts in **NEW**: it has been created but start() has not been called, so nothing is executing yet.',
+          'Calling start() moves it to **RUNNABLE**, meaning running or ready to run. This state also covers a thread blocked inside operating-system I/O.',
+          'Three two-way arrows lead to the waiting states. A thread is **BLOCKED** while it waits to enter a synchronized block whose monitor another thread holds.',
+          'It is **WAITING** in wait(), join() or park() until another thread signals it, and **TIMED_WAITING** in sleep(ms) or wait(ms) until a timeout or a signal.',
+          'When run() returns or throws, the thread becomes **TERMINATED** for good; a terminated thread can never be started again.',
+          'Takeaway: thread dumps show these states, so many BLOCKED threads point to lock contention and stuck WAITING threads to a missing signal.',
+        ],
         cols: 3,
         rows: 2,
         nodes: [
@@ -107,6 +134,14 @@ export const concurrencyConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'Inside an ExecutorService',
         caption: 'submit() returns a Future at once; tasks wait in a queue until a worker takes them. The worker stores the result or exception in the Future, which unblocks get().',
+        explanation: [
+          'The **Caller thread** calls submit(callable). The task is placed in the **Work queue** and the call returns at once.',
+          'In return the caller immediately receives a **Future<T>**, a receipt for a result that does not exist yet.',
+          'One of the n reusable **Worker threads** takes the next task from the queue, so no thread is created per task.',
+          'The **Task runs** by calling call() on that worker. When it completes, the **Result or exception** is stored in the Future.',
+          'Storing the result unblocks get(): the caller receives the value, or an ExecutionException that wraps the failure.',
+          'Takeaway: an executor separates submitting work from running it, and the Future is the only channel back to the caller.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -190,6 +225,18 @@ export const concurrencyConcepts: Record<string, LessonConcepts> = {
   },
 
   'cc-synchronization': {
+    textbook: {
+      definition:
+        '**Synchronization** is the coordination of concurrently executing threads so that their accesses to shared mutable state are correctly ordered and do not interfere. The Java programming language provides it chiefly through **monitors**: every object is associated with a monitor that at most one thread can hold at a time, acquired and released by `synchronized` methods and statements. The **Java Memory Model** defines the resulting visibility guarantees through the **happens-before** relation: an unlock of a monitor happens-before every subsequent lock of that monitor, and a write to a `volatile` field happens-before every subsequent read of it. A program free of **data races** is sequentially consistent.',
+      terms: [
+        { term: 'Monitor', meaning: 'The mutual-exclusion lock associated with every object; it is reentrant, so the thread that holds it may acquire it again.' },
+        { term: 'Happens-before', meaning: 'A partial order on actions defined by the JMM; if one action happens-before another, the first is visible to and ordered before the second.' },
+        { term: 'Data race', meaning: 'Two accesses to the same variable by different threads, at least one a write, that are not ordered by happens-before.' },
+        { term: 'Atomicity', meaning: 'The property that a compound action, such as read-modify-write, appears to other threads to occur as one indivisible step.' },
+        { term: 'volatile field', meaning: 'A field whose reads and writes are never cached or reordered across, so every read sees the most recent write by any thread.' },
+      ],
+      source: 'JLS §17.1 (Synchronization) and §17.4 (Memory Model); JLS §8.3.1.4 (volatile Fields)',
+    },
     interviewDefinition:
       'Thread safety needs both **atomicity** (no interleaving inside a compound action such as `count++`) and **visibility** (one thread\'s writes become visible to another). The **Java Memory Model** guarantees visibility only through **happens-before** edges: monitor unlock/lock, volatile write/read, `Thread.start`/`join`, and hand-offs in `java.util.concurrent`. Tools: `synchronized` and `ReentrantLock` for mutual exclusion, `volatile` for flags and safe publication, atomics for lock-free single-variable updates, and concurrent collections for shared data.',
     interviewFollowUps: [
@@ -243,6 +290,13 @@ export const concurrencyConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'A lost update',
         caption: 'Both threads read 5 before either writes, so both write 6. Two increments ran, one survived — the read-modify-write was not atomic.',
+        explanation: [
+          'At the top, **Thread A** and **Thread B** both want to increment the shared field, which starts at **count = 5**.',
+          'Thread A executes **read 5**, and before it writes anything Thread B also executes **read 5**. Nothing stops the two reads from interleaving.',
+          'Each thread then does **compute 6** from its own stale copy, adding 1 to the 5 it read.',
+          'Both threads **write 6**, and the second write simply overwrites the first, leaving **count = 6** instead of 7.',
+          'Takeaway: count++ is three separate steps, read, compute and write, so without a lock or an atomic class concurrent increments can be lost.',
+        ],
         cols: 3,
         rows: 4,
         nodes: [
@@ -273,6 +327,13 @@ export const concurrencyConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Happens-before through a monitor',
         caption: 'Everything thread A did before releasing lock M is guaranteed visible to thread B after it acquires M. Without the shared lock (or a volatile, start/join, or a concurrent hand-off) there is no such guarantee.',
+        explanation: [
+          'The left column is Thread A. Inside a synchronized block on lock M it performs a plain write, **data = 42**.',
+          'It then reaches **unlock M** at the end of the block. The program order arrow means the write comes before the unlock within Thread A.',
+          'Later, Thread B executes **lock M** at the start of its own synchronized block. The happens-before arrow says that unlocking a monitor happens-before every later lock of that same monitor.',
+          'Thread B then performs **read data**. Chaining program order, happens-before and program order guarantees that it sees 42.',
+          'Takeaway: visibility needs a shared edge, such as the same lock, a volatile, start/join or a concurrent hand-off; without one, B might see a stale value.',
+        ],
         cols: 2,
         rows: 4,
         nodes: [
@@ -296,6 +357,13 @@ export const concurrencyConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'The deadlock cycle',
         caption: 'Each thread holds one lock and waits for the other: a cycle in the wait-for graph. Acquiring locks in one global order makes the cycle impossible.',
+        explanation: [
+          '**Thread 1** runs transfer(a, b). As the held by arrow shows, it already holds **Lock A**, and it now waits for Lock B.',
+          'At the same moment **Thread 2** runs transfer(b, a), so it holds **Lock B** and waits for Lock A.',
+          'Following the arrows gives a closed loop: each thread waits for a lock the other holds. This circular wait means neither can ever continue.',
+          'The **Fix: lock lowest id first** note breaks the cycle: if both threads always take A before B, the second thread waits before it holds anything.',
+          'Takeaway: one global lock order removes circular wait, the deadlock condition that is most practical to break.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -334,6 +402,18 @@ export const concurrencyConcepts: Record<string, LessonConcepts> = {
           { name: 'Field updaters and VarHandle', summary: 'AtomicIntegerFieldUpdater and, since Java 9, VarHandle give atomic operations on ordinary volatile fields without a wrapper object per field.', support: 'supported' },
         ],
       },
+      {
+        title: 'Forms of synchronized',
+        intro: 'Every form acquires an object\'s intrinsic lock (its monitor); they differ in which object is locked and for how long.',
+        items: [
+          { name: 'Synchronized instance method', summary: 'Locks the monitor of `this` for the whole method. Simple, but outside code that synchronizes on the same object shares the lock.', support: 'supported', code: 'public synchronized void deposit(long c) { balance += c; }' },
+          { name: 'Static synchronized method', summary: 'Locks the monitor of the `Class` object (for example `Account.class`), one lock shared by all instances and independent of their instance locks.', support: 'supported', code: 'public static synchronized int nextId() { return ++lastId; }' },
+          { name: 'Synchronized block on this', summary: 'Locks `this` only around the critical section, so the rest of the method runs without holding the lock.', support: 'supported', code: 'synchronized (this) { balance += c; }' },
+          { name: 'Synchronized block on a private lock', summary: 'Locks a private final object that no outside code can reach, so nobody else can take or hold the lock. Preferred in library code.', support: 'supported', code: 'private final Object lock = new Object();
+synchronized (lock) { balance += c; }' },
+          { name: 'Synchronized block on a class literal', summary: 'Locks the class monitor explicitly: the same lock that static synchronized methods of that class use.', support: 'supported', code: 'synchronized (Account.class) { lastId++; }' },
+        ],
+      },
     ],
     deepDive: [
       {
@@ -362,6 +442,18 @@ export const concurrencyConcepts: Record<string, LessonConcepts> = {
   },
 
   'cc-concurrency-utilities': {
+    textbook: {
+      definition:
+        'The **concurrency utilities** are the classes and interfaces of the `java.util.concurrent` package and its subpackages, which supply reusable, thoroughly tested components for concurrent programming. They comprise executors for running tasks, **blocking queues** for transferring elements between threads, **synchronizers** such as `CountDownLatch`, `CyclicBarrier`, `Phaser` and `Semaphore` that coordinate the progress of threads, **concurrent collections** designed for simultaneous access by many threads, explicit locks and atomic variables. Each utility documents its **memory consistency effects**: the happens-before relations it establishes between actions in different threads.',
+      terms: [
+        { term: 'Blocking queue', meaning: 'A queue whose insertion operation waits for space when the queue is full and whose removal operation waits for an element when it is empty.' },
+        { term: 'Synchronizer', meaning: 'An object that controls the flow of threads based on its state, such as a latch, barrier, phaser or semaphore.' },
+        { term: 'Semaphore', meaning: 'A synchronizer maintaining a count of permits; `acquire` waits until a permit is available and `release` returns one.' },
+        { term: 'Concurrent collection', meaning: 'A collection designed for concurrent access, whose iterators are weakly consistent and whose compound operations such as `merge` are atomic.' },
+        { term: 'Memory consistency effects', meaning: 'The happens-before guarantees a utility provides, for example that actions before `countDown()` are visible after `await()` returns.' },
+      ],
+      source: 'Javadoc for the java.util.concurrent package (Memory Consistency Properties); JSR 166',
+    },
     interviewDefinition:
       '`java.util.concurrent` provides tested building blocks for coordination: **BlockingQueue** for producer-consumer hand-off with back-pressure, **CountDownLatch** to wait once for N events, **CyclicBarrier** and **Phaser** for threads that meet repeatedly, **Semaphore** to cap concurrent access, and concurrent collections such as **ConcurrentHashMap** (atomic `compute`/`merge`) and **CopyOnWriteArrayList** (snapshot iteration for read-mostly data). They replace error-prone `wait`/`notify` code and create happens-before edges for the data they pass.',
     interviewFollowUps: [
@@ -416,6 +508,14 @@ export const concurrencyConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'Producer-consumer with a bounded queue',
         caption: 'Producers and consumers never touch each other directly. The queue blocks producers when full and consumers when empty, and passes each item with a happens-before edge.',
+        explanation: [
+          'On the left, **Producer 1** and **Producer 2** read files and put each item into the shared **ArrayBlockingQueue**, which holds at most 16 items.',
+          'On the right, **Consumer 1** and **Consumer 2** take items from the queue and write them to the database. Producers and consumers never call each other directly.',
+          'The **put() blocks** note shows back-pressure: when the queue is full, producers wait instead of letting work pile up in memory.',
+          'The **take() blocks** note shows the other side: when the queue is empty, consumers wait cheaply until an item arrives.',
+          'To stop cleanly, the producers send one **Poison pill** per consumer, a special item that means no more work is coming.',
+          'Takeaway: the bounded queue is the whole coordination mechanism, and each hand-off creates a happens-before edge, so consumers see every item fully built.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -440,6 +540,13 @@ export const concurrencyConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Latch, barrier and semaphore side by side',
         caption: 'A latch opens once for whoever waits on it; a barrier releases a group together and resets; a semaphore lets a fixed number through at a time.',
+        explanation: [
+          'Left column: **Workers** call countDown() on a **CountDownLatch(3)**. When the count reaches zero the latch opens, and the **Main thread** returns from await().',
+          'The latch is one-shot: once open it stays open, and the threads that count down are different from the thread that waits.',
+          'Middle column: **3 party threads** each call await() on a **CyclicBarrier(3)**. When all have arrived it trips, runs the **Barrier action** and resets for the next round.',
+          'Right column: **10 tasks** call acquire() on a **Semaphore(3)**. Only three permits exist, so there are **At most 3 inside** at once, and each task releases its permit in finally.',
+          'Takeaway: a latch waits once for events, a barrier makes a group meet repeatedly, and a semaphore limits how many threads run at the same time.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -467,6 +574,14 @@ export const concurrencyConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Which utility do I need?',
         caption: 'Ask what the threads must do together. Each "yes" lands on the simplest tool for that job.',
+        explanation: [
+          'Start with **Hand work over?** If threads form the stages of a pipeline, use a bounded **BlockingQueue** with put and take.',
+          'If not, ask **Wait once for N?** For start-up checks or tests that wait for N events, use a **CountDownLatch**.',
+          'Next, **Meet every round?** Phased algorithms in which a group must meet repeatedly use a **CyclicBarrier**, or a Phaser if the number of parties changes.',
+          'Then **Limit concurrency?** To protect a scarce resource such as a partner API, use a **Semaphore** with a fixed number of permits.',
+          'Finally, **Share a map or list?** Choose a **Concurrent collection**, such as ConcurrentHashMap with merge or a CopyOnWriteArrayList.',
+          'Takeaway: decide what the threads must do together; each yes leads to the simplest ready-made tool, so you never need hand-written wait and notify.',
+        ],
         cols: 2,
         rows: 5,
         nodes: [

@@ -3,6 +3,19 @@ import type { LessonConcepts } from '@/types/curriculum';
 /** Concept page for the extra module-8 lesson on JIT compiler internals. */
 export const jitConcepts: Record<string, LessonConcepts> = {
   'r-jit-compiler': {
+    textbook: {
+      definition:
+        'A **just-in-time (JIT) compiler** is a component of the Java Virtual Machine\'s execution engine that translates bytecode into native machine code while the program runs, rather than before execution. In HotSpot, methods begin in the interpreter; those whose invocation or loop counters exceed thresholds are compiled in the background by the C1 and C2 compilers under **tiered compilation**. The optimising compiler applies **profile-guided** optimisations such as inlining and **speculative optimisation**, protecting each assumption with a guard; when an assumption is invalidated, the compiled code is discarded through **deoptimisation**. Compilation affects only performance, never the semantics defined by the JLS.',
+      terms: [
+        { term: 'Tiered compilation', meaning: 'HotSpot\'s scheme of execution levels 0-4, from the interpreter through C1 variants to C2, through which a method moves as it becomes hotter.' },
+        { term: 'Profile-guided optimisation', meaning: 'Optimisation driven by data collected at run time, such as branch frequencies and receiver types at each call site.' },
+        { term: 'Inlining', meaning: 'Replacing a method call with a copy of the callee\'s body, which removes the call and lets the merged code be optimised as one unit.' },
+        { term: 'Speculative optimisation', meaning: 'Optimisation based on an assumption that held so far, such as only one receiver class, guarded by a cheap run-time check.' },
+        { term: 'Deoptimisation', meaning: 'Transferring execution from compiled code back to the interpreter, rebuilding interpreter frames, when a speculative assumption no longer holds.' },
+        { term: 'On-stack replacement (OSR)', meaning: 'Switching a method that is currently running a long loop from interpreted to compiled code at a loop header.' },
+      ],
+      source: 'HotSpot Glossary of Terms (OpenJDK); Java Performance by Scott Oaks, chapter on the JIT compiler',
+    },
     interviewDefinition:
       'HotSpot runs bytecode in an **interpreter** that counts method invocations and loop back-edges. Hot code is compiled in the background: **C1** compiles quickly and records profiles (tier 3), then **C2** (tier 4) uses those profiles to **inline** callees and **speculate** — devirtualising monomorphic and bimorphic call sites, pruning untaken branches, removing non-escaping allocations and locks. Each speculation is guarded; when a guard fails or class loading breaks an assumption, the JVM **deoptimises** back to the interpreter with identical semantics and recompiles later.',
     interviewFollowUps: [
@@ -67,6 +80,15 @@ export const jitConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Call-site shapes and what C2 does with them',
         caption: 'The same line of source compiles to very different machine code depending on how many receiver classes the profile saw there. Only monomorphic and bimorphic sites get inlined; a new class at an inlined site triggers deoptimisation.',
+        explanation: [
+          'Start at the **Call site** on the left, a virtual call such as shape.area() together with the type profile of receiver classes seen there.',
+          'A **Monomorphic** site saw one class, so C2 emits **Guard + inline**: a cheap class check followed by Square.area() pasted directly into the caller.',
+          'A **Bimorphic** site saw two classes, so C2 emits **if Square else Rect** with both bodies inlined. Both shapes sit in the **Inlined by C2** group.',
+          'A **Megamorphic** site saw three or more classes with none dominant, so it compiles to an **itable / vtable call**, an indirect jump that cannot be inlined.',
+          'Without inlining, **Optimisations lost** follows: escape analysis and constant folding cannot see across the call.',
+          'The dashed Circle arrives arrow shows the risk of speculation: a new class fails the guard and the JVM must **Deoptimise** that code.',
+          'Takeaway: the number of receiver classes actually seen at a line decides how fast that line runs.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -97,6 +119,14 @@ export const jitConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'The life of a hot method',
         caption: 'Counters decide when to compile; compilation happens on background threads while the program keeps running. Long loops switch to compiled code mid-flight through OSR, and a failed speculation sends execution back to the interpreter, which profiles again before recompiling.',
+        explanation: [
+          'The **Interpreter** runs every method first and counts calls and loop back-edges. When a count passes a limit, the **Threshold crossed** box fires.',
+          'Normally the method is put on the **Compile queue**, so background compiler threads do the work while the program keeps running.',
+          'If one call is stuck in a hot loop, the JIT builds an **OSR version** instead, entered at the loop header so the running loop switches to compiled code mid-flight.',
+          'The method is first compiled by **C1, tier 3**, which is quick and gathers a full profile. If it stays hot, **C2, tier 4** recompiles it with inlining and speculation and installs it in the **Code cache**.',
+          'The dashed new class seen arrow is a broken assumption: it hits an **Uncommon trap**, and the JVM must **Deoptimise**, marking the code not entrant and rebuilding interpreter frames.',
+          'Execution continues with **Resume in tier 0**, giving the same results, and the dashed recompile later arrow shows the method climbing the tiers again with a fresh profile.',
+        ],
         cols: 5,
         rows: 3,
         nodes: [
@@ -129,6 +159,14 @@ export const jitConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Inlining unlocks escape analysis',
         caption: 'Top row: the callees are inlined, so the compiler can prove the Point objects never leave the method and replaces them with plain ints. Bottom row: if inlining fails, the object is passed to opaque code and must be allocated on the heap.',
+        explanation: [
+          'The source method **distanceSquared()** creates three Point objects per call. Once it is hot in C2, the compiler tries to **Inline callees** such as plus() and lengthSquared().',
+          'With the callees inlined, **Escape analysis** can see every use of each Point and proves that none leaves the method.',
+          'That allows **Scalar replacement**: each Point is broken into its int fields, held in registers, and no object is allocated at all.',
+          'The dashed limit hit arrow is the failure path: a callee that is too big or megamorphic is **Not inlined**, so its body is invisible to the compiler.',
+          'The compiler must then **Assume it escapes**, and every Point becomes a real **Heap allocation**, costing a TLAB bump now and garbage collection work later.',
+          'Takeaway: inlining is what unlocks escape analysis, so small, monomorphic methods are what let the JIT remove allocations.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [

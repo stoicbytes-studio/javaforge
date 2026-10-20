@@ -3,6 +3,19 @@ import type { LessonConcepts } from '@/types/curriculum';
 /** Concept pages for the extra concurrency lessons (fork/join + parallel streams, CompletableFuture). */
 export const asyncParallelConcepts: Record<string, LessonConcepts> = {
   'cc-forkjoin-parallel': {
+    textbook: {
+      definition:
+        'The **fork/join framework**, introduced in Java 7, is an `ExecutorService` implementation designed for **divide-and-conquer** parallelism: a task recursively splits into subtasks until they are small enough to compute directly, **forks** subtasks for asynchronous execution and **joins** their results. Tasks are instances of `ForkJoinTask`, executed by a `ForkJoinPool` whose worker threads balance load by **work stealing**. A **parallel stream** is a stream pipeline whose operations execute on the common fork/join pool, partitioning its source with a `Spliterator` and combining partial results; it yields correct results only for non-interfering, stateless operations and associative reductions.',
+      terms: [
+        { term: 'Fork', meaning: 'Arranging for a subtask to execute asynchronously by pushing it onto the current worker\'s deque, from which it can be run or stolen.' },
+        { term: 'Join', meaning: 'Obtaining the result of a forked subtask when it completes; a joining worker runs or helps with other tasks instead of idling.' },
+        { term: 'Work stealing', meaning: 'A scheduling scheme in which each worker has its own deque and an idle worker takes the oldest task from another worker\'s deque.' },
+        { term: 'Common pool', meaning: 'The JVM-wide static `ForkJoinPool` used by parallel streams and by asynchronous tasks not given an explicit executor.' },
+        { term: 'Spliterator', meaning: 'An object that traverses and partitions the elements of a source, reporting characteristics such as SIZED and ORDERED.' },
+        { term: 'Associative operation', meaning: 'A combining operation for which (a op b) op c equals a op (b op c), so results do not depend on how the input is split.' },
+      ],
+      source: 'Javadoc for java.util.concurrent.ForkJoinPool, ForkJoinTask and the java.util.stream package; Doug Lea, "A Java Fork/Join Framework" (2000)',
+    },
     interviewDefinition:
       'The **fork/join framework** (Java 7) runs divide-and-conquer work: a task splits until pieces are below a threshold, `fork()`s one half, computes the other and `join()`s the results. A `ForkJoinPool` gives each worker its own deque and lets idle workers **steal** the oldest tasks from busy ones, keeping every core busy cheaply. **Parallel streams** (Java 8) run on the shared **common pool** by splitting the source with a `Spliterator`; they pay off only for large, splittable, CPU-bound, stateless work with associative reductions.',
     interviewFollowUps: [
@@ -67,6 +80,13 @@ export const asyncParallelConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Divide, conquer, combine',
         caption: 'The root task splits until each slice is below the threshold. One half is forked (stealable), the other computed in place; join() combines results back up the same tree, so the answer never depends on scheduling.',
+        explanation: [
+          'The root task **sum [0, 1M)** is too big to compute directly, so it splits its range into two halves.',
+          'The left half **[0, 500k)** is forked: pushed onto the worker\'s deque, where an idle worker may steal it. The right half **[500k, 1M)** is computed in place by the same thread.',
+          'Each half splits again, giving four leaves: **[0, 250k)**, **[250k, 500k)**, **[500k, 750k)** and **[750k, 1M)**. They are below the threshold, so each runs a plain loop.',
+          'The partial sums flow into **join() + combine**, which adds them back up along the same tree to produce 500000500000.',
+          'Takeaway: the split tree is fixed by the code, not by scheduling, so the result is the same on every run whichever worker runs each piece.',
+        ],
         cols: 4,
         rows: 4,
         nodes: [
@@ -97,6 +117,14 @@ export const asyncParallelConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'Work stealing inside a ForkJoinPool',
         caption: 'Each worker pushes and pops its own deque at the newest end (LIFO). An idle worker steals from the oldest end of another deque (FIFO), taking the biggest remaining piece with little contention.',
+        explanation: [
+          'At the top, **invoke(root task)**, or a parallel stream terminal operation, hands the root task to **Worker 1** inside the pool, where every worker owns one deque.',
+          'Worker 1 forks subtasks onto **Deque 1** and pushes and pops at the newest end (LIFO), so it works on small, cache-warm pieces without contention.',
+          '**Worker 3** does the same with **Deque 3**, busy with its own work and pushing and popping at its newest end.',
+          '**Worker 2** finds nothing to pop in **Deque 2**, which is empty. Instead of idling it follows the dashed arrow and steals the oldest task, T1, from Deque 1.',
+          'Stealing from the oldest end means the thief takes the biggest remaining piece and rarely collides with the owner working at the other end.',
+          'Takeaway: work stealing keeps every core busy with very little coordination, which is why fork/join suits fine-grained recursive work.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -122,6 +150,14 @@ export const asyncParallelConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Should this stream be parallel?',
         caption: 'Every "no" has a better answer than .parallel(). Only when all four questions are "yes" is a parallel stream worth trying — and then measure it.',
+        explanation: [
+          'First ask **Large or costly?** If the number of elements times the cost per element is small, **Stay sequential**, because splitting and merging overhead would dominate.',
+          'Next, **Splittable source?** Arrays, ArrayList and ranges split cleanly. For a LinkedList or an iterator-backed source, **Copy to an array first** or stay sequential.',
+          'Then **CPU-bound?** Work that waits on I/O or locks blocks the shared common-pool workers, so use an **Own executor** or virtual threads instead.',
+          'Then **Stateless, associative?** Shared mutation or a non-associative reduce gives wrong answers in parallel, so **Fix the pipeline** with collectors and a true identity.',
+          'Only when every answer is yes do you reach **Try .parallel()**, and even then you measure the result with JMH.',
+          'Takeaway: each no has a better answer than a parallel stream, which is worth trying only in the narrow case where all four conditions hold.',
+        ],
         cols: 2,
         rows: 5,
         nodes: [
@@ -245,6 +281,18 @@ export const asyncParallelConcepts: Record<string, LessonConcepts> = {
     ],
   },
   'cc-completablefuture': {
+    textbook: {
+      definition:
+        '`CompletableFuture<T>` is a class in `java.util.concurrent`, introduced in Java 8, that implements both the `Future` and **CompletionStage** interfaces. It represents the result of an asynchronous computation that may be **explicitly completed**, by setting its value or an exception, and it supports dependent functions and actions triggered upon its completion. Each **dependent stage** performs its action when the stage or stages it depends on complete, and itself returns a new stage, so computations form a dependency graph. If an upstream computation fails, dependent stages **complete exceptionally**, typically with a `CompletionException`. Asynchronous methods without an explicit executor use a **default executor**, normally the common pool.',
+      terms: [
+        { term: 'CompletionStage', meaning: 'An interface for a stage of a possibly asynchronous computation that performs an action or computes a value when another stage completes.' },
+        { term: 'Explicit completion', meaning: 'Setting the outcome directly with `complete(value)` or `completeExceptionally(ex)`; only the first completion takes effect.' },
+        { term: 'Dependent stage', meaning: 'A stage created by a method such as `thenApply` or `thenCombine` that runs when its source stages have completed.' },
+        { term: 'Exceptional completion', meaning: 'Completion with an exception instead of a value; dependent stages then skip their functions and complete exceptionally as well.' },
+        { term: 'Default executor', meaning: 'The executor used by `...Async` methods called without one: `ForkJoinPool.commonPool()`, unless its parallelism is below 2.' },
+      ],
+      source: 'Javadoc for java.util.concurrent.CompletableFuture and CompletionStage; JEP 266',
+    },
     interviewDefinition:
       '`CompletableFuture<T>` (Java 8) is a composable promise: a `Future` you can complete yourself and chain with non-blocking stages — `thenApply` to map, `thenCompose` to flatten another async step, `thenCombine`/`allOf`/`anyOf` to join independent results, and `exceptionally`/`handle`/`whenComplete` for failures, which usually arrive wrapped in `CompletionException`. Async methods default to the shared common pool, so I/O work must get its own executor. Java 9 added `orTimeout` and `completeOnTimeout`.',
     interviewFollowUps: [
@@ -310,6 +358,14 @@ export const asyncParallelConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'A CompletableFuture pipeline is a dependency graph',
         caption: 'Stages start as soon as their inputs complete: the greeting and the credit lookup run in parallel after the user loads, a failed credit lookup is replaced by a fallback, and the caller waits only once, at the end.',
+        explanation: [
+          '**loadUser** starts the pipeline with supplyAsync on an I/O executor. Its User result feeds two branches at the same time.',
+          'The upper branch, **greeting**, is a thenApply: a plain function that maps the User to a String.',
+          'The lower branch, **loadCredit**, is a thenCompose, because looking up credit is itself asynchronous. The two branches run in parallel.',
+          'Whatever loadCredit produces, a value or an error, goes to **fallback**, an exceptionally stage that replaces a failure with 0.',
+          '**report** is a thenCombine that zips the String and the Integer once both are ready, and **join()** is the only place where the caller waits.',
+          'Takeaway: the pipeline is a graph that runs as its inputs arrive, and blocking happens once, at the very end.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -334,6 +390,14 @@ export const asyncParallelConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'How a failure travels through stages',
         caption: 'The exception skips transformation stages and arrives wrapped in CompletionException. exceptionally or handle can turn it into a value; whenComplete only observes, so join() still throws.',
+        explanation: [
+          'The **supplyAsync** stage fails because its supplier throws an IllegalArgumentException.',
+          'The next stage, **thenApply**, is skipped entirely, and the failure moves on wrapped in a CompletionException, just as an exception skips statements until a catch.',
+          'On the top path a **Recover** stage, exceptionally or handle, turns the failure into a fallback value, so **join() returns** that value normally.',
+          'On the dashed lower path the failure is only observed by **whenComplete**, which can log it but cannot change the outcome.',
+          'Because the failure continues, **join() throws** a CompletionException with the original exception as its cause.',
+          'Takeaway: only exceptionally and handle recover; whenComplete is like finally, and handlers should unwrap getCause() before inspecting the type.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -357,6 +421,14 @@ export const asyncParallelConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'Where stages run',
         caption: 'supplyAsync without an executor lands on the JVM-wide common pool, shared with parallel streams. Pass your own executor for I/O; non-async callbacks run on whichever thread completed the previous stage.',
+        explanation: [
+          'The **Caller thread** builds the pipeline and later calls join(); it does not run the asynchronous work itself.',
+          '**supplyAsync(f, io)** names an executor, so it runs on **Your executor**, a bounded pool or virtual threads, where blocking I/O is fine.',
+          '**supplyAsync(f)** gives no executor, so it lands on the **Common pool**: about cores minus one workers, shared by the whole JVM.',
+          '**Parallel streams** compete for those same common-pool workers, so blocking I/O there slows down unrelated code across the service.',
+          'A non-async **thenApply(fn)** callback has no executor of its own: it runs on whichever thread completed the previous stage, here a thread of your executor.',
+          'Takeaway: the Thread pools group shows the choice that matters, so pass your own executor to any stage that blocks.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -400,6 +472,18 @@ export const asyncParallelConcepts: Record<string, LessonConcepts> = {
           { name: 'exceptionallyCompose', summary: 'Recover by starting another async call, such as a fallback service.', support: 'supported', note: 'Java 12 (with exceptionallyAsync)' },
           { name: 'orTimeout', summary: 'Fail with TimeoutException if not complete in time. Does not stop the underlying work.', support: 'supported', note: 'Java 9' },
           { name: 'completeOnTimeout', summary: 'Complete with a default value if not complete in time.', support: 'supported', note: 'Java 9' },
+        ],
+      },
+      {
+        title: 'Ways to create a CompletableFuture',
+        intro: 'Static factories start a pipeline; the constructor gives you a future to complete yourself.',
+        items: [
+          { name: 'supplyAsync', summary: 'Runs a Supplier asynchronously and completes with its result. Uses the common pool unless you pass an executor.', support: 'supported', code: 'CompletableFuture.supplyAsync(() -> load(id), io)' },
+          { name: 'runAsync', summary: 'Runs a Runnable asynchronously and completes with null, as a CompletableFuture<Void>.', support: 'supported', code: 'CompletableFuture.runAsync(() -> audit(event), io)' },
+          { name: 'completedFuture', summary: 'An already completed future holding a value; useful for cache hits, default values and tests.', support: 'supported', code: 'CompletableFuture.completedFuture(cached)' },
+          { name: 'failedFuture', summary: 'An already failed future holding an exception, so callers see the failure through the normal handlers.', support: 'supported', note: 'Java 9 (JEP 266)', code: 'CompletableFuture.failedFuture(new IOException("down"))' },
+          { name: 'new CompletableFuture<>() + complete', summary: 'An incomplete future that you complete yourself with complete or completeExceptionally, typically to adapt a callback-based API.', support: 'supported', code: 'var f = new CompletableFuture<Reply>();
+listener.onReply(f::complete);' },
         ],
       },
     ],

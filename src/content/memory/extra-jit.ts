@@ -11,6 +11,35 @@ export const jitMemory: Record<string, MemoryAid> = {
       'C1 compiles quickly and gathers profiles; C2 uses them to inline methods and make guarded guesses.',
       'If a guess turns out wrong, the JVM deoptimises safely and may recompile later.',
     ],
+    types: [
+      {
+        title: 'Compilation tiers',
+        items: [
+          { name: 'Tier 0: interpreter', simple: 'Reads the bytecode one instruction at a time, like reading a recipe aloud while cooking, and counts what gets used.' },
+          { name: 'Tier 1: C1, no profiling', simple: 'Tiny methods such as getters get compiled once and left alone, because they cannot get any faster.' },
+          { name: 'Tier 3: C1, full profiling', simple: 'A quick first draft of machine code that also takes notes on how the code is really used.' },
+          { name: 'Tier 4: C2', simple: 'The polished final version, tuned to those notes. Fastest, but redone if the notes turn out wrong.' },
+        ],
+      },
+      {
+        title: 'Call-site shapes',
+        items: [
+          { name: 'Monomorphic', simple: 'Only one kind of object ever arrives at this call, so the JIT pastes its code straight in.' },
+          { name: 'Bimorphic', simple: 'Two kinds arrive, so the JIT pastes in both with a quick check to pick one.' },
+          { name: 'Megamorphic', simple: 'Many kinds arrive, like a reception desk with endless visitors, so the JIT uses a slower lookup table and cannot paste code in.' },
+        ],
+      },
+      {
+        title: 'Key JIT optimisations',
+        items: [
+          { name: 'Inlining', simple: 'Copy a small method\'s body into the caller, like writing a friend\'s phone number into your own notebook.' },
+          { name: 'Escape analysis', simple: 'If an object never leaves a method, skip creating it and keep its fields in registers.' },
+          { name: 'Lock elision', simple: 'Remove locking on objects that only one thread can ever see.' },
+          { name: 'Loop optimisations', simple: 'Unroll loops and drop repeated bounds checks so array loops run much faster.' },
+          { name: 'Intrinsics', simple: 'Swap common JDK methods such as `Math.sqrt` for hand-tuned machine instructions.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: '`javac`',
       difference: '`javac` turns source into bytecode before the program runs. The JIT turns hot bytecode into machine code while it runs.',
