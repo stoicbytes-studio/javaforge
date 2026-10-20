@@ -157,6 +157,11 @@ export interface Diagram {
   title: string;
   /** One or two sentences explaining what to notice. */
   caption: string;
+  /**
+   * "How to read this diagram": 3-7 steps walking through the boxes and arrows in
+   * order, naming each box in **bold** and explaining what happens there and why.
+   */
+  explanation?: string[];
   cols: number;
   rows: number;
   nodes: DiagramNode[];
@@ -199,7 +204,19 @@ export interface DeepDiveItem {
   sources?: { label: string; url?: string }[];
 }
 
+/** The formal definition a textbook or specification gives, with its key terms. */
+export interface TextbookDefinition {
+  /** Precise, formal definition (40-130 words). */
+  definition: string;
+  /** 2-6 technical terms used in the definition, each defined precisely. */
+  terms: { term: string; meaning: string }[];
+  /** Where the wording follows an authoritative source, e.g. "JLS §8.1". */
+  source?: string;
+}
+
 export interface LessonConcepts {
+  /** Formal, textbook-level definition with the key terms defined. */
+  textbook?: TextbookDefinition;
   /** Crisp interview-ready definition (2-4 sentences). */
   interviewDefinition: string;
   /** Short follow-up questions interviewers ask next, with model answers. */
@@ -258,6 +275,11 @@ export interface MemoryAid {
   story: string;
   /** Exactly three key points (chunking): the minimum to remember. */
   keyPoints: [string, string, string];
+  /**
+   * The concept's types or subcategories in simple words (required when the concept
+   * page has "types of" sections). 1-3 groups of 2-9 types, each with an everyday example.
+   */
+  types?: { title: string; items: { name: string; simple: string }[] }[];
   /** What people mix it up with, and the one difference that matters. */
   confusion?: { mixedUpWith: string; difference: string };
   /** A tiny action to do within a minute (doing it yourself makes it stick). */

@@ -11,6 +11,18 @@ export const fundamentalsMemory: Record<string, MemoryAid> = {
       '`java Main` starts a JVM, which loads that bytecode and runs it on this computer.',
       'Execution starts at `main`, and a public class must live in a file with the same name.',
     ],
+    types: [
+      {
+        title: 'Ways to run a Java program',
+        items: [
+          { name: '`javac` then `java`', simple: 'Copy the recipe onto a card first, then cook from the card. The normal way for real projects.' },
+          { name: '`java Main.java`', simple: 'Hand the notebook straight to the kitchen; it copies and cooks in one go. Handy for small programs.' },
+          { name: 'Executable JAR', simple: 'A sealed box of recipe cards with a note saying which one to start with. How apps are shipped.' },
+          { name: 'JShell', simple: 'Tasting as you cook: type one line of Java and see the result straight away.' },
+          { name: 'Native image', simple: 'A ready-made meal: compiled ahead of time for one kind of computer, so it starts instantly without a JVM.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: 'the JDK and the JRE',
       difference: 'The JDK is the full toolbox for developers and includes `javac`. A runtime only runs bytecode. Since Java 11 you simply install a JDK, which contains everything.',

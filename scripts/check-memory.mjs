@@ -4,8 +4,8 @@
  * Usage: node scripts/check-memory.mjs src/content/memory/03-oop.ts [more files]
  * With no arguments, checks every file in src/content/memory.
  */
-import { readdirSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { existsSync, readdirSync } from 'node:fs';
+import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -20,11 +20,15 @@ let problems = 0;
 let aids = 0;
 for (const file of files) {
   const mod = await import(pathToFileURL(file).href);
+  // Memory files mirror the concept files; a lesson whose concept page has "types of"
+  // sections must explain those types in simple words too.
+  const conceptFile = join(root, 'src', 'content', 'concepts', basename(file));
+  const concepts = existsSync(conceptFile) ? Object.assign({}, ...Object.values(await import(pathToFileURL(conceptFile).href))) : {};
   for (const value of Object.values(mod)) {
     if (!value || typeof value !== 'object') continue;
     for (const [lessonId, memory] of Object.entries(value)) {
       aids++;
-      const found = memoryProblems(lessonId, memory);
+      const found = memoryProblems(lessonId, memory, { needsTypes: Boolean(concepts[lessonId]?.variants?.length) });
       for (const item of memory?.picture?.items ?? []) if (!PICTOGRAMS[item.icon]) found.push(`${lessonId}: unknown pictogram "${item.icon}"`);
       for (const p of found) console.log(p);
       problems += found.length;

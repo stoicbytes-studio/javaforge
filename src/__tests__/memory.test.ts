@@ -4,8 +4,8 @@ import { MEMORY } from '@/content/memory';
 import { illustrationProblems, memoryProblems } from '@/lib/illustration';
 
 describe('"Make it stick" memory aids', () => {
-  it('give every lesson a plain-English story, three key points, recall questions and a picture', () => {
-    const problems = LESSONS.flatMap((l) => memoryProblems(l.id, l.memory));
+  it('give every lesson a plain-English story, three key points, its types in simple words, recall questions and a picture', () => {
+    const problems = LESSONS.flatMap((l) => memoryProblems(l.id, l.memory, { needsTypes: Boolean(l.concepts?.variants?.length) }));
     expect(problems).toEqual([]);
   });
 

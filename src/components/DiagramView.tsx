@@ -198,6 +198,25 @@ export function DiagramView({ diagram }: { diagram: Diagram }) {
         )}
       </View>
       <Inline text={diagram.caption} variant="small" color="textMuted" />
+      {diagram.explanation?.length ? (
+        <View style={[styles.explain, { borderTopColor: colors.border }]}>
+          <Text variant="caption" color="primary">
+            How to read this diagram
+          </Text>
+          {diagram.explanation.map((step, i) => (
+            <View key={i} style={styles.step}>
+              <View style={[styles.stepNumber, { backgroundColor: colors.brandMuted }]}>
+                <Text variant="small" weight="700" style={{ color: colors.onBrandMuted }}>
+                  {String(i + 1)}
+                </Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Inline text={step} variant="small" />
+              </View>
+            </View>
+          ))}
+        </View>
+      ) : null}
       {scrolls ? (
         <Text variant="caption" color="textSubtle" style={{ textTransform: 'none', letterSpacing: 0 }}>
           Scroll sideways to see the whole diagram.
@@ -211,4 +230,7 @@ const styles = StyleSheet.create({
   card: { borderWidth: 1, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.md, overflow: 'hidden' },
   header: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap' },
   kind: { paddingHorizontal: spacing.sm, paddingVertical: 3, borderRadius: radius.pill },
+  explain: { borderTopWidth: 1, paddingTop: spacing.md, gap: spacing.sm },
+  step: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
+  stepNumber: { width: 24, height: 24, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
 });

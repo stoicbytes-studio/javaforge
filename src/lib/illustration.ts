@@ -109,7 +109,7 @@ const words = (s: string) => s.trim().split(/\s+/).filter(Boolean).length;
  * Every rule a lesson's "Make it stick" part must satisfy. Used by the content
  * tests and scripts/check-memory.mjs. Returns human-readable problems.
  */
-export function memoryProblems(lessonId: string, m: MemoryAid | undefined): string[] {
+export function memoryProblems(lessonId: string, m: MemoryAid | undefined, opts: { needsTypes?: boolean } = {}): string[] {
   if (!m) return [`${lessonId}: no "Make it stick" memory aid`];
   const p: string[] = [];
   const one = words(m.oneLiner);
@@ -120,6 +120,17 @@ export function memoryProblems(lessonId: string, m: MemoryAid | undefined): stri
   m.keyPoints.forEach((k, i) => {
     if (words(k) < 3 || words(k) > 25) p.push(`${lessonId}: key point ${i + 1} should be 3-25 words`);
   });
+  if (opts.needsTypes && !m.types?.length) p.push(`${lessonId}: the concept has types, so the memory aid needs "types" in simple words`);
+  if (m.types && (m.types.length < 1 || m.types.length > 3)) p.push(`${lessonId}: types needs 1-3 groups (has ${m.types.length})`);
+  for (const g of m.types ?? []) {
+    if (!g.title.trim()) p.push(`${lessonId}: a types group has no title`);
+    if (g.items.length < 2 || g.items.length > 9) p.push(`${lessonId}: types group "${g.title}" needs 2-9 items (has ${g.items.length})`);
+    for (const t of g.items) {
+      const w = words(t.simple);
+      if (!t.name.trim() || t.name.length > 40) p.push(`${lessonId}: type name "${t.name}" should be 1-40 characters`);
+      if (w < 5 || w > 30) p.push(`${lessonId}: type "${t.name}" needs a 5-30 word simple explanation (has ${w})`);
+    }
+  }
   if (m.confusion && (!m.confusion.mixedUpWith.trim() || words(m.confusion.difference) < 8)) p.push(`${lessonId}: confusion needs a name and a difference of at least 8 words`);
   if (m.tryIt !== undefined && (words(m.tryIt) < 6 || words(m.tryIt) > 60)) p.push(`${lessonId}: tryIt should be 6-60 words`);
   if (m.recall.length < 2 || m.recall.length > 3) p.push(`${lessonId}: needs 2-3 recall questions (has ${m.recall.length})`);

@@ -10,15 +10,16 @@ import { Inline, Markdown } from '@/components/Markdown';
 import { Text } from '@/components/Text';
 import { useLayout, useTheme } from '@/theme/ThemeProvider';
 import { radius, spacing } from '@/theme/tokens';
-import type { BreakdownItem, LessonConcepts, MemoryAid, VariantGroup } from '@/types/curriculum';
+import type { BreakdownItem, LessonConcepts, MemoryAid, TextbookDefinition, VariantGroup } from '@/types/curriculum';
 import { PlainEnglish, QuickRecall } from './MemoryParts';
 
 /**
- * The concept page every lesson opens with. When the lesson has a memory aid it
- * starts in plain English (a story before the formal definition), puts the picture
- * beside the first flow diagram and ends with retrieval practice:
- * plain English, interview-level definition, mnemonic, contextual breakdown,
- * visuals, deep dive, quick recall. Each part has its own visual treatment.
+ * The concept page every lesson opens with. It goes from simple to formal to
+ * spoken: plain English (a story before the formal definition), textbook
+ * definition, interview-level definition, mnemonic, contextual breakdown, visuals
+ * (the picture beside the first flow diagram, every diagram explained step by
+ * step), the "types of" sections, deep dive and quick recall (retrieval practice).
+ * Each part has its own visual treatment.
  */
 export function ConceptPanel({ concepts, memory }: { concepts: LessonConcepts; memory?: MemoryAid }) {
   let step = 0;
@@ -31,6 +32,7 @@ export function ConceptPanel({ concepts, memory }: { concepts: LessonConcepts; m
           <PlainEnglish memory={memory} />
         </View>
       ) : null}
+      {concepts.textbook ? <TextbookSection textbook={concepts.textbook} step={next()} /> : null}
       <InterviewSection concepts={concepts} step={next()} />
       <MnemonicSection concepts={concepts} step={next()} />
       <BreakdownSection items={concepts.breakdown} step={next()} />
@@ -64,6 +66,37 @@ function SectionTitle({ step, title, subtitle, icon }: { step: number; title: st
         <Text variant="small" color="textMuted">
           {subtitle}
         </Text>
+      </View>
+    </View>
+  );
+}
+
+function TextbookSection({ textbook, step }: { textbook: TextbookDefinition; step: number }) {
+  const { colors } = useTheme();
+  return (
+    <View style={{ gap: spacing.lg }}>
+      <SectionTitle step={step} icon="book" title="Textbook definition" subtitle="The precise, formal definition, with every key term defined." />
+      <View style={[styles.textbook, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <Text variant="caption" color="primary">
+          Definition
+        </Text>
+        <Markdown source={textbook.definition} />
+        {textbook.source ? (
+          <Text variant="small" color="textSubtle">
+            {`Source: ${textbook.source}`}
+          </Text>
+        ) : null}
+      </View>
+      <View style={{ gap: spacing.sm }}>
+        <Text variant="small" weight="700" color="textMuted">
+          Key terms
+        </Text>
+        {textbook.terms.map((t) => (
+          <View key={t.term} style={[styles.term, { borderColor: colors.border, backgroundColor: colors.surface }]}>
+            <Inline text={t.term} variant="heading" />
+            <Inline text={t.meaning} variant="body" color="textMuted" />
+          </View>
+        ))}
       </View>
     </View>
   );
@@ -314,6 +347,8 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   sectionTitle: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md },
   stepBadge: { width: 36, height: 36, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', marginTop: 2 },
+  textbook: { borderWidth: 1, borderRadius: radius.lg, padding: spacing.xl, gap: spacing.sm },
+  term: { borderWidth: 1, borderRadius: radius.md, padding: spacing.md, gap: 4 },
   quote: { borderWidth: 1, borderLeftWidth: 5, borderRadius: radius.lg, padding: spacing.xl },
   followUp: { borderWidth: 1, borderRadius: radius.md, padding: spacing.md, gap: spacing.sm },
   followUpHead: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },

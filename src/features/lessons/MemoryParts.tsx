@@ -50,6 +50,23 @@ export function PlainEnglish({ memory }: { memory: MemoryAid }) {
         ))}
       </View>
 
+      {memory.types?.map((group) => (
+        <View key={group.title} style={{ gap: spacing.sm }}>
+          <View style={styles.row}>
+            <Icon name="layers" size={16} color={colors.primary} />
+            <Text variant="heading">{`${group.title}, in simple words`}</Text>
+          </View>
+          <View style={styles.typeGrid}>
+            {group.items.map((t) => (
+              <View key={t.name} style={[styles.type, { backgroundColor: colors.surface, borderColor: colors.border, borderLeftColor: colors.brand }]}>
+                <Inline text={t.name} variant="heading" />
+                <Inline text={t.simple} variant="small" color="textMuted" />
+              </View>
+            ))}
+          </View>
+        </View>
+      ))}
+
       {memory.confusion ? (
         <View style={[styles.card, { backgroundColor: colors.warningMuted, borderColor: colors.warning }]}>
           <View style={styles.row}>
@@ -130,6 +147,8 @@ const styles = StyleSheet.create({
   oneLiner: { borderWidth: 1.5, borderRadius: radius.lg, padding: spacing.xl, gap: spacing.sm },
   card: { borderWidth: 1, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.sm },
   point: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md, borderWidth: 1, borderRadius: radius.md, padding: spacing.md },
+  typeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  type: { flexGrow: 1, flexBasis: 260, borderWidth: 1, borderLeftWidth: 4, borderRadius: radius.md, padding: spacing.md, gap: 4 },
   number: { width: 28, height: 28, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
   recallHead: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
   answer: { borderRadius: radius.md, padding: spacing.md },

@@ -15,14 +15,16 @@ demonstrated and what to practise next.
   platform, OOP, types, exceptions, collections and functional Java to JVM
   runtime internals, concurrency and virtual threads, I/O, JDBC, testing,
   design patterns, DSA, Spring Boot, performance and production engineering.
-  Every lesson opens with a **concept page**: an interview-level
+  Every lesson opens with a **concept page**: a textbook definition with
+  its key terms, an interview-level
   definition with follow-up questions, a memory mnemonic, analogies and
   real-world breakdowns, SVG illustrations plus flow and architecture
-  diagrams, "types of X" sections (e.g. the five types of inheritance and
+  diagrams (each with a step-by-step "how to read this diagram"), "types of X" sections (e.g. the five types of inheritance and
   how Java supports each), and a deep dive citing public sources (JLS, JVMS,
   JEPs, official docs). Each concept page also has a **"Make it stick"** layer
   built on how memory works: it starts **in plain English** (one big idea, an
-  everyday story, three key points, the usual mix-up and a one-minute try-it),
+  everyday story, three key points, the concept's types in simple words, the usual mix-up
+  and a one-minute try-it),
   shows a **picture** (a drawn pictogram scene of the same story) next to the
   flow diagram, and ends with **quick recall** cards that hide the answer until
   you have tried to remember it. Then a plain-English explanation, technical detail, when (not)

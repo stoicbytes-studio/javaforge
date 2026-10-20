@@ -3,6 +3,18 @@ import type { LessonConcepts } from '@/types/curriculum';
 /** Concept pages for module 1 (Fundamentals), keyed by lesson id. */
 export const fundamentalsConcepts: Record<string, LessonConcepts> = {
   'f-first-program': {
+    textbook: {
+      definition:
+        'A Java **program** is a set of one or more classes, written as **compilation units** (source files), that the Java compiler translates into **class files** containing JVM bytecode. Execution begins when the Java launcher starts a **Java Virtual Machine**, which loads the initial class, **links** and **initialises** it, and then invokes its `main` method. The JVM executes the bytecode by interpretation and by just-in-time compilation to native machine code.',
+      terms: [
+        { term: 'Compilation unit', meaning: 'The source code in one `.java` file: an optional package declaration, import declarations and one or more top-level type declarations.' },
+        { term: 'Class file', meaning: 'The binary format, defined by the JVM Specification, that holds one compiled class or interface: its bytecode, constant pool, fields and methods.' },
+        { term: 'Bytecode', meaning: 'The instruction set of the Java Virtual Machine; platform-neutral instructions that every conforming JVM can execute.' },
+        { term: 'Java Virtual Machine (JVM)', meaning: 'An abstract computing machine, specified by the JVM Specification, that loads, verifies and executes class files on a particular operating system and processor.' },
+        { term: 'Linking and initialisation', meaning: 'Linking verifies a loaded class and prepares its static fields; initialisation then runs its static initialisers, just before the class is first used.' },
+      ],
+      source: 'JLS §7.3 and §12.1; JVMS chapters 4 and 5',
+    },
     interviewDefinition:
       'A Java program is compiled ahead of time by `javac` into platform-neutral **bytecode** (`.class` files), then executed by a **Java Virtual Machine**, which loads, verifies and runs that bytecode — first by interpreting it, then by JIT-compiling hot code to native machine code. That split between compile time and run time is what gives Java "write once, run anywhere" plus near-native speed.',
     interviewFollowUps: [
@@ -58,6 +70,13 @@ export const fundamentalsConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'From source to running program',
         caption: 'Compilation happens once on the developer machine; loading, verification and execution happen every time the program starts.',
+        explanation: [
+          'Start at **Main.java**, the source code you write. It is plain text, so no computer can run it directly.',
+          '**javac** reads the source and checks every type. If something is wrong it reports a **Compile error** and produces nothing, so broken code never reaches the JVM.',
+          'On success javac writes **Main.class**: bytecode, the same bytes on every operating system. Everything up to here happens once, at compile time.',
+          'Running `java Main` starts a JVM. Its **Class loader** finds Main.class, verifies that the bytecode is safe and prepares the class.',
+          'The **Execution engine** interprets the bytecode, then JIT-compiles frequently used methods into native code, producing the **Output** on the real CPU. These run-time steps repeat on every start.',
+        ],
         cols: 5,
         rows: 2,
         nodes: [
@@ -87,6 +106,12 @@ export const fundamentalsConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Write once, run anywhere',
         caption: 'One .class file runs unchanged on every operating system, because each OS has its own JVM that understands the same bytecode.',
+        explanation: [
+          'At the top is one **Main.class** file. It is copied to every machine unchanged, byte for byte.',
+          'Each operating system has its own JVM: the **JVM for Windows**, the **JVM for Linux** and the **JVM for macOS**. Each is a different program, but all understand the same bytecode.',
+          'Each JVM JIT-compiles the bytecode into the native instructions of its own processor, such as **x86-64 machine code** or **ARM64 machine code**.',
+          'So the platform-specific work is done by the JVM, not by you. That is what "write once, run anywhere" means.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -112,6 +137,13 @@ export const fundamentalsConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'Inside the JVM process',
         caption: 'The class loader feeds class metadata into memory; the execution engine runs bytecode against the stacks and heap and calls into the OS through native code.',
+        explanation: [
+          'The **Class loader subsystem** at the top loads class files, links them (verify and prepare) and initialises them.',
+          'What it learns about each class (methods, fields, constants) is stored in **Metaspace**, memory outside the object heap.',
+          'Objects created with `new` live on the **Heap**, which the garbage collector manages. Each thread gets its own **Thread stacks**, holding one frame per method call with its local variables.',
+          'The **Execution engine** (interpreter, JIT compiler and garbage collector) runs the bytecode, reading and writing the heap and stacks.',
+          'When Java needs the operating system, for files, sockets or the clock, it goes through the **Native interface**.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -128,6 +160,20 @@ export const fundamentalsConcepts: Record<string, LessonConcepts> = {
           { from: 'engine', to: 'native' },
         ],
         groups: [{ label: 'Runtime data areas', fromCol: 0, toCol: 2, fromRow: 1, toRow: 1, tone: 'accent' }],
+      },
+    ],
+    variants: [
+      {
+        title: 'Ways to run a Java program',
+        intro: 'Every option still compiles to bytecode and runs it on a JVM; they differ in who does the compile step and what you ship.',
+        items: [
+          { name: 'Compile, then run (`javac` + `java`)', summary: 'The classic two steps: `javac Main.java` writes `Main.class`, then `java Main` runs it. Needed for anything bigger than a script.', support: 'supported', code: 'javac Main.java\njava Main' },
+          { name: 'Single-file source launcher', summary: '`java Main.java` compiles the file in memory and runs it, with no `.class` file left behind.', support: 'supported', note: 'Java 11+ (JEP 330).', code: 'java Main.java' },
+          { name: 'Multi-file source launcher', summary: 'The launcher also compiles other source files the main file needs, so a small program of several files runs without a build tool.', support: 'supported', note: 'Java 22+ (JEP 458).' },
+          { name: 'Executable JAR', summary: 'Classes packaged in a `.jar` whose manifest names the main class; run with `java -jar app.jar`. This is how most applications ship.', support: 'supported', code: 'java -jar app.jar' },
+          { name: 'JShell (REPL)', summary: 'An interactive shell that runs Java snippets one line at a time. Great for trying an API; not used to ship programs.', support: 'supported', note: 'Java 9+ (JEP 222).', code: 'jshell> 2 + 3\n$1 ==> 5' },
+          { name: 'Native image (ahead-of-time)', summary: 'GraalVM Native Image compiles the program to a standalone native executable that starts fast without a JVM, at the cost of some dynamic features.', support: 'partial', note: 'GraalVM tool, not part of the standard JDK.' },
+        ],
       },
     ],
     deepDive: [

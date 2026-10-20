@@ -87,10 +87,14 @@ test.describe('honesty guarantees', () => {
 });
 
 test.describe('make it stick', () => {
-  test('concept pages start in plain English, show a picture and end with recall cards', async ({ page, supabase: _ }) => {
+  test('concept pages go from plain English to a textbook definition, explain every diagram and end with recall cards', async ({ page, supabase: _ }) => {
     await page.goto('/learn/fundamentals/f-first-program');
     await expect(page.getByRole('heading', { name: 'In plain English' })).toBeVisible();
     await expect(page.getByText('Remember just these three things')).toBeVisible();
+    await expect(page.getByText('Ways to run a Java program, in simple words')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Textbook definition' })).toBeVisible();
+    await expect(page.getByText('Key terms')).toBeVisible();
+    await expect(page.getByText('How to read this diagram').first()).toBeAttached();
     await expect(page.getByRole('img', { name: /One recipe card, every kitchen/ })).toBeAttached();
     const reveal = page.getByRole('button', { name: 'Reveal answer 1' });
     await reveal.scrollIntoViewIfNeeded();

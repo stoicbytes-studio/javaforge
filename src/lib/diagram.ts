@@ -124,7 +124,33 @@ export function validateDiagram(d: Diagram): string[] {
     }
   }
   if (!d.caption.trim()) errors.push(`${d.id}: caption is empty`);
+  errors.push(...explanationProblems(d));
   return errors;
+}
+
+const countWords = (s: string) => s.trim().split(/\s+/).filter(Boolean).length;
+const normalise = (s: string) => s.replace(/[`*_]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
+
+/**
+ * Rules for a diagram's "How to read this diagram" steps: 3-7 steps of 8-55 words
+ * that between them name at least 60% of the boxes, so the walkthrough is about
+ * this diagram rather than generic prose.
+ */
+export function explanationProblems(d: Diagram): string[] {
+  const e: string[] = [];
+  const steps = d.explanation;
+  if (!steps?.length) return [`${d.id}: needs an explanation (3-7 steps walking through the diagram)`];
+  if (steps.length < 3 || steps.length > 7) e.push(`${d.id}: explanation needs 3-7 steps (has ${steps.length})`);
+  steps.forEach((s, i) => {
+    const w = countWords(s);
+    if (w < 8 || w > 55) e.push(`${d.id}: explanation step ${i + 1} should be 8-55 words (has ${w})`);
+  });
+  const text = normalise(steps.join(' '));
+  const missing = d.nodes.filter((n) => !text.includes(normalise(n.label)));
+  if (missing.length > d.nodes.length * 0.4) {
+    e.push(`${d.id}: explanation should name most boxes; missing ${missing.map((n) => `"${n.label}"`).join(', ')}`);
+  }
+  return e;
 }
 
 /** Text alternative for screen readers: what is on the diagram and how it connects. */
@@ -146,6 +172,17 @@ export function describeDiagram(d: Diagram): string {
 export function conceptProblems(lessonId: string, c: LessonConcepts | undefined): string[] {
   if (!c) return [`${lessonId}: no concept page`];
   const p: string[] = [];
+  if (!c.textbook) p.push(`${lessonId}: needs a textbook definition`);
+  else {
+    const tw = countWords(c.textbook.definition);
+    if (tw < 40 || tw > 130) p.push(`${lessonId}: textbook definition should be 40-130 words (has ${tw})`);
+    if (c.textbook.terms.length < 2 || c.textbook.terms.length > 6) p.push(`${lessonId}: textbook definition needs 2-6 key terms (has ${c.textbook.terms.length})`);
+    for (const t of c.textbook.terms) {
+      const mw = countWords(t.meaning);
+      if (!t.term.trim() || mw < 6 || mw > 50) p.push(`${lessonId}: key term "${t.term}" needs a 6-50 word meaning (has ${mw})`);
+    }
+  }
+  if (!c.variants?.length) p.push(`${lessonId}: needs at least one "types of" variant group`);
   const words = c.interviewDefinition.split(/\s+/).length;
   if (words < 25 || words > 110) p.push(`${lessonId}: interview definition should be 25-110 words (has ${words})`);
   if (c.mnemonic.expansion.length < 2) p.push(`${lessonId}: mnemonic needs at least 2 parts`);

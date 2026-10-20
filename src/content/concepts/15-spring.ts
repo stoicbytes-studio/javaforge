@@ -4,6 +4,18 @@ import type { LessonConcepts } from '@/types/curriculum';
 export const springConcepts: Record<string, LessonConcepts> = {
   // -------------------------------------------------------------------------
   'sp-ioc-boot': {
+    textbook: {
+      definition:
+        '**Inversion of control** (IoC) is a design principle in which the creation, configuration and lifecycle of objects are delegated to an external **container** rather than controlled by the objects themselves. **Dependency injection** is the form of IoC in which the container supplies an object\'s collaborators through constructor arguments, setter methods or fields. In the Spring Framework the container is the `ApplicationContext`, which builds **beans** from bean definitions, resolves their dependencies and manages their scope and lifecycle. **Spring Boot** extends this with starter dependencies, conditional **auto-configuration** and externalised configuration.',
+      terms: [
+        { term: 'Bean', meaning: 'An object that is instantiated, assembled and managed by the Spring IoC container according to a bean definition.' },
+        { term: 'Bean definition', meaning: 'Metadata describing how to create a bean: its class or factory method, scope, dependencies, initialisation and destruction callbacks.' },
+        { term: 'ApplicationContext', meaning: 'The central Spring container interface; it extends `BeanFactory` with eager singleton creation, events, the `Environment`, resource loading and message resolution.' },
+        { term: 'Auto-configuration', meaning: 'Spring Boot configuration classes that are applied only when their conditions match, such as a class being present or a bean being missing.' },
+        { term: 'Externalised configuration', meaning: 'Property values supplied from outside the code (files, environment variables, command-line arguments) and bound to beans through the `Environment`.' },
+      ],
+      source: 'Spring Framework reference, Core Technologies: The IoC Container; Spring Boot reference documentation',
+    },
     interviewDefinition:
       '**Inversion of control** means an object no longer creates or looks up its collaborators; it declares them, and a container supplies them. **Dependency injection** is the mechanism: Spring\'s `ApplicationContext` collects bean definitions (component scanning, `@Bean` methods, auto-configuration), resolves the dependency graph, instantiates beans in order, injects them — preferably through constructors — and may wrap them in proxies for transactions or security. **Spring Boot** adds starters, conditional auto-configuration and externalised configuration, so sensible defaults appear automatically and back off when you define your own beans.',
     interviewFollowUps: [
