@@ -994,9 +994,9 @@ export const collectionsConcepts: Record<string, LessonConcepts> = {
   // -------------------------------------------------------------------------
   'c-queues-stacks': {
     quick: {
-      definition: 'A **queue** gives items out in the order they came in: first in, first out. A **stack** gives out the newest item first: last in, first out.',
+      definition: 'A **queue** gives items out in the order they came in (first in, first out). A **stack** gives out the newest item first (last in, first out).',
       points: [
-        'For a queue, use `offer` to add at the end, `poll` to remove from the front, and `peek` to look at the front.',
+        'For a queue, use `offer` to add, `poll` to remove from the front, and `peek` to look at the front.',
         'For a stack, use `push` to add, `pop` to remove the top, and `peek` to look at the top.',
         '`ArrayDeque` works well as both a queue and a stack.',
         'A `PriorityQueue` gives out the smallest item first, not the oldest.',
