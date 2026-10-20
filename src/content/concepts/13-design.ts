@@ -3,6 +3,18 @@ import type { LessonConcepts } from '@/types/curriculum';
 /** Concept pages for module 13 (Design principles and patterns), keyed by lesson id. */
 export const designConcepts: Record<string, LessonConcepts> = {
   'd-solid': {
+    textbook: {
+      definition:
+        '**SOLID** is a set of five object-oriented **design principles**, collected by Robert C. Martin, that govern how classes and modules depend on one another so that software remains cheap to extend and maintain. They are the **Single Responsibility**, **Open/Closed**, **Liskov Substitution**, **Interface Segregation** and **Dependency Inversion** principles. Together they aim at high **cohesion** within a module and low **coupling** between modules, and they favour reuse through abstractions and **composition** over reuse through implementation inheritance. They are heuristics for managing change, not rules enforced by the compiler.',
+      terms: [
+        { term: 'Cohesion', meaning: 'The degree to which the elements of a module belong together and serve a single, well-defined purpose or actor.' },
+        { term: 'Coupling', meaning: 'The degree to which one module depends on the internal details of another, so that a change in one forces a change in the other.' },
+        { term: 'Behavioural subtyping', meaning: 'The Liskov and Wing requirement that a subtype preserves its supertype\'s contract: no stronger preconditions, no weaker postconditions, and preserved invariants.' },
+        { term: 'Abstraction', meaning: 'An interface or abstract type that states what a collaborator does without fixing how, so implementations can vary behind it.' },
+        { term: 'Composition', meaning: 'Building behaviour by holding references to other objects and delegating calls to them, rather than inheriting their implementation.' },
+      ],
+      source: 'Robert C. Martin, Agile Software Development: Principles, Patterns, and Practices (2002); Liskov and Wing (1994)',
+    },
     interviewDefinition:
       '**SOLID** is five object-oriented design principles for keeping code cheap to change: **S**ingle Responsibility (a class has one reason to change — one actor it serves), **O**pen/Closed (add behaviour by adding code, not editing working code), **L**iskov Substitution (a subtype must honour its supertype\'s contract), **I**nterface Segregation (clients depend only on methods they use) and **D**ependency Inversion (policy and details both depend on abstractions the policy owns). Its companion rule is **composition over inheritance**: reuse by holding and delegating to objects, not by subclassing implementations.',
     interviewFollowUps: [
@@ -67,6 +79,13 @@ export const designConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'SRP: one class per reason to change',
         caption: 'The god class changes whenever the file format, validation rules or storage change. After the split, the importer only orchestrates, and each collaborator changes for exactly one actor.',
+        explanation: [
+          'Start at the top-left **CustomerImporter**, a god class that parses, validates and saves customers all by itself.',
+          'The dashed arrow points to the note **3 reasons to change**: the file format, the validation rules and the database. Three different actors can each force an edit to the same class.',
+          'The arrow labelled refactor leads to the new **CustomerImporter**, which now only orchestrates: it calls its collaborators in order but contains none of their logic.',
+          'Each collaborator in the bottom row has one job: **CustomerParser** changes with the CSV format, **CustomerValidator** with the business rules and **CustomerStore** with the storage technology.',
+          'The green group, after: one actor each, is the takeaway. A change requested by one team now touches one small class, so edits stop colliding and regressions stay local.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -91,6 +110,13 @@ export const designConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'Dependency Inversion: arrows point toward the policy',
         caption: 'The interface lives with the business logic. Infrastructure implements it, so every source-code dependency points inward and the policy compiles and tests with no database at all.',
+        explanation: [
+          'Start in the domain group at the top: **CustomerImporter** is the business policy, and it depends only on **CustomerStore**, an interface that the policy itself owns.',
+          'In the infrastructure row, **JdbcCustomerStore** and **InMemoryStore** both point up with implements arrows. The details depend on the abstraction, not the other way round.',
+          'Only **JdbcCustomerStore** talks to the **Database**, shown by the dashed arrow. The domain code never imports JDBC, so it compiles and runs without a database.',
+          'The dashed arrow from **main / Spring** shows wiring: at start-up the composition root chooses an implementation and injects it into the importer through its constructor.',
+          'The takeaway: every source-code arrow crosses the boundary toward the policy, so swapping storage or using a test fake never requires changing business logic.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -118,6 +144,14 @@ export const designConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Why the inherited counter says 6',
         caption: 'The subclass counts in addAll, then HashSet.addAll calls the overridden add for each element, counting again. The composed wrapper forwards to the inner set, whose internal calls never reach the wrapper.',
+        explanation: [
+          'Read the top row first, the inheritance path. The call **addAll(a, b, c)** reaches **CountingHashSet**, which adds 3 to its counter and then calls super.addAll.',
+          '**HashSet.addAll** is implemented by calling this.add once per element. That hidden self-use is labelled on the arrow, and it dispatches to the subclass.',
+          'So the **overridden add** runs three more times and adds 1 each time, leaving the counter at 6 instead of 3. The subclass was coupled to the parent\'s internals.',
+          'Now the bottom row, the composition path. The same **addAll(a, b, c)** reaches **CountingSet**, a wrapper that adds 3 and forwards to the set it holds.',
+          '**inner.addAll** calls inner.add on the wrapped HashSet, not on the wrapper, so the wrapper is never re-entered and the result is **attempts = 3**.',
+          'The takeaway from the two groups: inheritance is white-box reuse that depends on implementation details, while composition is black-box reuse that depends only on the public interface.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -239,6 +273,18 @@ export const designConcepts: Record<string, LessonConcepts> = {
   },
 
   'd-patterns': {
+    textbook: {
+      definition:
+        'A **design pattern** is a named, documented description of a general, reusable solution to a recurring problem of object-oriented design within a particular **context**. In the form established by Gamma, Helm, Johnson and Vlissides, each pattern has four essential elements: a **pattern name**, the **problem** it addresses, the **solution** as an abstract arrangement of collaborating classes and objects, and the **consequences**, meaning its trade-offs. A pattern is not finished code or a library; it is a template adapted to each situation. The catalogue classifies patterns by purpose as **creational**, **structural** or **behavioural**.',
+      terms: [
+        { term: 'Context', meaning: 'The recurring situation, with its forces and constraints, in which the design problem arises and the pattern applies.' },
+        { term: 'Consequences', meaning: 'The results and trade-offs of applying a pattern, such as flexibility gained, indirection added, or performance and complexity costs.' },
+        { term: 'Creational pattern', meaning: 'A pattern that abstracts the instantiation process, hiding which concrete classes are created and how they are assembled.' },
+        { term: 'Structural pattern', meaning: 'A pattern concerned with composing classes and objects into larger structures while keeping them flexible and efficient.' },
+        { term: 'Behavioural pattern', meaning: 'A pattern concerned with algorithms and the assignment of responsibilities between objects, and with how they communicate.' },
+      ],
+      source: 'Gamma, Helm, Johnson and Vlissides, Design Patterns: Elements of Reusable Object-Oriented Software (1994), chapter 1',
+    },
     interviewDefinition:
       'A **design pattern** is a named, reusable solution to a recurring design problem in a given context. The Gang of Four catalogue (1994) lists 23, grouped as **creational** (how objects are created), **structural** (how objects are composed) and **behavioural** (how objects divide responsibility and communicate). In modern Java many shrink to language features: Strategy and Command become lambdas, Singleton an enum or a DI-managed bean, Iterator is `Iterable`, and Visitor is often replaced by sealed types with pattern-matching `switch`. The lasting value is shared vocabulary and recognising intent.',
     interviewFollowUps: [
@@ -296,6 +342,13 @@ export const designConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'The three families of GoF patterns',
         caption: 'Each family answers one question. The bottom row shows the modern Java feature that most often replaces or simplifies patterns in that family.',
+        explanation: [
+          'The top row names the three families, each answering one question: **Creational** asks how objects are made, **Structural** how they are composed, and **Behavioural** how they communicate.',
+          'Under each family, a note lists well-known members: **Builder, Factory** for creation, **Adapter, Decorator** for structure, and **Strategy, Observer** for behaviour.',
+          'The dashed arrows labelled modern Java lead to the bottom row: the language feature that most often simplifies that family today.',
+          'Creational patterns often shrink to **Records + factories**, an enum singleton or dependency injection. Structural ones rely on plain **Composition** and dynamic proxies. Behavioural ones become **Lambdas** or sealed types with switch.',
+          'The takeaway: learn the family and the intent, then check whether a modern language feature already expresses it before writing pattern scaffolding.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -323,6 +376,13 @@ export const designConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'Decorators and an adapter around one interface',
         caption: 'Checkout depends only on PaymentGateway. Decorators keep that interface and add retries and metrics; the adapter at the edge translates it into the vendor SDK\'s API.',
+        explanation: [
+          'Start at **Checkout**, the client. It calls charge() on something it knows only as a **PaymentGateway**, the single interface shown in the note below.',
+          'The call first reaches **RetryingGateway**, a Decorator that retries failed charges, then **MeteredGateway**, a Decorator that records timings. Both forward the same charge() call.',
+          'The dashed arrows show that both decorators implement **PaymentGateway**. Because they share one interface, the group says they are stackable in any order.',
+          'At the edge, **StripeAdapter** is an Adapter: it implements the same interface but translates charge() into createIntent() on the **Vendor SDK**, whose API is different.',
+          'The takeaway: decorators keep the interface and add behaviour, the adapter changes the interface, and Checkout never knows which wrappers or vendor sit behind it.',
+        ],
         cols: 5,
         rows: 2,
         nodes: [
@@ -348,6 +408,13 @@ export const designConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Which wrapper or pattern fits?',
         caption: 'Start from the problem, not the pattern. Several questions end in a plain language feature rather than a class hierarchy.',
+        explanation: [
+          'Read the questions on the left from top to bottom; a yes arrow leads right to a pattern, a no arrow drops to the next question.',
+          '**Varying algorithm?** If yes, use **Strategy**, usually just a lambda or an enum. If not, ask **Wrong interface?** and, if so, write an **Adapter** that translates at the edge.',
+          '**Add behaviour around?** If an existing object needs retries, logging or caching, use a **Decorator**, or a Proxy when the goal is controlling access.',
+          '**Many optional args?** If construction has many optional parameters, use a **Builder**; with only a few fields a record is enough.',
+          'If the answer is no every time, you reach **None of these?**: write plain code first. The takeaway is to start from the problem and add a pattern only when it removes one.',
+        ],
         cols: 2,
         rows: 5,
         nodes: [

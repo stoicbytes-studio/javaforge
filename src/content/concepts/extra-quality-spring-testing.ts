@@ -3,6 +3,18 @@ import type { LessonConcepts } from '@/types/curriculum';
 /** Concept pages for the extra lessons ts-code-quality (module 12) and sp-testing (module 15). */
 export const qualitySpringTestingConcepts: Record<string, LessonConcepts> = {
   'ts-code-quality': {
+    textbook: {
+      definition:
+        '**Code quality assurance** is the set of practices and tools that assess source code against defined criteria of correctness, maintainability and conformance, in addition to functional testing. **Static analysis** examines a program without executing it, matching its source, syntax tree or bytecode against rules for known defect patterns and conventions. **Code coverage** is a dynamic measure of the proportion of a program\'s elements, such as lines or branches, executed by a test suite. **Mutation testing** evaluates test-suite adequacy by introducing small faults (mutants) and measuring the proportion detected. A **quality gate** is a set of thresholds a change must meet before it is accepted.',
+      terms: [
+        { term: 'Static analysis', meaning: 'Analysis of program text or compiled code performed without running the program, used to detect defects, smells and rule violations.' },
+        { term: 'Code coverage', meaning: 'The percentage of a chosen code element, such as statements, branches or instructions, executed at least once by the tests.' },
+        { term: 'Mutant', meaning: 'A copy of the program with one small, deliberate syntactic change; it is killed when at least one test fails because of it.' },
+        { term: 'Mutation score', meaning: 'The ratio of killed mutants to all non-equivalent mutants, used as a measure of test-suite strength.' },
+        { term: 'Cyclomatic complexity', meaning: 'The number of linearly independent paths through a program\'s control-flow graph, computed as E minus N plus 2P.' },
+      ],
+      source: 'McCabe, A Complexity Measure (1976); DeMillo, Lipton and Sayward, Hints on Test Data Selection (1978); JaCoCo documentation',
+    },
     interviewDefinition:
       'Code quality tooling is a layered net that finds defects tests were never written for. **Formatters** remove style debate; **compiler lints** and **static analysers** (Error Prone, SpotBugs, PMD, Checkstyle, SonarQube) match known bug patterns without running code; **coverage** (JaCoCo) shows what tests executed; **mutation testing** (PIT) shows whether they actually verify it; and **code review** judges design. A CI **quality gate** enforces thresholds on every change, ideally on new code so legacy debt shrinks gradually.',
     interviewFollowUps: [
@@ -68,6 +80,14 @@ export const qualitySpringTestingConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'The quality net: each layer catches different defects',
         caption: 'Defects fall from top to bottom. Cheap automated layers come first so humans spend review time on design; what slips through every layer reaches production.',
+        explanation: [
+          'Defects fall through the net from the top. The **Formatter** fixes layout and imports, and **javac -Xlint** warns about unchecked casts, switch fallthrough and similar compiler-visible problems.',
+          '**Static analysis** then matches known bug patterns and smells without running the code. These cheap steps sit in the **Automated, every commit** group.',
+          '**Tests** check the behaviour you specified. **Coverage** measures which code those tests ran, revealing gaps, but not whether anything was checked.',
+          '**Mutation testing** answers the "strength?" question: it changes the code slightly and checks whether a test notices, proving the tests really verify behaviour.',
+          '**Code review** spans the whole width because humans judge design, intent and naming, which no tool can.',
+          'The dashed arrow to **Production** is the takeaway: every layer catches different defects, and only what slips through all of them reaches users.',
+        ],
         cols: 3,
         rows: 4,
         nodes: [
@@ -98,6 +118,13 @@ export const qualitySpringTestingConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'A CI quality gate on a pull request',
         caption: 'Fast, cheap checks run first and fail early. The gate decides on new code only, so a legacy codebase can adopt it without fixing everything at once.',
+        explanation: [
+          'A small **Pull request** enters the **Automated pipeline**. **Compile** runs first with `-Xlint -Werror` and Error Prone, so bug patterns fail the build immediately.',
+          '**spotlessCheck** verifies formatting, then **Tests + JaCoCo** run the suite and produce a coverage report.',
+          '**SpotBugs / PMD** apply bytecode and source rules. Cheap checks come first so a failure is reported as early as possible.',
+          'The **Quality gate** compares results against thresholds on new code only. If it fails, the dashed arrow means **Merge blocked**: fix and push again.',
+          'If it passes, **Human review** judges design and intent, and an approved change goes to **Merge**. Takeaway: machines filter first, so reviewers spend time on what only humans can judge.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -128,6 +155,13 @@ export const qualitySpringTestingConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Full coverage, surviving mutant',
         caption: 'Tests at ages 30 and 5 execute both outcomes of age >= 18, so coverage is 100%. PIT\'s boundary mutant (>) gives the same answers for 30 and 5 and survives; only a test at exactly 18 kills it.',
+        explanation: [
+          'The production code is **return age >= 18;**. PIT mutates it into the **Mutant: age > 18**, a conditionals-boundary change that only differs at exactly 18.',
+          'The dashed arrows show both test suites being run against the mutant. **Tests: 30, 5** give 100% line and branch coverage of the original code.',
+          'But 30 and 5 give the same answers with `>` as with `>=`, so all tests still pass and the mutant is **SURVIVED**: the tests are weak.',
+          '**Tests: 30, 5, 18** include the boundary. `canBuy(18)` now fails against the mutant, so it is **KILLED**.',
+          'Takeaway: full coverage proves the code ran, not that it was checked; mutation testing exposes missing boundary tests.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -220,6 +254,18 @@ export const qualitySpringTestingConcepts: Record<string, LessonConcepts> = {
     ],
   },
   'sp-testing': {
+    textbook: {
+      definition:
+        '**Testing a Spring application** is the verification of its components at different **levels of integration**, from isolated units to the fully assembled application. A **unit test** exercises a single class in isolation, with its collaborators replaced by **test doubles**. An **integration test** exercises several components together, in Spring typically by loading an `ApplicationContext` through the **Spring TestContext Framework**, which also manages dependency injection into tests, test-managed transactions and **context caching**. Spring Boot adds **test slices**, which auto-configure only the beans of one application layer, and `@SpringBootTest`, which loads the complete application configuration.',
+      terms: [
+        { term: 'Test double', meaning: 'Any object that stands in for a real collaborator during a test, such as a dummy, stub, spy, mock or fake.' },
+        { term: 'Spring TestContext Framework', meaning: 'The spring-test infrastructure that loads, injects and caches application contexts for tests independently of the test framework used.' },
+        { term: 'Test slice', meaning: 'A Spring Boot test annotation that auto-configures one layer, such as web or JPA, and limits component scanning to it.' },
+        { term: 'Context caching', meaning: 'Reuse of an already loaded `ApplicationContext` by all test classes whose merged configuration is identical.' },
+        { term: 'Bean override', meaning: 'Replacing a bean in the test context, for example with a Mockito mock via `@MockitoBean`.' },
+      ],
+      source: 'Spring Framework reference, Testing (TestContext Framework); Spring Boot reference, Testing',
+    },
     interviewDefinition:
       'Testing a Spring Boot app means choosing the smallest scope that can catch the bug. Business rules get **plain unit tests**: constructor injection lets you `new` a service with fakes. **Test slices** (`@WebMvcTest`, `@DataJpaTest`, `@JsonTest`, `@RestClientTest`) start one layer; `@SpringBootTest` starts everything, ideally against real dependencies via **Testcontainers** and `@ServiceConnection`. `@MockitoBean` replaces beans with mocks, and the TestContext framework **caches** contexts by configuration, so consistent setups keep suites fast.',
     interviewFollowUps: [
@@ -283,6 +329,13 @@ export const qualitySpringTestingConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'What each test type starts',
         caption: 'Each test starts only the boxes in its column. A unit test starts no Spring at all; slices start one layer plus its infrastructure; @SpringBootTest starts everything.',
+        explanation: [
+          'Read each column from its header down. A **Plain unit test** creates the **Service class** with `new` and fakes, so no Spring context starts at all.',
+          '**@WebMvcTest** starts only **Controllers + MVC** (MockMvc, Jackson, advice). The **Services** they call are replaced by `@MockitoBean` mocks.',
+          '**@DataJpaTest** starts **Repositories + JPA** against a **Database**, embedded or in a container, and rolls back after each test.',
+          '**@SpringBootTest** starts **Every bean**, from web to data, usually against a **Real database** provided by Testcontainers.',
+          'The bottom row is the trade-off: the left side is **Faster, narrower** (milliseconds), the right side **Slower, broader** (seconds per new context). Takeaway: pick the narrowest test that can catch the bug.',
+        ],
         cols: 4,
         rows: 4,
         nodes: [
@@ -316,6 +369,13 @@ export const qualitySpringTestingConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'Testing levels mapped onto a Spring app',
         caption: 'Each layer of the application has a natural test tool. External systems you do not control are mocked; the database you own is real.',
+        explanation: [
+          'The middle column is the **Application**: an **HTTP client** (MockMvc or RestTestClient) sends a request to the **Controller**, which calls the **Service**, which uses the **Repository**, which talks to **PostgreSQL**.',
+          'On the right, each layer has its natural test, shown by dashed arrows: **@WebMvcTest** checks the controller\'s mapping, JSON and 400/404 responses.',
+          'A **Plain unit test** checks the service\'s business rules with fakes passed through the constructor, and **@DataJpaTest** checks repository queries and mappings.',
+          'The **Payment API** is an external system you do not control, so the dashed `@MockitoBean` arrow means it is mocked. The database you own is real, connected through `@ServiceConnection` to Testcontainers.',
+          '**@SpringBootTest** covers the whole stack, but only for a few end-to-end paths. Takeaway: test each layer with its own tool and keep full-stack tests few.',
+        ],
         cols: 3,
         rows: 4,
         nodes: [
@@ -348,6 +408,13 @@ export const qualitySpringTestingConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'How the TestContext cache serves a test class',
         caption: 'The merged configuration is the cache key. A hit costs nothing; a miss costs a full start-up. @DirtiesContext removes the entry, so the next class with that key starts again.',
+        explanation: [
+          'Each **Test class** contributes annotations and a base class. The framework uses them to **Build cache key** from configuration, profiles and properties.',
+          '**In cache?** looks up that key in an LRU cache that holds 32 contexts by default.',
+          'On a hit it can **Reuse context** in milliseconds. On a miss it must **Start new context**, which takes seconds, and then caches it.',
+          'Either way it continues to **Run the tests**, resetting mocks after each one. Then **@DirtiesContext?** decides whether the context is closed and evicted.',
+          'The **Next test class** starts the cycle again. Takeaway: identical configurations share one context, so consistent setups and avoiding @DirtiesContext keep suites fast.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -393,6 +460,17 @@ export const qualitySpringTestingConcepts: Record<string, LessonConcepts> = {
           { name: 'Slice test', summary: 'One layer of real Spring infrastructure: web contract, JSON shape, repository queries, outbound HTTP. Hundreds of milliseconds once the context is cached.', support: 'supported' },
           { name: 'Integration test (@SpringBootTest)', summary: 'The full context, usually with real infrastructure through Testcontainers and only external third parties mocked. Proves wiring, configuration and transactions.', support: 'supported' },
           { name: 'End-to-end / contract test', summary: 'The packaged application tested over the network, or consumer-driven contracts (for example Spring Cloud Contract or Pact) between services. Few and slow; run in a pipeline stage.', support: 'partial', note: 'Needs extra tooling beyond spring-boot-starter-test.' },
+        ],
+      },
+      {
+        title: 'Types of test double',
+        intro: 'Terms from Gerard Meszaros, *xUnit Test Patterns*. Mockito\'s `mock()` can act as a dummy, stub or mock depending on how you use it.',
+        items: [
+          { name: 'Dummy', summary: 'Passed only to fill a parameter list; never actually used by the code under test.', code: 'new OrderService(repo, null /* unused clock */);' },
+          { name: 'Stub', summary: 'Returns canned answers to calls, so the test can control indirect inputs.', code: 'when(rates.current()).thenReturn(new BigDecimal("1.10"));' },
+          { name: 'Spy', summary: 'A real object (or stub) that also records how it was called, for later checks.', code: 'Mailer mailer = spy(new SmtpMailer());' },
+          { name: 'Mock', summary: 'Pre-programmed with expected interactions; the test verifies the calls that were made.', code: 'verify(mailer).send(any(Email.class));' },
+          { name: 'Fake', summary: 'A working but simplified implementation, such as an in-memory repository.', note: 'Often the clearest choice for repositories and clocks.', code: 'class InMemoryOrderRepository implements OrderRepository { ... }' },
         ],
       },
     ],

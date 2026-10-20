@@ -11,6 +11,27 @@ export const functionalMemory: Record<string, MemoryAid> = {
       'A lambda can use local variables only if they are effectively final, meaning never reassigned.',
       'A method reference like `String::length` is a shorter way to write a lambda that calls one method.',
     ],
+    types: [
+      {
+        title: 'Functional interface families',
+        items: [
+          { name: '`Function<T, R>`', simple: 'Takes one thing and gives back another, like a machine that turns flour into bread.' },
+          { name: '`Predicate<T>`', simple: 'Takes one thing and answers yes or no, like a bouncer checking if you are on the list.' },
+          { name: '`Consumer<T>`', simple: 'Takes one thing and returns nothing; it just does something with it, like a printer.' },
+          { name: '`Supplier<T>`', simple: 'Takes nothing and hands you a value when asked, like a vending machine.' },
+          { name: '`UnaryOperator` / `BinaryOperator`', simple: 'A function whose answer has the same type as its input, like adding two numbers to get a number.' },
+        ],
+      },
+      {
+        title: 'Kinds of method reference',
+        items: [
+          { name: 'Static: `Integer::parseInt`', simple: 'Calls a class\'s static method and passes the argument straight in.' },
+          { name: 'Bound: `prefix::concat`', simple: 'Calls a method on one particular object that you chose in advance, like always phoning the same friend.' },
+          { name: 'Unbound: `String::length`', simple: 'Calls the method on whatever object is passed in, like asking each person in turn for their name.' },
+          { name: 'Constructor: `ArrayList::new`', simple: 'Builds a new object each time it is called, like a cookie cutter.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: 'an anonymous inner class',
       difference: 'An anonymous class is a real class with its own `this`. Inside a lambda, `this` means the surrounding object, and the code is shorter.',
@@ -43,6 +64,28 @@ export const functionalMemory: Record<string, MemoryAid> = {
       'Intermediate operations like `filter` and `map` are lazy; nothing runs until a terminal operation.',
       'A terminal operation like `collect`, `count` or `findFirst` runs the pipeline once.',
       'A stream does not store data or change its source, and it cannot be reused.',
+    ],
+    types: [
+      {
+        title: 'Stream operation categories',
+        items: [
+          { name: 'Intermediate, stateless', simple: 'Looks at each item on its own, like `filter` or `map`: a worker who checks one box at a time.' },
+          { name: 'Intermediate, stateful', simple: 'Needs to remember other items, like `sorted` or `distinct`: you must see every card before you can sort the deck.' },
+          { name: 'Terminal', simple: 'The final step, like `collect` or `count`, that starts the work and gives you the result.' },
+          { name: 'Short-circuiting', simple: 'Can stop early, like `findFirst` or `anyMatch`: you stop searching once you find your keys.' },
+        ],
+      },
+      {
+        title: 'Collector types',
+        items: [
+          { name: 'To a collection: `toList`', simple: 'Puts all results into a list or set, like emptying a basket into a box.' },
+          { name: '`toMap`', simple: 'Builds a map from each item using a key and a value rule, like a phone book from contacts.' },
+          { name: '`groupingBy`', simple: 'Sorts items into piles by some property, like sorting laundry by colour.' },
+          { name: '`partitioningBy`', simple: 'Splits items into exactly two piles, true and false, like pass and fail.' },
+          { name: 'Aggregating: `counting`, `summingInt`', simple: 'Boils items down to one number, such as how many or the total.' },
+          { name: '`joining`', simple: 'Glues strings together with a separator, like making "a, b, c" from three words.' },
+        ],
+      },
     ],
     confusion: {
       mixedUpWith: 'a collection such as `List`',
@@ -79,6 +122,32 @@ export const functionalMemory: Record<string, MemoryAid> = {
       'Use `Optional` mainly as a method return type, not for fields or parameters.',
       'Transform with `map` and `filter`, then unwrap with `orElse`, `orElseGet` or `orElseThrow`.',
       'Calling `get()` without checking just swaps one error for another.',
+    ],
+    types: [
+      {
+        title: 'Creating an Optional',
+        items: [
+          { name: '`Optional.of(value)`', simple: 'Wraps a value you know is there; it fails at once if the value is `null`.' },
+          { name: '`Optional.ofNullable(value)`', simple: 'Wraps a value that might be `null`, giving an empty box if it is.' },
+          { name: '`Optional.empty()`', simple: 'An empty box on purpose, returned instead of `null` to say "nothing found".' },
+        ],
+      },
+      {
+        title: 'Getting the value out',
+        items: [
+          { name: '`orElse(value)`', simple: 'Use this backup value if the box is empty; the backup is always prepared, even if unused.' },
+          { name: '`orElseGet(supplier)`', simple: 'Make the backup only if the box is empty, like cooking only when nobody brought food.' },
+          { name: '`orElseThrow()`', simple: 'Take the value out, or raise an error if the box is empty.' },
+          { name: '`ifPresentOrElse(...)`', simple: 'Do one thing if there is a value and another thing if there is not.' },
+        ],
+      },
+      {
+        title: 'Kinds of Optional class',
+        items: [
+          { name: '`Optional<T>`', simple: 'The general box for any object, with the full set of methods like `map` and `filter`.' },
+          { name: '`OptionalInt` / `Long` / `Double`', simple: 'Small boxes for plain numbers, returned by number streams such as `IntStream.max()`, with no extra wrapping.' },
+        ],
+      },
     ],
     confusion: {
       mixedUpWith: '`orElse` versus `orElseGet`',

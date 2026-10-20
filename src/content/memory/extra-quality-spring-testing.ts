@@ -11,6 +11,27 @@ export const qualitySpringTestingMemory: Record<string, MemoryAid> = {
       'Coverage shows which code the tests ran; mutation testing shows whether they checked it.',
       'A quality gate in CI blocks changes that break the rules, ideally judged on new code.',
     ],
+    types: [
+      {
+        title: 'Types of static-analysis tool',
+        items: [
+          { name: 'Compiler lints (`-Xlint`)', simple: 'The spell-checker built into your word processor: always there, and it only flags obvious slips.' },
+          { name: 'Error Prone', simple: 'A strict editor reading over your shoulder while you type, stopping you at known mistakes.' },
+          { name: 'SpotBugs', simple: 'An inspector who checks the finished building (compiled bytecode) for known danger spots.' },
+          { name: 'PMD', simple: 'A checklist of bad habits, such as empty catch blocks or copy-pasted code, run over your source.' },
+          { name: 'Checkstyle', simple: 'The house style guide: names, Javadoc and layout. Keeps code tidy but finds few real bugs.' },
+          { name: 'SonarQube', simple: 'A school report card that collects all the results and tracks them over time.' },
+        ],
+      },
+      {
+        title: 'Coverage and test-strength metrics',
+        items: [
+          { name: 'Line coverage', simple: 'Which rooms the inspector walked through: a line ran during some test.' },
+          { name: 'Branch coverage', simple: 'Whether every fork in the road was taken both ways, such as the yes and no side of an `if`.' },
+          { name: 'Mutation score', simple: 'Flip a breaker on purpose and see if anyone notices: how many planted bugs the tests catch.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: 'high coverage and good tests',
       difference: 'Coverage only says a line ran during a test. A test with no assertions can reach 100% coverage and still catch nothing.',
@@ -48,6 +69,27 @@ export const qualitySpringTestingMemory: Record<string, MemoryAid> = {
       'Business rules get plain unit tests: no Spring, just `new` and fakes.',
       'Slices like `@WebMvcTest` and `@DataJpaTest` start one layer, so they stay quick.',
       'Same test setup means the cached context is reused; every different setup builds a new one.',
+    ],
+    types: [
+      {
+        title: 'Testing levels in a Spring app',
+        items: [
+          { name: 'Plain unit test', simple: 'Tasting one crumb: test a single class with fakes and no Spring. Very fast.' },
+          { name: 'Slice test', simple: 'Cutting one slice of bread: start just one layer, such as the web layer, with stand-ins for the rest.' },
+          { name: '`@SpringBootTest`', simple: 'Serving the whole loaf: the complete app starts, usually with a real database in a container.' },
+          { name: 'End-to-end / contract test', simple: 'A full dress rehearsal across services over the network. Slow, so keep only a few.' },
+        ],
+      },
+      {
+        title: 'Types of test double',
+        items: [
+          { name: 'Dummy', simple: 'An empty chair to fill a seat; nobody ever uses it.' },
+          { name: 'Stub', simple: 'A shop dummy that always gives the same scripted answer when asked.' },
+          { name: 'Spy', simple: 'A real helper who also writes down every call they get, so you can check later.' },
+          { name: 'Mock', simple: 'A stand-in you check afterwards: "Was `send` called exactly once?"' },
+          { name: 'Fake', simple: 'A toy kitchen that really works, but simpler, such as an in-memory database.' },
+        ],
+      },
     ],
     confusion: {
       mixedUpWith: '`@WebMvcTest` and `@SpringBootTest`',

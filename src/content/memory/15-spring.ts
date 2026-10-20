@@ -11,6 +11,26 @@ export const springMemory: Record<string, MemoryAid> = {
       'Prefer constructor injection: fields can be `final` and tests can simply call `new` with fakes.',
       'Boot auto-configuration adds sensible default beans and backs off when you define your own.',
     ],
+    types: [
+      {
+        title: 'Types of dependency injection',
+        items: [
+          { name: 'Constructor injection', simple: 'The actor gets every prop handed over before walking on stage, so nothing is ever missing. The recommended way.' },
+          { name: 'Setter injection', simple: 'A prop is handed over after the actor is already on stage. Good for optional extras.' },
+          { name: 'Field injection', simple: 'Props are slipped secretly into the actor\'s pockets. It works, but nobody can see what the actor needs.' },
+          { name: '`ObjectProvider` lookup', simple: 'The actor gets a phone number for the prop room and asks for a prop only when needed.' },
+        ],
+      },
+      {
+        title: 'Bean scopes',
+        items: [
+          { name: 'singleton', simple: 'One shared coffee machine for the whole office. The default: one object for the whole app.' },
+          { name: 'prototype', simple: 'A paper cup: you get a brand-new one every time you ask.' },
+          { name: 'request', simple: 'A visitor badge that is valid for a single web request only.' },
+          { name: 'session', simple: 'A locker that belongs to one logged-in user for their whole visit.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: 'creating collaborators yourself with `new`',
       difference: 'With `new` inside a class, that class is welded to one implementation. With injection, the class only declares what it needs and Spring, or a test, decides what to pass in.',
@@ -46,6 +66,27 @@ export const springMemory: Record<string, MemoryAid> = {
       'A URI names a resource; the HTTP method says what to do with it.',
       'Status codes report the outcome: 2xx success, 4xx client mistake, 5xx server failure.',
       'Jackson turns JSON into Java objects and back; `@Valid` checks the input first.',
+    ],
+    types: [
+      {
+        title: 'HTTP methods',
+        items: [
+          { name: 'GET', simple: 'Looking at the menu: you read something and change nothing.' },
+          { name: 'POST', simple: 'Placing a new order. Do it twice and you get two orders.' },
+          { name: 'PUT', simple: 'Replacing your whole order with a new one. Doing it twice gives the same result.' },
+          { name: 'PATCH', simple: 'Changing one item on your order, such as "no onions", without rewriting all of it.' },
+          { name: 'DELETE', simple: 'Cancelling the order. Cancelling again changes nothing; it is already gone.' },
+        ],
+      },
+      {
+        title: 'Status code classes',
+        items: [
+          { name: '2xx Success', simple: 'The shop clerk hands you your parcel: it worked.' },
+          { name: '3xx Redirection', simple: 'The clerk points you to another counter where your parcel is.' },
+          { name: '4xx Client error', simple: 'Your form is filled in wrong or you are not allowed, so fix the request first.' },
+          { name: '5xx Server error', simple: 'The shop\'s till is broken; it is not your fault and trying later may work.' },
+        ],
+      },
     ],
     confusion: {
       mixedUpWith: 'PUT and POST',
@@ -83,6 +124,26 @@ export const springMemory: Record<string, MemoryAid> = {
       'Changes to loaded entities are saved at commit by dirty checking, even without calling `save`.',
       'By default, rollback happens only for unchecked exceptions, not for checked ones.',
     ],
+    types: [
+      {
+        title: 'Transaction propagation types',
+        items: [
+          { name: 'REQUIRED (default)', simple: 'Join the shopping trip already going on, or start one if nobody is shopping yet.' },
+          { name: 'REQUIRES_NEW', simple: 'Pause the current trip and pay at a separate till, so this purchase stands on its own.' },
+          { name: 'NESTED', simple: 'Same trip, but with a bookmark you can go back to if one part goes wrong.' },
+          { name: 'MANDATORY', simple: 'Refuse to start unless a shopping trip is already in progress.' },
+        ],
+      },
+      {
+        title: 'Entity states',
+        items: [
+          { name: 'Transient', simple: 'A new form you filled in at home; the office does not know about it yet.' },
+          { name: 'Managed', simple: 'The form is on the clerk\'s desk; every change you make is noted and saved.' },
+          { name: 'Detached', simple: 'You took the form home again; changes you make now are not recorded.' },
+          { name: 'Removed', simple: 'The form is in the shredder tray and will be destroyed when the clerk tidies up.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: 'calling a `@Transactional` method from the same class',
       difference: 'A call from inside the same object skips the proxy, so the annotation on the called method starts no transaction.',
@@ -118,6 +179,26 @@ export const springMemory: Record<string, MemoryAid> = {
       'Filters run before the `DispatcherServlet`, so a blocked request never reaches your controller.',
       'Authentication asks who you are; authorization asks what you are allowed to do.',
       'It denies by default, hashes passwords with an encoder, and turns on CSRF protection.',
+    ],
+    types: [
+      {
+        title: 'Authentication mechanisms',
+        items: [
+          { name: 'Session cookie (form login)', simple: 'Log in once and get a hand stamp, so the club lets you back in all night.' },
+          { name: 'HTTP Basic', simple: 'Showing your name and password at every single door. Simple, but only safe over HTTPS.' },
+          { name: 'JWT bearer token', simple: 'A signed boarding pass each gate can check itself, valid until it expires.' },
+          { name: 'OAuth2 / OpenID Connect login', simple: '"Log in with Google": a trusted service checks who you are, so the app never sees your password.' },
+          { name: 'Mutual TLS', simple: 'Two services show each other ID cards (certificates) before they start talking.' },
+        ],
+      },
+      {
+        title: 'OAuth 2.0 grant types',
+        items: [
+          { name: 'Authorization code + PKCE', simple: 'You log in on the trusted site, which gives the app a one-time claim ticket to swap for a token.' },
+          { name: 'Client credentials', simple: 'A delivery robot shows its own company badge; no human user is involved.' },
+          { name: 'Refresh token', simple: 'A renewal slip that gets you a fresh short-lived pass without logging in again.' },
+        ],
+      },
     ],
     confusion: {
       mixedUpWith: '401 and 403',

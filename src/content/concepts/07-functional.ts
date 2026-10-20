@@ -4,6 +4,18 @@ import type { LessonConcepts } from '@/types/curriculum';
 export const functionalConcepts: Record<string, LessonConcepts> = {
   // -------------------------------------------------------------------------
   'fn-lambdas': {
+    textbook: {
+      definition:
+        'A **lambda expression** is an expression that denotes an anonymous function: a parameter list and a body, without a name, that evaluates to an instance of a **functional interface**. A lambda expression is a **poly expression**: it has no standalone type, and it is legal only in an assignment, invocation or casting context whose **target type** is a functional interface, against whose single abstract method its parameters and result are checked. The body may refer to local variables of the enclosing scope only if they are final or **effectively final**. A **method reference** is a compact expression of the same kind that denotes an existing method or constructor.',
+      terms: [
+        { term: 'Functional interface', meaning: 'An interface that has exactly one abstract method, not counting public methods of `Object`; it may be marked with `@FunctionalInterface`.' },
+        { term: 'Target type', meaning: 'The functional interface type that the surrounding context expects, from which the compiler infers the lambda\'s parameter and return types.' },
+        { term: 'Effectively final', meaning: 'A local variable that is never assigned after its initialisation, so it could be declared `final` without changing the program.' },
+        { term: 'Method reference', meaning: 'An expression of the form `Type::method`, `expr::method` or `Type::new` that refers to a method or constructor without invoking it.' },
+        { term: 'Poly expression', meaning: 'An expression whose type depends on the context in which it appears rather than on the expression alone.' },
+      ],
+      source: 'JLS §9.8, §15.13 and §15.27; Javadoc for java.util.function',
+    },
     interviewDefinition:
       'A **lambda** is an anonymous function that implements a **functional interface** — an interface with exactly one abstract method. It has no type of its own: the compiler infers it from the target type (assignment, parameter or return). Lambdas capture local variables only if they are **effectively final**, and `this` means the enclosing instance. They compile to `invokedynamic` call sites linked by `LambdaMetafactory`, not to anonymous inner classes. **Method references** (`Type::method`) are shorthand for lambdas that just call one method.',
     interviewFollowUps: [
@@ -62,6 +74,13 @@ export const functionalConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'The four core shapes of behaviour',
         caption: 'Every java.util.function type is a variation on these four shapes: what goes in and what comes out. Bi- versions take two inputs; primitive versions avoid boxing.',
+        explanation: [
+          'Read each row from left to right as input, interface, output. In the top row **(nothing)** goes into a **Supplier<T>**, whose get() produces a **T**: a factory or lazy value.',
+          'In the second row a **T** goes into a **Consumer<T>**, whose accept(t) returns **void (side effect)**: it does something, such as printing or saving, instead of returning a value.',
+          'On the right, **Function<T, R>** takes a T and returns an R, while **Predicate<T>** takes a T and returns a boolean, the shape used by filter.',
+          'The dashed arrow labelled specialised as leads to **UnaryOperator<T> / BinaryOperator<T>**, which are Functions whose result has the same type as their input or inputs.',
+          'Takeaway: almost every type in java.util.function is one of these shapes, with Bi- versions for two inputs and Int, Long and Double versions to avoid boxing.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -88,6 +107,14 @@ export const functionalConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'How a lambda becomes an object',
         caption: 'javac moves the lambda body into a private method and leaves an invokedynamic instruction. The first execution links it through LambdaMetafactory; later executions reuse the linked call site, and non-capturing lambdas reuse one instance.',
+        explanation: [
+          'In the **Compile time** group, the source **x -> x * 2** is read by **javac**, which moves the lambda body into a private static method such as lambda$main$0.',
+          'Where the lambda appeared, javac leaves an **invokedynamic** instruction in the bytecode instead of creating an inner class, so no extra .class file is written.',
+          'In the **Run time** group, the first execution of that instruction calls the **LambdaMetafactory** bootstrap, which links the call site once.',
+          'The metafactory spins a **Hidden class** that implements the functional interface and forwards to the private method.',
+          'An instance of that class is the **Function object** your code receives. Later executions reuse the linked call site, and a non-capturing lambda reuses a single instance.',
+          'Takeaway: lambdas are cheap because the translation is decided and linked at run time, not baked into inner classes.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -115,6 +142,14 @@ export const functionalConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Four method references and the lambdas they stand for',
         caption: 'The difference between bound and unbound is where the receiver comes from: captured when the reference is created, or supplied as the first argument when it is called.',
+        explanation: [
+          'Each column shows a method reference on top and, following the arrow labelled means, the lambda it stands for underneath.',
+          'A static reference, **Integer::parseInt**, simply passes its argument through: it means **s -> Integer.parseInt(s)**.',
+          'A bound reference, **prefix::concat**, captures the receiver prefix when the reference is created, so it means **s -> prefix.concat(s)**.',
+          'An unbound reference, **String::length**, names a type, not an object: the first argument becomes the receiver, so it means **s -> s.length()**.',
+          'A constructor reference, **ArrayList::new**, calls a matching constructor and means **() -> new ArrayList<>()**.',
+          'Takeaway: the key question is where the receiver comes from, captured up front (bound) or passed in at call time (unbound).',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -187,6 +222,19 @@ export const functionalConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'fn-streams': {
+    textbook: {
+      definition:
+        'A **stream** (`java.util.stream.Stream<T>`) is a sequence of elements supporting sequential and parallel aggregate operations. Unlike a collection, a stream stores no elements: it conveys elements from a **source** through a **stream pipeline**, which consists of the source, zero or more **intermediate operations** that each return a new stream, and exactly one **terminal operation** that produces a result or side effect. Intermediate operations are **lazy**: computation on the source is performed only when the terminal operation is initiated, and source elements are consumed only as needed. A stream may be traversed only once.',
+      terms: [
+        { term: 'Source', meaning: 'The provider of a stream\'s elements, such as a collection, an array, a generator function or an I/O channel.' },
+        { term: 'Intermediate operation', meaning: 'An operation such as `filter`, `map` or `sorted` that returns a new stream and is not executed until a terminal operation runs.' },
+        { term: 'Terminal operation', meaning: 'An operation such as `collect`, `reduce` or `forEach` that traverses the pipeline to produce a result or side effect, after which the stream is consumed.' },
+        { term: 'Stateful operation', meaning: 'An intermediate operation, such as `sorted` or `distinct`, that may need to see previously processed elements to process a new one.' },
+        { term: 'Short-circuiting operation', meaning: 'An operation that may produce its result without examining every element, allowing finite results from infinite streams.' },
+        { term: 'Mutable reduction', meaning: 'A reduction, performed by `collect` with a `Collector`, that accumulates elements into a mutable result container such as a list or map.' },
+      ],
+      source: 'Javadoc for the java.util.stream package and java.util.stream.Stream',
+    },
     interviewDefinition:
       'A **stream** is a lazy, single-use pipeline over a source: zero or more **intermediate** operations (`filter`, `map`, `sorted`) build a recipe, and one **terminal** operation (`collect`, `reduce`, `count`, `findFirst`) runs it. Elements are pulled through all stages one at a time, so short-circuiting operations can stop early, while stateful operations like `sorted` must buffer. Streams do not store data or modify their source; behaviour passed in should be stateless and side-effect free. `parallel()` splits the source with a `Spliterator` onto the common ForkJoinPool.',
     interviewFollowUps: [
@@ -245,6 +293,13 @@ export const functionalConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'A lazy pipeline pulled by its terminal operation',
         caption: 'Nothing happens while the pipeline is built. findFirst pulls "a" (rejected by filter), then "bb" (mapped to "BB") and stops: "ccc" and "dddd" are never read.',
+        explanation: [
+          'Everything in the group **Lazy until the terminal operation** is only a recipe: building the **Source**, **filter** and **map** stages does no work at all.',
+          'When **findFirst()** runs, it pulls elements from the source one at a time. The first, "a", is shorter than 2 characters, so the dashed arrow shows it ends as **"a" dropped** and never reaches map.',
+          'The next element, "bb", passes the filter, and **map** turns it into "BB", as the arrow labels show.',
+          'findFirst receives "BB" and returns **Optional[BB]**. Because it is short-circuiting, it can **stop pulling**: "ccc" and "dddd" are never read.',
+          'Takeaway: the terminal operation drives the pipeline, so streams do only as much work as the result requires.',
+        ],
         cols: 5,
         rows: 2,
         nodes: [
@@ -271,6 +326,13 @@ export const functionalConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Element by element, not stage by stage',
         caption: 'A stateless pipeline runs vertically: each element finishes its trip before the next starts (f3 m3, then f1, then f2 m2). A stateful operation such as sorted is a barrier that must collect everything first.',
+        explanation: [
+          'Each row is one element\'s complete trip through the pipeline. **element 3** goes through **filter: pass** and straight on to **map → 30** before the next element is touched.',
+          'Then **element 1** reaches **filter: drop** and stops there; map is never called for it.',
+          'Then **element 2** goes through **filter: pass** and **map → 20**. Stateless stages are fused into one pass per element, not run as separate loops.',
+          'The dashed arrows into **sorted()** show the exception: sorting cannot emit anything until it has seen every element, so it buffers all of them as a barrier.',
+          'Takeaway: streams process element by element, except at stateful barriers such as sorted.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -299,6 +361,13 @@ export const functionalConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'How a parallel stream executes',
         caption: 'The Spliterator splits the source into chunks, worker threads from the shared common ForkJoinPool run the pipeline on each chunk, and the collector\'s combiner merges partial results. Splitting and merging are overhead that only large CPU-bound workloads repay.',
+        explanation: [
+          'The **Source**, ideally an ArrayList, array or numeric range, is handed to a **Spliterator**, whose trySplit() repeatedly halves it into chunks.',
+          'Each chunk goes to a thread in the group **ForkJoinPool.commonPool() — shared JVM-wide**: **Worker 1**, **Worker 2**, and the **Caller thread**, which also does work instead of just waiting.',
+          'Every thread runs the whole pipeline, filter then map then accumulate, on its own chunk and builds a partial result.',
+          'The **Combiner** merges the partial results into the final answer, which is why collectors and reductions need an associative combine step.',
+          'Takeaway: splitting, scheduling and merging are overhead, and the pool is shared, so parallel streams pay off only for large, CPU-bound work.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -381,6 +450,17 @@ export const functionalConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'fn-optional-modern': {
+    textbook: {
+      definition:
+        '`java.util.Optional<T>` is a **container object** which may or may not contain a non-null value. An Optional that contains a value is said to be **present**; one that contains none is **empty**. It is a final, immutable, **value-based class** intended primarily as a **method return type** where there is a clear need to represent "no result" and where using `null` is likely to cause errors. It offers methods that transform the value only when it is present (`map`, `flatMap`, `filter`) and methods that supply a default or throw an exception when it is absent (`orElse`, `orElseGet`, `orElseThrow`).',
+      terms: [
+        { term: 'Present', meaning: 'The state of an Optional that holds a non-null value; `isPresent()` returns true and `get()` returns the value.' },
+        { term: 'Empty', meaning: 'The state of an Optional that holds no value; transformation methods return empty and unwrapping methods use the supplied fallback.' },
+        { term: 'Value-based class', meaning: 'A class whose instances are immutable and should be compared only with `equals`; identity operations such as `==` or synchronisation must not be relied on.' },
+        { term: 'Primitive optional', meaning: '`OptionalInt`, `OptionalLong` or `OptionalDouble`: containers for a possibly absent primitive value that avoid boxing.' },
+      ],
+      source: 'Javadoc for java.util.Optional; Effective Java, 3rd edition, Item 55',
+    },
     interviewDefinition:
       '`Optional<T>` is a value-based container that is either empty or holds one non-null value. It was designed as a **method return type** that makes possible absence explicit, not for fields, parameters or collection elements. Create it with `of`, `ofNullable` or `empty`; transform with `map`, `flatMap` and `filter`; and unwrap with `orElse` (argument evaluated eagerly), `orElseGet` (lazy supplier), `orElseThrow` or `ifPresentOrElse`. Calling `get()` without checking just moves the NullPointerException to a NoSuchElementException.',
     interviewFollowUps: [
@@ -439,6 +519,13 @@ export const functionalConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Two tracks: present and empty',
         caption: 'For Bob, map(Customer::address) returns null, so the Optional switches to the empty track; map(Address::city) is skipped and orElse supplies "no city". No NullPointerException is possible on the way.',
+        explanation: [
+          'The pipeline starts at **findByEmail**, which wraps its possibly null result with `Optional.ofNullable`. If no customer is found, the dashed arrow labelled not found switches straight to the **Empty track**.',
+          'On the **Present track**, **map(address)** gets the customer\'s address. For Bob it returns null, so the dashed arrow labelled null result also switches to **Optional.empty**.',
+          '**map(city)** runs only if a value is still present. For Ada it produces **"London"**.',
+          'On the empty track every later step is skipped, and **orElse("no city")** supplies the fallback at the end.',
+          'Takeaway: each step either keeps the value or switches to the empty track, so nested null checks become one straight line with one decision at the end.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -467,6 +554,13 @@ export const functionalConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'orElse vs orElseGet: when the fallback runs',
         caption: 'Java evaluates arguments before calling a method, so orElse(fallback()) always runs fallback(). orElseGet receives a Supplier and calls it only when the Optional is empty.',
+        explanation: [
+          'Both branches start from the same **Optional.of("A")**, which already holds a value, so no fallback is needed.',
+          'On the left, **orElse(fallback())** is an ordinary method call: Java evaluates its argument first, so following the arrow labelled always, **fallback() ran** even though its result is thrown away.',
+          'On the right, **orElseGet(supplier)** receives the fallback as a Supplier, a piece of code not yet run.',
+          'Because the value is present, the supplier is never called: **fallback() skipped**, and "A" is returned directly.',
+          'Takeaway: use orElse for constants and orElseGet for anything expensive or with side effects, such as a database call.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -488,6 +582,13 @@ export const functionalConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Modern Java at a glance (LTS releases)',
         caption: 'Each long-term-support release bundles the features finalised since the previous one. Only final features belong in production code; previews need --enable-preview.',
+        explanation: [
+          'The top row runs left to right through the long-term-support releases. **Java 8** brought lambdas, streams and Optional, the functional foundation of this module.',
+          '**Java 11** bundled `var` (from Java 10) and the standard HttpClient. **Java 17** added records, sealed classes and switch expressions; its dashed note lists **text blocks (15)** and instanceof patterns (16), finalised on the way.',
+          '**Java 21** added virtual threads and pattern matching for switch; its note lists **sequenced collections** and record patterns.',
+          '**Java 25** finalised compact source files; its note lists **scoped values** and module imports.',
+          'Takeaway: each LTS release bundles everything finalised since the previous one, and only final features, not previews, belong in production code.',
+        ],
         cols: 5,
         rows: 2,
         nodes: [
@@ -533,6 +634,16 @@ export const functionalConcepts: Record<string, LessonConcepts> = {
           { name: 'isPresent / isEmpty (11)', summary: 'Boolean checks; rarely needed when the functional methods fit.' },
           { name: 'stream() (9)', summary: 'Zero- or one-element stream; flattens a stream of Optionals with flatMap(Optional::stream).' },
           { name: 'get()', summary: 'Unwraps or throws NoSuchElementException.', support: 'partial', note: 'Not deprecated, but discouraged: use orElseThrow() to make the intent visible.' },
+        ],
+      },
+      {
+        title: 'Kinds of Optional class',
+        intro: 'All four live in java.util and were added in Java 8.',
+        items: [
+          { name: 'Optional<T>', summary: 'Generic container for an object reference; the full API with map, flatMap, filter and or.', code: 'Optional<User> u = repo.findById(id);' },
+          { name: 'OptionalInt', summary: 'Holds a possibly absent int without boxing; returned by IntStream.max, min, findFirst. Unwrap with getAsInt or orElse.', code: 'OptionalInt max = IntStream.of(3, 7).max();' },
+          { name: 'OptionalLong', summary: 'The long version, returned by LongStream terminal operations; getAsLong, orElse, ifPresent.' },
+          { name: 'OptionalDouble', summary: 'The double version, returned by average() on every primitive stream; getAsDouble, orElse.', code: 'double avg = IntStream.of(1, 2).average().orElse(0);' },
         ],
       },
       {

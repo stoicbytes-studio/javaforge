@@ -11,6 +11,26 @@ export const designMemory: Record<string, MemoryAid> = {
       'Open/Closed and Liskov: add behaviour with new classes, and any subtype must keep the promises of its parent.',
       'Interface Segregation and Dependency Inversion: small interfaces, and your logic depends on interfaces it owns, not on concrete details.',
     ],
+    types: [
+      {
+        title: 'The five SOLID principles',
+        items: [
+          { name: 'Single Responsibility', simple: 'Each room has one use: a kitchen for cooking, a bedroom for sleeping. A class should change for one reason only.' },
+          { name: 'Open/Closed', simple: 'Add a new room without knocking down walls: add new classes instead of editing code that already works.' },
+          { name: 'Liskov Substitution', simple: 'A replacement part must work like the original. A subclass must keep every promise its parent makes.' },
+          { name: 'Interface Segregation', simple: 'One switch per light, not one giant control panel. Give each user a small interface with only what it needs.' },
+          { name: 'Dependency Inversion', simple: 'The house defines the wall socket and appliances plug into it. Your logic owns the interface; details implement it.' },
+        ],
+      },
+      {
+        title: 'Ways to reuse behaviour',
+        items: [
+          { name: 'Inheritance (`extends`)', simple: 'Copying a parent\'s whole recipe and changing one step. Quick, but you depend on how the parent works inside.' },
+          { name: 'Composition (delegation)', simple: 'Hiring a helper and passing work to them. You only rely on what the helper promises to do.' },
+          { name: 'Interfaces with default methods', simple: 'Signing several job contracts at once; some come with ready-made instructions, but none give you their belongings (state).' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: 'dependency injection',
       difference: 'Dependency Inversion is a design rule about which way dependencies point. Dependency injection is just one way of handing the real object in from outside, for example through the constructor.',
@@ -45,6 +65,34 @@ export const designMemory: Record<string, MemoryAid> = {
       'A pattern is a named solution to a common design problem, not a piece of library code you import.',
       'The Gang of Four book (1994) groups 23 patterns as creational, structural and behavioural.',
       'Modern Java shrinks many patterns: a Strategy is often just a lambda, and a Singleton is often an `enum`.',
+    ],
+    types: [
+      {
+        title: 'Creational patterns',
+        items: [
+          { name: 'Singleton', simple: 'Only one of it exists, like a country\'s one central bank. In Java, often a one-constant `enum`.' },
+          { name: 'Factory Method', simple: 'You order "a drink" and the counter decides which cup to hand you, like `List.of(...)` choosing the class.' },
+          { name: 'Builder', simple: 'Ordering a sandwich step by step, picking bread, filling and sauce, then saying "make it" at the end.' },
+        ],
+      },
+      {
+        title: 'Structural patterns',
+        items: [
+          { name: 'Adapter', simple: 'A travel plug adapter: it lets a part with the wrong shape fit the socket you have.' },
+          { name: 'Decorator', simple: 'Putting a case on your phone: same phone, same buttons, plus extra protection. Wrappers can stack.' },
+          { name: 'Proxy', simple: 'A receptionist who stands in for the boss and decides who gets through, like Spring\'s transaction proxy.' },
+          { name: 'Facade', simple: 'One reception desk in a hotel that handles rooms, taxis and restaurants for you behind the scenes.' },
+        ],
+      },
+      {
+        title: 'Behavioural patterns',
+        items: [
+          { name: 'Strategy', simple: 'Choosing a route on a map app: fastest, shortest or no tolls. Swap the plan without changing the app; often a lambda.' },
+          { name: 'Observer', simple: 'Subscribing to a channel: when something new happens, every subscriber gets told automatically.' },
+          { name: 'Command', simple: 'A restaurant order slip: the request becomes an object you can queue, log or cancel, like a `Runnable`.' },
+          { name: 'Template Method', simple: 'A fill-in-the-blanks form: the order of steps is fixed, and you only fill in some of them.' },
+        ],
+      },
     ],
     confusion: {
       mixedUpWith: 'a framework or library',

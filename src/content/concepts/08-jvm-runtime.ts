@@ -3,6 +3,19 @@ import type { LessonConcepts } from '@/types/curriculum';
 /** Concept pages for module 8 (JVM Runtime), keyed by lesson id. */
 export const jvmRuntimeConcepts: Record<string, LessonConcepts> = {
   'r-memory-areas': {
+    textbook: {
+      definition:
+        'The **run-time data areas** of the Java Virtual Machine are the memory regions that the JVM uses while executing a program, as defined by the JVM Specification. Some are created per thread when the thread starts and destroyed when it terminates: the **pc register**, the **Java Virtual Machine stack** of frames and the native method stack. Others are created at JVM start-up and shared by all threads: the **heap**, from which all class instances and arrays are allocated and whose storage is reclaimed by automatic storage management, and the **method area**, which stores per-class structures including the **run-time constant pool**.',
+      terms: [
+        { term: 'pc register', meaning: 'A per-thread register holding the address of the JVM instruction currently being executed; its value is undefined while the thread runs a native method.' },
+        { term: 'Java Virtual Machine stack', meaning: 'A per-thread stack of frames; a new frame is pushed for each method invocation and popped when the invocation completes.' },
+        { term: 'Frame', meaning: 'The per-invocation structure that holds a method\'s local variables, its operand stack and a reference to the run-time constant pool of its class.' },
+        { term: 'Heap', meaning: 'The shared area from which memory for all class instances and arrays is allocated; it is reclaimed by a garbage collector, never explicitly.' },
+        { term: 'Method area', meaning: 'The shared area storing per-class structures such as field and method data and method code; HotSpot implements it as Metaspace in native memory.' },
+        { term: 'Run-time constant pool', meaning: 'The per-class run-time form of the class file\'s constant pool, holding literals and symbolic references that are resolved as code runs.' },
+      ],
+      source: 'JVMS §2.5 (Run-Time Data Areas) and §2.6 (Frames)',
+    },
     interviewDefinition:
       'The JVM divides memory into **per-thread** areas — a program counter, a JVM stack of frames (locals, operand stack) and a native method stack — and **shared** areas: the garbage-collected **heap** for objects and arrays, and the **method area** (Metaspace in HotSpot) for class metadata and run-time constant pools. HotSpot adds a **code cache** for JIT-compiled code. Execution starts in the interpreter; tiered JIT compilation (C1, then C2) turns hot methods into optimised machine code using run-time profiles.',
     interviewFollowUps: [
@@ -59,6 +72,14 @@ export const jvmRuntimeConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Per-thread and shared memory',
         caption: 'Every thread gets its own stack of frames; all threads share one heap. Frames hold references, the objects themselves are always on the heap, and each object points to its class metadata in Metaspace.',
+        explanation: [
+          'The top row is the **Per thread** group. **Thread 1 stack** and **Thread 2 stack** each hold one frame per active method call, with its locals and operands, plus the thread\'s own PC register.',
+          'The arrows labelled references show that frames hold only references. The objects they point to always live on the shared **Heap**, which the garbage collector manages.',
+          'A **Virtual thread** is cheaper: when it is unmounted (parked), its stack chunks are stored on the heap as ordinary objects, which is why its arrow reads when unmounted.',
+          'Every heap object carries a class pointer to its class metadata in **Metaspace**, which lives in native memory outside the heap.',
+          'The rest of the **Shared by all threads** group is the **Code cache**, where JIT-compiled machine code is installed, and **Direct buffers**, off-heap memory used by NIO and network libraries.',
+          'Takeaway: stacks are private and short-lived, everything else is shared by all threads, and several shared areas sit outside the heap.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -86,6 +107,14 @@ export const jvmRuntimeConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Tiered compilation in HotSpot',
         caption: 'Code starts interpreted, gets a quick C1 compile that gathers profiles, and only the hottest methods reach C2. If a speculative assumption breaks, the JVM deoptimises back to the interpreter and the cycle starts again.',
+        explanation: [
+          'Execution begins with **Bytecode** from the class file, which the **Interpreter** (tier 0) runs directly while counting method calls and loop iterations.',
+          'When a method becomes warm, it is compiled by **C1 with profiling** (tier 3): quick native code that also records branch frequencies and receiver types.',
+          'Small getter-like methods take the side path to **C1 tier 1**, fully compiled without profiling, because C2 could not make them any faster.',
+          'Once a method is hot and profiled, **C2** (tier 4) compiles it aggressively with inlining and escape analysis, and installs the machine code in the **Code cache**.',
+          'The dashed uncommon trap arrow covers broken speculation: if one of C2\'s assumptions fails, the JVM must **Deoptimise**, discard the compiled code and resume in the interpreter.',
+          'Takeaway: compilation is adaptive and reversible, and code climbs the tiers according to how the program actually behaves at run time.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -112,6 +141,14 @@ export const jvmRuntimeConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'What fills a container\'s memory limit',
         caption: 'The heap is only one tenant. Everything in the native group comes on top of -Xmx, so leave roughly a quarter of the container limit for it.',
+        explanation: [
+          'At the top is the **Container memory limit**, the cgroup budget that the JVM has read since Java 10. It must cover the whole process, not just the heap.',
+          'About 75% goes to the **Heap**, sized by -Xmx or MaxRAMPercentage. When the heap is exhausted, Java throws **OOM: Java heap space**, an ordinary exception you can see in logs.',
+          'The native memory group lists the other tenants: **Metaspace**, **Thread stacks**, **Code cache**, **Direct buffers** and **GC structures** such as remembered sets and marking bitmaps.',
+          'None of these count towards -Xmx. If they push the process past the limit, the container kills the JVM without any Java exception, which is much harder to diagnose.',
+          'The **Measure it** note names the tool: with Native Memory Tracking enabled, `jcmd VM.native_memory` reports how much each native area uses.',
+          'Takeaway: leave roughly a quarter of the container limit for native memory instead of setting -Xmx equal to the limit.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -199,6 +236,18 @@ export const jvmRuntimeConcepts: Record<string, LessonConcepts> = {
   },
 
   'r-class-loading': {
+    textbook: {
+      definition:
+        '**Class loading** is the process by which the Java Virtual Machine finds the binary representation of a class or interface with a given name and creates from it a `Class` object. It is performed by a **class loader**, either the bootstrap loader or an instance of `java.lang.ClassLoader`, which by convention applies **parent delegation**. Loading is followed by **linking**, comprising verification, preparation and resolution of symbolic references, and then by **initialisation**, the execution of the class\'s static initialisers. At run time a class is identified by its binary name together with its **defining loader**.',
+      terms: [
+        { term: 'Class loader', meaning: 'An object, or the JVM-internal bootstrap loader, responsible for locating the bytes of a class and defining a `Class` from them.' },
+        { term: 'Parent delegation', meaning: 'The convention by which a class loader first asks its parent loader to load a class and searches its own sources only if the parent fails.' },
+        { term: 'Linking', meaning: 'Combining a loaded class into the run-time state of the JVM: verification of its bytecode, preparation of its static fields and resolution of symbolic references.' },
+        { term: 'Initialisation', meaning: 'Execution of a class\'s class initialisation method, which runs static field initialisers and static blocks once, on the first active use.' },
+        { term: 'Defining loader', meaning: 'The class loader that actually created a class; two classes with the same name but different defining loaders are distinct types.' },
+      ],
+      source: 'JVMS chapter 5 (§5.3-§5.5); JLS §12.2-§12.4; Javadoc for java.lang.ClassLoader',
+    },
     interviewDefinition:
       'Class loading is how the JVM turns a class name into a usable `Class`: a **class loader** finds the bytes (**loading**), the JVM **links** them (verification, preparation of static fields, lazy resolution of references) and finally **initialises** the class by running its static initialisers once, on first active use. Loaders form a **parent-delegation** hierarchy — bootstrap, platform, application — and a class\'s runtime identity is its name **plus** its defining loader.',
     interviewFollowUps: [
@@ -259,6 +308,14 @@ export const jvmRuntimeConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'The class loader hierarchy',
         caption: 'Arrows point to the parent each loader asks first. Requests travel up; only if every parent fails does the requesting loader search its own sources.',
+        explanation: [
+          'Read the parent arrows bottom-up: each points to the loader that is asked first. The **Custom loaders** group holds a **Web app loader** per deployment and a **Plugin loader** such as URLClassLoader.',
+          'Both custom loaders delegate to the **Application loader**, which loads your classpath and module path and is the default parent for new loaders.',
+          'The application loader asks the **Platform loader**, which defines the other Java SE and JDK modules, such as java.sql and java.net.http.',
+          'At the top sits the **Bootstrap loader**, built into the JVM, which defines core classes such as String and List from java.base.',
+          'The dashed link to **Appears as null** explains a quirk: the bootstrap loader has no Java object, so `getClassLoader()` returns null for core classes.',
+          'Takeaway: requests travel up first, so core classes cannot be replaced, and a loader searches its own sources only when all its parents fail.',
+        ],
         cols: 3,
         rows: 4,
         nodes: [
@@ -286,6 +343,14 @@ export const jvmRuntimeConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Loading, linking, initialisation — and what fails where',
         caption: 'The top row is the life of a class; the bottom row is the error each step raises. Resolution is lazy, which is why NoClassDefFoundError can appear long after start-up.',
+        explanation: [
+          'The top row is the life of a class. **Loading** finds the bytes and creates the Class object; an explicit lookup by name that finds nothing throws **ClassNotFoundException**.',
+          'The **Linking** group covers the next three steps. **Verification** checks that the bytecode is structurally valid and type-safe, and malformed bytecode raises a **VerifyError**.',
+          '**Preparation** allocates the static fields and sets them to default values such as 0 and null. No user code runs yet.',
+          '**Resolution** turns symbolic references into direct ones, lazily on first use. A class present at compile time but missing now raises **NoClassDefFoundError**, possibly long after start-up.',
+          'On the first active use, **Initialisation** runs the static initialisers exactly once. If one throws, the JVM wraps the failure in **ExceptionInInitializerError** and the class becomes unusable.',
+          'Takeaway: each dashed arrow maps a phase to its error, so the error name tells you which step failed.',
+        ],
         cols: 5,
         rows: 2,
         nodes: [
@@ -316,6 +381,14 @@ export const jvmRuntimeConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'How one reference leaks a whole application',
         caption: 'A long-lived thread from the shared server keeps one object of the old deployment alive. Its class keeps its loader alive, and the loader keeps every class it defined in Metaspace.',
+        explanation: [
+          'Start at the **Server thread pool**, which belongs to the server and outlives every application deployment.',
+          'A pooled thread still holds a **ThreadLocal value** that was never removed, and that value points to a **UserContext object** created by the old deployment.',
+          'Every object knows its class, so the object keeps the **UserContext class** alive, and the class keeps its defining loader, the **Old web app loader**, reachable even though the application was stopped.',
+          'That loader holds **All its classes**, so the whole old deployment stays stuck in Metaspace. The red group marks everything that should have been garbage.',
+          'The **Fix** note is the cure: call `remove()` on the ThreadLocal in a finally block, which breaks the chain at its first link.',
+          'Takeaway: one stray reference from a long-lived thread can pin an entire class loader, and repeated redeploys then exhaust Metaspace.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -395,6 +468,18 @@ export const jvmRuntimeConcepts: Record<string, LessonConcepts> = {
   },
 
   'r-gc': {
+    textbook: {
+      definition:
+        '**Garbage collection** is the automatic reclamation of heap storage occupied by objects that are no longer **reachable**, that is, objects that cannot be accessed in any potential continuing computation from any live thread. The JVM Specification requires heap storage to be reclaimed by an automatic storage management system but does not prescribe the technique. HotSpot\'s collectors are **tracing collectors**, which determine liveness by following references from a set of **GC roots**, and most are **generational**, partitioning the heap by object age. Collectors differ in how they trade throughput, pause time and memory footprint.',
+      terms: [
+        { term: 'Reachable object', meaning: 'An object that can be accessed in any potential continuing computation from any live thread; only unreachable objects may be reclaimed.' },
+        { term: 'GC roots', meaning: 'References the collector treats as live by definition, such as local variables in active frames, static fields and JNI handles.' },
+        { term: 'Tracing collector', meaning: 'A collector that marks every object reachable from the roots and reclaims the rest, so unreachable cycles are collected as well.' },
+        { term: 'Generational collection', meaning: 'Dividing the heap into young and old generations and collecting the young one more often, because most objects die young.' },
+        { term: 'Stop-the-world pause', meaning: 'An interval during which all application threads are suspended at a safepoint so that the collector can work.' },
+      ],
+      source: 'JVMS §2.5.3; JLS §12.6; HotSpot Virtual Machine Garbage Collection Tuning Guide',
+    },
     interviewDefinition:
       'Garbage collection automatically reclaims heap objects that are no longer **reachable** from GC roots (live stack frames, static fields, JNI handles). HotSpot\'s collectors are tracing and mostly **generational**: young objects are collected cheaply by copying survivors, long-lived ones are promoted. Collectors trade **throughput, pause time and memory footprint** — G1 is the default, ZGC and Shenandoah compact concurrently for sub-millisecond pauses. A Java memory leak is reachable-but-useless data, which no collector can free.',
     interviewFollowUps: [
@@ -452,6 +537,14 @@ export const jvmRuntimeConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Reachable, leaked and garbage',
         caption: 'The GC keeps everything reachable from roots — including the stale cache entry nobody needs (a leak). The two objects that only reference each other are garbage despite the cycle.',
+        explanation: [
+          'The top row is the **GC roots** group: a **Stack local** variable in a running method and a **Static field**. The collector starts tracing from roots like these.',
+          'From the stack local it reaches **Order**, and from Order it reaches **LineItem**. Both are live and in use, so both are kept.',
+          'From the static field it reaches the **Cache map**, and through the arrow labelled leak a **Stale entry** that nobody will ever read again.',
+          'The stale entry is still reachable, so no collector may free it. That is what a Java memory leak is: reachable but useless data.',
+          '**Session A** and **Session B** reference each other in a cycle, but no root leads to them, so they sit in the **Garbage** group and are reclaimed despite the cycle.',
+          'Takeaway: reachability from roots decides what survives, not whether the object is useful and not how many references point at it.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -481,6 +574,14 @@ export const jvmRuntimeConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'The life of an object in a generational heap',
         caption: 'Most objects die in Eden and cost nothing to reclaim. Survivors are copied between survivor spaces and promoted to the old generation after enough collections.',
+        explanation: [
+          '**new Order()** allocates the object with a fast pointer bump in the thread\'s TLAB, placing it in **Eden**, part of the **Young generation** group.',
+          'The dashed arrow shows the common case: most objects die young, and objects that are **Dead in Eden** are reclaimed wholesale when Eden is emptied, at almost no cost.',
+          'A young GC copies the few live objects into the **Survivor spaces**, where they age by one each time they survive another collection.',
+          'After surviving N collections an object is promoted to the **Old generation**, which is collected far less often.',
+          'The old generation is cleaned by an **Old collection**, such as a G1 mixed collection or concurrent ZGC work, which costs more per object.',
+          'Takeaway: young collections cost in proportion to what survives, so short-lived objects are cheap and middle-aged ones are expensive.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -505,6 +606,14 @@ export const jvmRuntimeConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Choosing a collector',
         caption: 'Start from the default and move only for a measured reason. Each question is about the goal that matters most for the workload.',
+        explanation: [
+          'Start at **Tiny heap, 1 CPU?** For a small container or a command-line tool the answer is yes: choose **Serial**, which has the lowest overhead.',
+          'Otherwise ask **Throughput only?** For batch jobs where pauses do not matter, **Parallel** uses all cores to finish each collection as fast as possible.',
+          'If not, ask **Strict latency?** Services that need tiny pauses or have very large heaps choose **Generational ZGC**, whose pauses stay under a millisecond.',
+          'The dashed two-way arrow marks **Shenandoah** as an equivalent low-pause alternative, available in most OpenJDK builds but not in Oracle JDK.',
+          'If every answer is no, stay with **G1 (default)**, which balances throughput and pause time around a pause-time goal.',
+          'Takeaway: begin with the default and switch only when GC logs and latency measurements give you a reason.',
+        ],
         cols: 3,
         rows: 4,
         nodes: [
@@ -550,6 +659,18 @@ export const jvmRuntimeConcepts: Record<string, LessonConcepts> = {
           { name: 'Soft', summary: 'Cleared at the GC\'s discretion when memory is needed, and guaranteed to be cleared before an OutOfMemoryError. Tempting for caches, but makes memory use and GC behaviour hard to predict.', support: 'supported', code: 'new SoftReference<>(image)' },
           { name: 'Weak', summary: 'Cleared as soon as the object is only weakly reachable, at the next collection that notices. Basis of WeakHashMap and canonicalising maps.', support: 'supported', code: 'new WeakReference<>(listener)' },
           { name: 'Phantom', summary: 'get() always returns null; the reference is enqueued after the object becomes unreachable, to trigger clean-up of native resources. Since Java 9, Cleaner wraps this pattern and is the replacement for finalize().', support: 'supported', code: 'Cleaner.create().register(obj, cleanupAction);' },
+        ],
+      },
+      {
+        title: 'Garbage collection algorithms',
+        intro: 'The classic techniques that real collectors combine. HotSpot collectors are all tracing collectors.',
+        items: [
+          { name: 'Mark-sweep', summary: 'Marks every object reachable from the roots, then sweeps the heap and frees the unmarked ones. Objects do not move, so free space becomes fragmented.', note: 'CMS, removed in Java 14, was mainly mark-sweep.' },
+          { name: 'Mark-compact', summary: 'Marks live objects, then slides them together so free memory forms one contiguous block. No fragmentation, but moving objects and updating references takes time.', note: 'Used for old-generation and full collections by Serial, Parallel and G1.' },
+          { name: 'Copying (evacuation)', summary: 'Copies live objects out of a space and then reclaims the whole space at once. Cost depends only on the live data, but spare space is needed to copy into.', note: 'Used for young collections by every generational HotSpot collector.' },
+          { name: 'Generational', summary: 'Splits the heap by age and collects the young generation often and the old generation rarely, based on the weak generational hypothesis that most objects die young.' },
+          { name: 'Concurrent', summary: 'Does most marking, and in some collectors compaction, while application threads keep running, using read or write barriers to stay consistent. Shortens pauses at the cost of extra CPU.', note: 'G1 marks concurrently; ZGC and Shenandoah also relocate objects concurrently.' },
+          { name: 'Reference counting', summary: 'Keeps a count of references to each object and frees it when the count drops to zero. Simple, but cannot reclaim cycles without an extra cycle detector.', support: 'not-supported', note: 'Not used by HotSpot; CPython and Swift use it.' },
         ],
       },
     ],

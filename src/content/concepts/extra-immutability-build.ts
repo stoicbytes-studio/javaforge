@@ -3,6 +3,18 @@ import type { LessonConcepts } from '@/types/curriculum';
 /** Concept pages for the extra lessons o-immutability and p-build-tools, keyed by lesson id. */
 export const immutabilityBuildConcepts: Record<string, LessonConcepts> = {
   'o-immutability': {
+    textbook: {
+      definition:
+        'An object is **immutable** if its state cannot be modified after construction. In Java, a class is immutable when it prevents subclassing, declares all fields `private` and `final`, provides no methods that modify state, and ensures exclusive access to any mutable components through **defensive copying**. A properly constructed immutable object, one whose `this` reference does not escape during construction, is inherently **thread-safe**: by the **final field semantics** of the Java Memory Model, every thread sees its initialised state without synchronisation. Immutability is distinct from **unmodifiability**, which only restricts a particular reference from performing writes.',
+      terms: [
+        { term: 'Defensive copy', meaning: 'A copy of a mutable argument or field made by a class so that callers cannot modify the class\'s internal state through a shared reference.' },
+        { term: 'Final field semantics', meaning: 'The JLS guarantee that a thread which sees a reference to a properly constructed object also sees the values its constructor assigned to its `final` fields.' },
+        { term: 'Unmodifiable', meaning: 'Rejecting modification through a particular reference, typically by throwing `UnsupportedOperationException`, without guaranteeing that the underlying data never changes.' },
+        { term: 'Shallow copy', meaning: 'A new container or object that holds the same references to its elements or sub-objects as the original.' },
+        { term: 'Deep copy', meaning: 'A copy that also duplicates the referenced mutable objects, so no mutable state is shared with the original.' },
+      ],
+      source: 'JLS §17.5; Effective Java, 3rd edition, Items 17 and 50; Java Concurrency in Practice, chapter 3',
+    },
     interviewDefinition:
       'An **immutable** object\'s observable state cannot change after construction. In Java that means a `final` class (or private constructors), `private final` fields, no mutators, and **defensive copies** of mutable data both when it comes in and when it goes out. Immutable objects are thread-safe without locks, safe as hash keys and freely shareable. Copying is shallow (shared elements) or deep (copied elements); prefer copy constructors, static factories, builders and withers over `clone()`.',
     interviewFollowUps: [
@@ -68,6 +80,13 @@ export const immutabilityBuildConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Defensive copies in, read-only data out',
         caption: 'The caller keeps its own mutable list, so the constructor stores an unmodifiable copy. Later edits to the caller\'s list have no effect, and attempts to modify through the getter throw.',
+        explanation: [
+          'On the left the **Caller\'s list** is an ordinary mutable ArrayList. Following the arrow labelled copy in, the **Constructor** calls `List.copyOf(input)` instead of keeping the caller\'s reference.',
+          'The copy is stored in a **private final field**, inside the group **Inside the immutable class**. It is unmodifiable and nobody outside holds a reference to it.',
+          'The **Getter** returns that same unmodifiable copy, so reading it costs nothing extra; the arrow labelled read-only out shows data leaving safely.',
+          'If the caller later runs **input.add("x")** on its original list, the dashed arrow labelled no effect leads to **Object unchanged**, because the object holds an independent copy.',
+          'If a caller tries **members().add("x")** through the getter, the list throws UnsupportedOperationException. Takeaway: copy on the way in, expose read-only data on the way out.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -94,6 +113,13 @@ export const immutabilityBuildConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Turning a class immutable, step by step',
         caption: 'Each step closes one way the state could change: subclassing, reassignment, mutator methods, aliasing through inputs, and aliasing through outputs.',
+        explanation: [
+          'Step one, **final class**, stops anyone writing a subclass that adds mutable state or overrides methods.',
+          'Step two, **private final fields**, means each field is assigned exactly once, in the constructor, and is invisible from outside.',
+          'Step three, **No setters**: methods that would change state are replaced by withers that return a new object.',
+          'If any field refers to a mutable object (the arrow labelled mutable fields?), **Copy inputs** in the constructor, copying first and validating the copy, and **Guard outputs** by returning unmodifiable views or copies.',
+          'The result is an **Immutable object** that can be shared freely across threads. Takeaway: each step closes one way state could change.',
+        ],
         cols: 3,
         rows: 2,
         nodes: [
@@ -117,6 +143,13 @@ export const immutabilityBuildConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'Shallow copy versus deep copy',
         caption: 'A shallow copy is a new container holding the same element references, so writing through it changes what the original sees. A deep copy also duplicates the elements.',
+        explanation: [
+          'The **Original list** holds a reference to one array, **int[] {1, 2}**.',
+          'A **Shallow copy**, made with `new ArrayList<>(orig)`, is a new list but holds the same reference, so both lists sit in the group **Shares elements**.',
+          'So when code runs **copy.get(0)[0] = 99** through the copy, the dashed arrow shows the original sees 99 too, because there is only one array.',
+          'A **Deep copy** also copies each element, so its arrow points to a separate int[] {1, 2}, its own array object, in the group **Independent**.',
+          'Writes through the deep copy change only that array: **Writes stay local**. Takeaway: a shallow copy is enough only when the elements themselves are immutable.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -142,6 +175,16 @@ export const immutabilityBuildConcepts: Record<string, LessonConcepts> = {
       },
     ],
     variants: [
+      {
+        title: 'Degrees of immutability',
+        intro: 'Not every "read-only" object gives the same guarantee; these terms come from Effective Java and Java Concurrency in Practice.',
+        items: [
+          { name: 'Deeply immutable', summary: 'No reachable state can ever change: all fields are final and refer only to immutable objects or defensively copied data.', support: 'supported', note: 'String, Integer, LocalDate and records of immutable components.', code: 'record Money(String currency, long cents) {}' },
+          { name: 'Shallowly immutable', summary: 'Fields cannot be reassigned, but they refer to objects that can still change.', support: 'partial', note: 'A record with a List or array component is only shallowly immutable unless it copies in the compact constructor.', code: 'record Team(List<String> members) {} // list still mutable' },
+          { name: 'Effectively immutable', summary: 'Technically mutable, but never modified after it is safely published, so it can be shared without locks.', support: 'partial', note: 'Safe only if publication is safe (final field, volatile, concurrent collection) and nobody writes later.' },
+          { name: 'Unmodifiable view', summary: 'Writes through this reference throw, but the backing data can still change through another reference.', support: 'partial', note: 'Collections.unmodifiableList; the reader may observe changes.', code: 'Collections.unmodifiableList(list)' },
+        ],
+      },
       {
         title: 'Ways to copy an object',
         intro: 'Java has no universal deep-copy operation; you choose how deep each field is copied.',
@@ -267,6 +310,19 @@ export const immutabilityBuildConcepts: Record<string, LessonConcepts> = {
     ],
   },
   'p-build-tools': {
+    textbook: {
+      definition:
+        'A **build automation tool** is a program that transforms a project\'s source code and declared dependencies into deliverable artifacts by executing a defined sequence of steps, such as compiling, testing, packaging and publishing, in a reproducible way. In the Java ecosystem, **Apache Maven** describes a project with a declarative **Project Object Model** and runs a fixed **build lifecycle** of ordered phases, while **Gradle** executes a directed acyclic graph of tasks configured by a script. Both identify artifacts by **coordinates** (group, artifact, version), download them from **repositories**, and resolve **transitive dependencies** into a single classpath.',
+      terms: [
+        { term: 'Project Object Model (POM)', meaning: 'Maven\'s XML description of a project, in `pom.xml`: its coordinates, dependencies, plugins and inherited configuration.' },
+        { term: 'Build lifecycle', meaning: 'Maven\'s ordered sequence of phases; invoking a phase executes every preceding phase and the plugin goals bound to each.' },
+        { term: 'Coordinates', meaning: 'The `groupId:artifactId:version` triple that uniquely identifies an artifact in a repository.' },
+        { term: 'Transitive dependency', meaning: 'A library required not by the project directly but by one of its dependencies, which the build tool resolves automatically.' },
+        { term: 'Repository', meaning: 'A store of versioned artifacts and their metadata, either remote, such as Maven Central, or a local cache on the developer\'s machine.' },
+        { term: 'Dependency scope', meaning: 'A Maven classification, mirrored by Gradle configurations, that states on which classpaths a dependency appears and whether it is passed to consumers.' },
+      ],
+      source: 'Apache Maven: Introduction to the Build Lifecycle and Introduction to the Dependency Mechanism; Gradle User Manual',
+    },
     interviewDefinition:
       'A **build tool** turns a declarative project description into repeatable work: resolve dependencies (including transitive ones) from repositories, compile, test, package and publish. **Maven** uses an XML `pom.xml`, artifact coordinates (`groupId:artifactId:version`), a fixed lifecycle of phases bound to plugin goals, and dependency scopes; it resolves version conflicts by **nearest wins**. **Gradle** uses a Kotlin or Groovy DSL, a task graph with incremental builds and caching, and configurations such as `implementation` and `api`; it picks the **highest** conflicting version by default.',
     interviewFollowUps: [
@@ -328,6 +384,13 @@ export const immutabilityBuildConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'What a build tool does with one build file',
         caption: 'The build file declares coordinates and dependencies. Libraries are downloaded once from a remote repository into a local cache, then placed on the classpath for compiling, testing and packaging.',
+        explanation: [
+          'Everything starts from one build file, **pom.xml or build.gradle.kts**, which declares the project\'s coordinates, dependencies and plugins and, as the arrow labelled drives shows, controls the build.',
+          'Libraries come from a remote repository such as **Maven Central**. The arrow labelled download once shows each one stored in the **Local cache** (~/.m2 or ~/.gradle), so later builds work offline and fast.',
+          'From the cache, libraries are put on the classpath for **Compile**, where javac builds your code against them.',
+          'The **Build steps** group then runs **Test** (JUnit via Surefire) and **Package**, which produces a JAR such as billing-1.4.0.jar.',
+          'Finally **Publish** installs the artifact locally or deploys it to a remote repository. Takeaway: one declarative file gives a repeatable path from source to published artifact.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -354,6 +417,13 @@ export const immutabilityBuildConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'The Maven default lifecycle',
         caption: 'Phases always run in this order, and invoking one runs every phase before it: mvn install executes validate through install. Plugin goals bound to each phase do the actual work.',
+        explanation: [
+          'The note **mvn install** is the command you type; the dashed arrow labelled starts here shows Maven always begins at **validate**, which checks that the POM is correct.',
+          '**compile** builds src/main/java. Before **test**, Maven also compiles the test sources (test-compile first), then runs the unit tests with Surefire; a failure stops the build.',
+          '**package** bundles the classes into a JAR or WAR in target/, and **verify** runs integration tests and quality checks on that package.',
+          '**install** copies the artifact into ~/.m2/repository and, because install was the requested phase, the build stops there; **deploy**, which uploads to a remote repository, does not run.',
+          'Takeaway: phases always run in this order, and asking for one phase runs every phase before it.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -381,6 +451,13 @@ export const immutabilityBuildConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Nearest wins: resolving a version conflict',
         caption: 'Two versions of json are requested. Maven keeps the one nearest to the project (1.1, one hop) and omits 1.4 (two hops). Gradle\'s default would choose the highest version, 1.4.',
+        explanation: [
+          'Your project, **app:1.0**, depends directly on **web:2.0** and, through the arrow labelled direct, on **json:1.1**.',
+          '**web:2.0** brings its own dependencies: **log:3.0** and, along the dashed transitive arrow, **json:1.4**. Now two versions of json are requested, but the classpath can hold only one.',
+          'Maven applies nearest wins: json:1.1 is one hop from the project and json:1.4 is two hops away, so 1.1 is chosen and 1.4 is omitted.',
+          'Gradle would instead pick the highest version, 1.4, by default. If web:2.0 needs methods only in 1.4, Maven\'s choice fails at run time with NoSuchMethodError.',
+          'Takeaway: make the version decision explicit with dependencyManagement, a BOM or a Gradle constraint, and inspect it with the dependency tree.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [

@@ -11,6 +11,27 @@ export const dsaMemory: Record<string, MemoryAid> = {
       'Common orders from best to worst: O(1), O(log n), O(n), O(n log n), O(n^2), O(2^n).',
       '`ArrayList.add` is amortised O(1): usually instant, with a rare O(n) copy when the array grows.',
     ],
+    types: [
+      {
+        title: 'Common complexity classes',
+        items: [
+          { name: 'O(1), constant', simple: 'Same effort however big the input, like opening a locker when you already know its number.' },
+          { name: 'O(log n), logarithmic', simple: 'Halve the problem each step, like finding a name by opening a phone book in the middle.' },
+          { name: 'O(n), linear', simple: 'Look at every item once, like knocking on every door in one street.' },
+          { name: 'O(n log n), linearithmic', simple: 'The cost of a good sort: a bit more than one pass, like sorting a deck by merging small piles.' },
+          { name: 'O(n^2), quadratic', simple: 'Every item meets every other, like every guest at a party shaking hands with everyone else.' },
+          { name: 'O(2^n), exponential', simple: 'Trying every combination, like testing every possible pizza topping mix. Hopeless past a few dozen items.' },
+        ],
+      },
+      {
+        title: 'Kinds of analysis',
+        items: [
+          { name: 'Worst case', simple: 'The slowest it can ever be, like planning your commute for the worst traffic jam.' },
+          { name: 'Average case', simple: 'What usually happens over typical inputs, like your normal journey time to work.' },
+          { name: 'Amortised', simple: 'The cost spread over many operations, like an annual bus pass averaged over every trip you take.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: 'actual running speed',
       difference: 'Big-O predicts how cost grows, not real time. An O(n) loop can be slower than an O(n log n) one for small inputs, so you still measure.',
@@ -39,6 +60,29 @@ export const dsaMemory: Record<string, MemoryAid> = {
       'Pick the structure by the operation you do most: by position, by key, in order, or from the ends.',
       'Java defaults: `ArrayList`, `HashMap`, `TreeMap`, `ArrayDeque` for stacks and queues, and `PriorityQueue` for "smallest first".',
       'Every structure trades costs: a `HashMap` finds keys fast but keeps no order, a `TreeMap` keeps order at O(log n).',
+    ],
+    types: [
+      {
+        title: 'Linear vs non-linear structures',
+        items: [
+          { name: 'Array', simple: 'An egg carton with numbered slots: jump straight to slot 7, but squeezing one in the middle means shifting.' },
+          { name: 'Linked list', simple: 'A treasure hunt where each clue points to the next one; easy to insert, slow to reach clue 50.' },
+          { name: 'Stack', simple: 'A pile of plates: you add and take from the top only. Last in, first out.' },
+          { name: 'Queue', simple: 'The line at a bakery: first to arrive is first served.' },
+          { name: 'Tree', simple: 'A family tree or folder hierarchy: one root, each item with its own children.' },
+          { name: 'Heap', simple: 'A hospital waiting list where the most urgent patient is always seen next.' },
+          { name: 'Hash table', simple: 'A coat check: hand over your ticket number and get your coat straight away.' },
+          { name: 'Graph', simple: 'A map of cities joined by roads, where any city can link to any other.' },
+        ],
+      },
+      {
+        title: 'Types of trees',
+        items: [
+          { name: 'Binary search tree', simple: 'A guessing game: smaller goes left, bigger goes right, so each question halves the search.' },
+          { name: 'Balanced tree (red-black)', simple: 'A BST that tidies itself so it never gets lopsided; `TreeMap` uses one.' },
+          { name: 'Trie (prefix tree)', simple: 'A word tree one letter per step, like the autocomplete on your phone keyboard.' },
+        ],
+      },
     ],
     confusion: {
       mixedUpWith: '`HashMap` and `TreeMap`',
@@ -70,6 +114,35 @@ export const dsaMemory: Record<string, MemoryAid> = {
       'Binary search only works on sorted data that you can jump into by position, like an array.',
       'Good comparison sorts take O(n log n); simple ones like insertion sort take O(n^2) in the worst case.',
       'Java sorts objects with TimSort, which is stable, and primitive arrays with dual-pivot quicksort.',
+    ],
+    types: [
+      {
+        title: 'Sorting algorithms',
+        items: [
+          { name: 'Insertion sort', simple: 'Sorting a hand of cards by sliding each new card into its place. Great when almost sorted.' },
+          { name: 'Merge sort', simple: 'Two teachers each sort half the exam papers, then merge their piles. Always O(n log n) and stable.' },
+          { name: 'Quick sort', simple: 'Pick a pivot, put smaller items left and bigger right, repeat on each side. Fast but not stable.' },
+          { name: 'Heap sort', simple: 'Keep lifting the biggest parcel off a pyramid pile; steady speed, no extra space.' },
+          { name: 'Counting sort', simple: 'Tally marks in pigeonholes for each value, like counting votes; no comparisons at all.' },
+          { name: 'TimSort', simple: 'Java\'s object sort: spots already-sorted stretches and merges them, so tidy data sorts very fast.' },
+        ],
+      },
+      {
+        title: 'Search algorithms',
+        items: [
+          { name: 'Linear search', simple: 'Checking every drawer until you find your keys. Works on anything, but slow for big piles.' },
+          { name: 'Binary search', simple: 'Opening a sorted dictionary in the middle and throwing away the wrong half each time.' },
+          { name: 'Hash lookup', simple: 'Going straight to the right pigeonhole by name, with no searching at all.' },
+        ],
+      },
+      {
+        title: 'Ways to classify sorting algorithms',
+        items: [
+          { name: 'Stable vs unstable', simple: 'A stable sort keeps people with the same score in their original queue order.' },
+          { name: 'In-place vs extra space', simple: 'Sorting books on the shelf itself, versus needing a second empty shelf to help.' },
+          { name: 'Comparison vs non-comparison', simple: 'Comparing two items at a time, versus dropping each item straight into a labelled bucket by its value.' },
+        ],
+      },
     ],
     confusion: {
       mixedUpWith: 'stable and unstable sorting',
@@ -104,6 +177,29 @@ export const dsaMemory: Record<string, MemoryAid> = {
       'Clues pick the pattern: seen before means hash, sorted means two pointers, top k means heap.',
       'Size limits are clues too: with about 100,000 items, an O(n^2) solution is too slow.',
     ],
+    types: [
+      {
+        title: 'Core problem-solving patterns',
+        items: [
+          { name: 'Hashing', simple: 'Remember what you have seen in a notebook so you never search again, like a guest list at the door.' },
+          { name: 'Two pointers', simple: 'Two fingers moving through a sorted list from both ends until they meet.' },
+          { name: 'Sliding window', simple: 'A caterpillar crawling along: the head moves forward, the tail catches up when needed.' },
+          { name: 'Prefix sums', simple: 'Running totals on a receipt, so any range total is one subtraction.' },
+          { name: 'BFS', simple: 'Ripples in a pond: explore everything one step away, then two steps, so you find the shortest route.' },
+          { name: 'DFS and backtracking', simple: 'Walking a maze: follow one path to the end, then step back and try the next turn.' },
+          { name: 'Heap / top-k', simple: 'Keep a small podium of the best k so far and kick off the weakest when someone better arrives.' },
+          { name: 'Greedy', simple: 'Always grab the best-looking option right now, like paying with the biggest coin first; works only when provably safe.' },
+        ],
+      },
+      {
+        title: 'Two-pointer variants',
+        items: [
+          { name: 'Opposite ends', simple: 'Two people walking toward each other from both ends of a sorted line.' },
+          { name: 'Slow and fast', simple: 'A tortoise and a hare on the same track; if there is a loop, the hare catches the tortoise.' },
+          { name: 'Two sequences', simple: 'One finger on each of two sorted lists, merging them like shuffling two sorted card piles.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: 'memorising solutions',
       difference: 'Memorising answers only helps for the exact same problem. Learning patterns helps you recognise new problems that share the same shape.',
@@ -136,6 +232,25 @@ export const dsaMemory: Record<string, MemoryAid> = {
       'Every recursive method needs a base case that answers directly, or it ends with `StackOverflowError`.',
       'Dynamic programming fits when the same smaller problems repeat and their best answers build the big answer.',
       'Top-down DP is recursion plus a memo; bottom-up DP fills a table from the base cases upward.',
+    ],
+    types: [
+      {
+        title: 'Types of recursion',
+        items: [
+          { name: 'Direct recursion', simple: 'A method calls itself, like a Russian doll that contains a smaller copy of itself.' },
+          { name: 'Indirect (mutual) recursion', simple: 'Two methods call each other in turn, like two friends passing a message back and forth.' },
+          { name: 'Tail recursion', simple: 'The call to itself is the very last thing done; Java still uses a stack frame for it.' },
+          { name: 'Tree recursion', simple: 'Each call makes several calls, like a family tree branching out; it can explode in size.' },
+        ],
+      },
+      {
+        title: 'Dynamic programming approaches',
+        items: [
+          { name: 'Top-down (memoisation)', simple: 'Solve recursively but write each answer on a sticky note so you never work it out twice.' },
+          { name: 'Bottom-up (tabulation)', simple: 'Fill in a table from the smallest cases upward, like building a staircase one step at a time.' },
+          { name: 'Space-optimised', simple: 'Keep only the last couple of answers you need, like remembering just the previous two steps.' },
+        ],
+      },
     ],
     confusion: {
       mixedUpWith: 'plain recursion',

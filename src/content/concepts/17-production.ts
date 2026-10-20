@@ -4,6 +4,18 @@ import type { LessonConcepts } from '@/types/curriculum';
 export const productionConcepts: Record<string, LessonConcepts> = {
   // -------------------------------------------------------------------------
   'prod-observability': {
+    textbook: {
+      definition:
+        '**Observability** is the property of a system that allows its internal states to be inferred from its external outputs; the term originates in control theory. In software operations it denotes the capacity to answer arbitrary questions about a running system from emitted **telemetry**, principally **metrics**, **logs** and **traces**, correlated by shared context such as a trace identifier. It differs from **monitoring**, which evaluates predefined conditions. Observability data supports **health checks**, which report an instance\'s state to the platform, and **service level objectives** (SLOs), which state target levels of reliability.',
+      terms: [
+        { term: 'Telemetry', meaning: 'Data emitted by a running system about its own behaviour, collected and transmitted for analysis.' },
+        { term: 'Metric', meaning: 'A numeric measurement aggregated over time and identified by a name and a bounded set of tags, stored as a time series.' },
+        { term: 'Trace', meaning: 'A tree of spans, each a timed operation with a parent, describing the path of one request through a distributed system.' },
+        { term: 'Service level indicator (SLI)', meaning: 'A quantitative measure of some aspect of the service level provided, such as the proportion of successful requests.' },
+        { term: 'Service level objective (SLO)', meaning: 'A target value or range for an SLI over a time window; the shortfall it allows is the error budget.' },
+      ],
+      source: 'Google, Site Reliability Engineering (2016), chapter 4; OpenTelemetry specification; W3C Trace Context',
+    },
     interviewDefinition:
       '**Observability** is the ability to explain a system\'s internal state from its outputs — well enough to answer questions you did not anticipate. It rests on three correlated signals: **metrics** (cheap aggregated numbers for dashboards and alerts, chosen with RED and USE), **logs** (structured events with context) and **traces** (span trees that follow one request across services), joined by a shared trace id. Health probes tell the platform how to treat an instance, and **SLOs** with error budgets turn the signals into reliability targets and symptom-based alerts.',
     interviewFollowUps: [
@@ -57,6 +69,13 @@ export const productionConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Three signals, one id',
         caption: 'The signals are only powerful together: the trace id links a metric spike to a trace, and the trace to the log lines written while it ran.',
+        explanation: [
+          '**Metrics** tell you THAT something is wrong: request rate, errors and p99 latency crossed a threshold. They are cheap and aggregated.',
+          '**Traces** tell you WHERE: a span for each hop shows which service or query took the time or failed.',
+          '**Logs** tell you WHY: structured events record the exact error and context at that place.',
+          'All three arrows point to the **Trace id**, carried in the `traceparent` header and the logging MDC. Metrics link to it through exemplars, logs through an MDC field.',
+          'Takeaway: the shared id lets you jump from a metric spike to one slow trace and then to the log lines it wrote.',
+        ],
         cols: 3,
         rows: 2,
         nodes: [
@@ -76,6 +95,13 @@ export const productionConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'A typical telemetry pipeline',
         caption: 'Services propagate trace context to each other and send telemetry (usually OTLP) to a collector, which batches and routes each signal to its own store; dashboards and SLO alerts read from all three.',
+        explanation: [
+          '**Service A**, instrumented with Micrometer and OpenTelemetry, calls **Service B** and passes the `traceparent` header, so B continues the same trace.',
+          'Both services send their telemetry over OTLP to the **OTel Collector**, which receives, batches and exports it, so services do not talk to storage directly.',
+          'The collector routes each signal to its own backend: the **Metrics store** (Prometheus-compatible), the **Trace store** (such as Jaeger or Tempo) and the **Log store** (such as Loki or Elasticsearch).',
+          '**Dashboards + alerts** read from all three stores, for example to alert on SLO burn rate.',
+          'Takeaway: the collector decouples applications from backends, so you can change storage without touching service code.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -104,6 +130,13 @@ export const productionConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'What the platform does with each probe',
         caption: 'Liveness and readiness only start once the startup probe passes. A failed liveness probe restarts the container; a failed readiness probe just stops traffic until the instance recovers.',
+        explanation: [
+          '**Container starts**: the JVM boots and warms up, which can take a while.',
+          'The **Startup probe** repeats until it passes, holding off the other probes so a slow start is not mistaken for a crash.',
+          'Once it has passed, the **Liveness probe** asks whether the process is OK. If it fails, the platform will **Restart container**, because the process is considered broken.',
+          'The **Readiness probe** asks whether the instance can serve traffic now. If it fails, the platform will **Remove from endpoints**, so no traffic arrives until it is ready again; nothing is restarted.',
+          'Takeaway: liveness failures restart, readiness failures only pause traffic, so external dependencies belong in readiness, never in liveness.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -179,6 +212,18 @@ export const productionConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'prod-resilience': {
+    textbook: {
+      definition:
+        '**Resilience** is the capacity of a system to continue providing acceptable service in the presence of faults, by detecting, containing and recovering from them rather than merely preventing them. In distributed systems it is achieved through **stability patterns** applied at the boundaries between components: **timeouts** bound waiting, **retries** with backoff mask transient faults, **circuit breakers** stop calls to failing dependencies, **bulkheads** isolate resources so a fault in one part cannot exhaust another, and **fallbacks** provide degraded but useful responses. Their aim is to prevent a partial failure from becoming a **cascading failure**.',
+      terms: [
+        { term: 'Transient fault', meaning: 'A temporary failure, such as a dropped connection or brief overload, that is likely to succeed if the operation is repeated later.' },
+        { term: 'Cascading failure', meaning: 'A failure that spreads from one component to others, for example when callers exhaust threads or connections waiting on a slow dependency.' },
+        { term: 'Circuit breaker', meaning: 'A stateful proxy that monitors call outcomes and, when failures exceed a threshold, rejects calls immediately for a period before testing recovery.' },
+        { term: 'Bulkhead', meaning: 'An isolation boundary that limits the resources, such as threads or permits, that any one dependency or workload may consume.' },
+        { term: 'Exponential backoff', meaning: 'A retry policy in which the delay between attempts grows geometrically up to a cap, usually with random jitter added.' },
+      ],
+      source: 'Michael Nygard, Release It! (2nd edition), stability patterns; Resilience4j documentation',
+    },
     interviewDefinition:
       'Resilience is designing so that partial failure stays partial. Every remote call gets a **timeout** (ideally derived from a propagated deadline); transient failures of **idempotent** operations are **retried** with capped exponential backoff and jitter under a retry budget; a **circuit breaker** fails fast while a dependency is unhealthy and probes it in a half-open state; **bulkheads** and **rate limiters** bound the capacity any one dependency or client can consume; and **fallbacks** degrade gracefully. Idempotency keys make retrying non-idempotent operations safe.',
     interviewFollowUps: [
@@ -238,6 +283,13 @@ export const productionConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Circuit breaker states',
         caption: 'CLOSED counts outcomes; too many failures trip it OPEN, where calls fail fast to a fallback. After a wait it goes HALF_OPEN and lets a few trial calls through: success closes it, a failing trial reopens it.',
+        explanation: [
+          'In **CLOSED**, the normal state, calls flow to the dependency and the breaker counts their outcomes in a sliding window.',
+          'When the failure rate gets too high, it trips to **OPEN**. Calls are now rejected at once and fail fast to a **Fallback**, a cached or default answer, protecting both your threads and the struggling dependency.',
+          'After a wait, the two-way arrow moves it to **HALF_OPEN**, where only a few trial calls are let through to test recovery.',
+          'If the trials succeed, the breaker returns to CLOSED. If a trial fails, it goes back to OPEN and waits again.',
+          'Takeaway: the breaker stops hammering a failing service and lets it recover before trusting it again.',
+        ],
         cols: 3,
         rows: 2,
         nodes: [
@@ -258,6 +310,13 @@ export const productionConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Layering the patterns around one call',
         caption: 'Resilience4j\'s default Spring Boot aspect order: retry is outermost, so every attempt is seen by the circuit breaker, rate limiter, time limiter and bulkhead before reaching the remote service.',
+        explanation: [
+          'The **Caller**, ideally with a deadline, calls through **Retry**, the outermost layer, which repeats failed attempts with backoff and jitter.',
+          'Each attempt passes the **CircuitBreaker**, which fails fast when open, then the **RateLimiter**, which caps calls per period.',
+          'The **TimeLimiter** puts a timeout on each attempt, and the **Bulkhead** caps how many calls run concurrently.',
+          'Only then does the attempt reach the **Remote service** over HTTP or gRPC.',
+          'If retries are exhausted, the dashed arrow leads to the **Fallback**. Takeaway: because retry wraps the breaker, every attempt is counted, and an open breaker makes retries fail fast instead of piling on.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -285,6 +344,13 @@ export const productionConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'Bulkheads contain a slow dependency',
         caption: 'Each dependency gets its own bounded share of concurrency and a timeout. When Service B slows down, only B\'s bulkhead fills; calls to C keep their capacity.',
+        explanation: [
+          '**Clients** send requests to the **Request handler** inside **Your service**, which needs to call both B and C.',
+          'Calls to B go through **Bulkhead B**, which allows at most 10 at a time with a 2-second timeout. **Service B** has become slow, taking 30 seconds to reply, so this bulkhead is full.',
+          'When it is full, the dashed arrow shows new calls being **Rejected fast**, with a fallback for B only, instead of waiting and holding threads.',
+          'Calls to **Service C**, which is healthy, go through **Bulkhead C**, which still has free capacity.',
+          'Takeaway: like sealed compartments in a ship, separate limits per dependency stop one slow service from sinking everything.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -355,6 +421,18 @@ export const productionConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'prod-microservices': {
+    textbook: {
+      definition:
+        'The **microservice architecture** is an architectural style that structures an application as a suite of small, **independently deployable services**, each running in its own process, built around a **business capability** and communicating through lightweight mechanisms such as HTTP APIs or asynchronous messaging. Each service owns its data (**database per service**) and is managed by a single team. Because state is distributed, consistency across services is maintained by **eventual consistency** mechanisms such as **sagas** rather than distributed ACID transactions. It contrasts with the **monolithic architecture**, in which the application is built and deployed as a single unit.',
+      terms: [
+        { term: 'Business capability', meaning: 'Something a business does to generate value, such as order management or billing, used as the unit for service boundaries.' },
+        { term: 'Bounded context', meaning: 'A domain-driven design term for the boundary within which a particular domain model and its language apply consistently.' },
+        { term: 'Saga', meaning: 'A sequence of local transactions across services in which each step has a compensating transaction that undoes it if a later step fails.' },
+        { term: 'Eventual consistency', meaning: 'A consistency model in which, if no new updates occur, all replicas or services eventually reach the same state.' },
+        { term: 'Transactional outbox', meaning: 'A pattern that stores outgoing messages in the same local transaction as the business change and publishes them afterwards.' },
+      ],
+      source: 'James Lewis and Martin Fowler, Microservices (2014); Chris Richardson, Microservices Patterns (2018)',
+    },
     interviewDefinition:
       'Microservices is an architectural style in which a system is built from **independently deployable services**, each owning one business capability and its own data, communicating over the network through APIs or events. Its benefits — team autonomy, independent release and scaling, fault isolation — are mainly organisational. Its costs are distributed-system costs: partial failure, eventual consistency, sagas instead of ACID transactions, and heavy investment in automation and observability. A **modular monolith** gives most of the design benefit without the network.',
     interviewFollowUps: [
@@ -409,6 +487,13 @@ export const productionConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'The architecture spectrum',
         caption: 'Moving right buys independent deployment and scaling, and pays with network calls, eventual consistency and operational overhead. Most teams should start in the in-process half.',
+        explanation: [
+          'Read the top row from left to right. A **Monolith** is one deployable with one database; adding boundaries turns it into a **Modular monolith** with enforced modules.',
+          'Both sit in the **One process** group, whose shared trait is **In-process calls, ACID transactions**: simple to test, debug and deploy.',
+          'Extracting modules when there is a real need gives **Microservices**, one service per business capability. Going finer and event-driven leads to **Serverless** functions on managed infrastructure.',
+          'Both sit in the **Distributed** group, which pays with **Network calls, data per service**: sagas, outboxes, tracing and many pipelines.',
+          'Takeaway: each step right buys independent deployment and scaling at the cost of complexity, so most teams should start on the left.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -434,6 +519,13 @@ export const productionConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'Transactional outbox with an idempotent consumer',
         caption: 'The order row and its event are written in one local transaction, so they cannot disagree. A relay publishes events at least once, and the consumer de-duplicates by event id in its own transaction.',
+        explanation: [
+          'The **Order service** runs `placeOrder()` and inserts the business row into **orders** and the event row into **outbox**. Both inserts are in **One local transaction**, so they cannot disagree.',
+          'A separate **Relay** reads new outbox rows, by polling or change data capture, and publishes them to the **Broker**, such as Kafka or RabbitMQ.',
+          'Because the relay may resend after a crash, the broker delivers to the **Billing consumer** at least once, so duplicates are possible.',
+          'The consumer records each event id in **processed_events** in the same transaction as its billing change and skips ids it has already seen.',
+          'Takeaway: the outbox removes the dual-write problem, and the idempotent consumer turns at-least-once delivery into an exactly-once effect.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -460,6 +552,13 @@ export const productionConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'An orchestrated saga with compensation',
         caption: 'Each step is a local transaction in its own service. When payment is declined, the orchestrator runs compensations in reverse order instead of rolling back a global transaction.',
+        explanation: [
+          'The saga starts with **Order PENDING** in the order service, then asks the inventory service to **Reserve stock**. Each step is a local transaction in its own service.',
+          'Next the payment service is asked to **Charge payment**, and the orchestrator checks **Approved?**.',
+          'If yes, the order becomes **Order CONFIRMED** and the saga is complete.',
+          'If the payment is declined, the orchestrator runs compensations in reverse order: **Release stock** undoes the reservation, then the order becomes **Order CANCELLED**.',
+          'Takeaway: with no global rollback across services, each completed step needs an explicit compensating action.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -503,6 +602,17 @@ export const productionConcepts: Record<string, LessonConcepts> = {
         items: [
           { name: 'Synchronous request/response', summary: 'REST or gRPC calls; the caller waits for the answer.', note: 'Simple, but availability multiplies along the chain: five 99.9% services in series give about 99.5%.' },
           { name: 'Asynchronous messaging', summary: 'Commands or events through a broker; the sender does not wait.', note: 'Decouples availability and absorbs bursts; requires idempotent consumers and handling eventual consistency.' },
+        ],
+      },
+      {
+        title: 'Data management patterns',
+        intro: 'Pattern names as catalogued by Chris Richardson (microservices.io). Owning data per service is what makes independent deployment possible, and these patterns deal with the consequences.',
+        items: [
+          { name: 'Database per service', summary: 'Each service has private tables or its own database that others reach only through its API or events.', note: 'The default; prevents hidden coupling through shared tables.' },
+          { name: 'Shared database', summary: 'Several services read and write the same schema.', note: 'An anti-pattern for microservices: schema changes need coordinated releases.' },
+          { name: 'API composition', summary: 'A composer calls several services and joins their results in memory to answer a query.', note: 'Simple, but latency and availability depend on every service called.' },
+          { name: 'CQRS', summary: 'Command Query Responsibility Segregation: a separate read model, kept up to date from events, serves queries that span services.', note: 'Fast queries at the cost of eventual consistency.' },
+          { name: 'Event sourcing', summary: 'State is stored as an append-only sequence of events, and current state is rebuilt by replaying them.', note: 'Gives a full audit trail and natural event publishing; harder to query and evolve.' },
         ],
       },
     ],

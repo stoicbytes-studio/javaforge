@@ -4,6 +4,18 @@ import type { LessonConcepts } from '@/types/curriculum';
 export const collectionsConcepts: Record<string, LessonConcepts> = {
   // -------------------------------------------------------------------------
   'c-collections-overview': {
+    textbook: {
+      definition:
+        'The **Java Collections Framework** is a unified architecture in `java.util` for representing and manipulating groups of objects. It consists of **collection interfaces**, which are abstract data types (`Collection` with its sub-interfaces `List`, `Set`, `Queue` and `Deque`, and the separate `Map` hierarchy); **implementations**, which are concrete, reusable data structures realising those interfaces; and **algorithms**, polymorphic methods such as sorting and searching in the `Collections` utility class. Because client code depends only on the interfaces, implementations with different performance characteristics can be substituted without changing the client.',
+      terms: [
+        { term: 'Collection', meaning: 'The root interface of the collection hierarchy: a group of objects, called elements, supporting size, membership, addition, removal and iteration.' },
+        { term: 'Map', meaning: 'An object that maps keys to values, with at most one value per key. It is part of the framework but is not a subtype of `Collection`.' },
+        { term: 'Implementation', meaning: 'A concrete class, such as `ArrayList` or `HashMap`, that realises a collection interface with a specific data structure and documented cost for each operation.' },
+        { term: 'Encounter order', meaning: 'The order in which a collection presents its elements during iteration; defined for lists and sequenced collections, unspecified for hash-based sets and maps.' },
+        { term: 'View', meaning: 'A collection backed by another collection or map, such as `keySet()` or `reversed()`, so changes to one are visible through the other.' },
+      ],
+      source: 'Javadoc for java.util.Collection and java.util.Map; Collections Framework Overview (Oracle); JEP 431',
+    },
     interviewDefinition:
       'The Java Collections Framework is a set of **interfaces** — `Collection` with its sub-types `List`, `Set` and `Queue`/`Deque`, plus the separate `Map` — and interchangeable **implementations** with documented costs. You choose first by semantics (order, uniqueness, key lookup, access by index, priority) and then by cost. `ArrayList`, `HashMap`, `HashSet` and `ArrayDeque` are the defaults; *Linked* variants add insertion order, *Tree* variants keep sorted order in O(log n). Java 21 added **sequenced** interfaces for collections with a defined encounter order.',
     interviewFollowUps: [
@@ -64,6 +76,14 @@ export const collectionsConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'The interface hierarchy and its main implementations',
         caption: 'Collection branches into List, Set and Queue; Deque extends Queue. Map stands apart with its own sorted sub-interface. Pills are the concrete classes you instantiate.',
+        explanation: [
+          'At the top sits **Iterable**, the interface that lets any collection be used in a for-each loop. **Collection** extends it and adds the basic operations: add, remove, size and contains.',
+          '**Collection** branches into three sub-interfaces: **List** (indexed, duplicates allowed), **Set** (unique elements) and **Queue** (elements taken from the head). The arrow labelled extends shows that **Deque** is a Queue that also works at both ends.',
+          'The pills on the bottom row are the classes you actually instantiate: **ArrayList** for lists, **HashSet** (or LinkedHashSet, TreeSet) for sets, **PriorityQueue** for priority order and **ArrayDeque** for stacks and FIFO queues.',
+          'On the right, the **Map family (not a Collection)** group holds **Map**, which stores key-value pairs. **NavigableMap** extends it with sorted keys and range queries.',
+          '**HashMap** is the default map implementation, while **TreeMap**, a red-black tree, implements NavigableMap when keys must stay sorted.',
+          'Takeaway: declare variables with the interface type (List, Set, Map) and choose the implementation pill for its cost and ordering.',
+        ],
         cols: 5,
         rows: 4,
         nodes: [
@@ -106,6 +126,13 @@ export const collectionsConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Same data, four different shapes',
         caption: 'The same page visits produce different results depending on the collection: a List keeps everything, sets drop duplicates (in first-seen or sorted order), and a Map summarises by key.',
+        explanation: [
+          'The note at the top, **home, cart, home**, is the raw input: three page visits in arrival order, with home appearing twice.',
+          'Following the arrow labelled keeps all, an **ArrayList** stores every visit in order, duplicates included: [home, cart, home].',
+          'A **LinkedHashSet** drops the second home but remembers first-seen order, giving [home, cart]. A **TreeSet** also drops duplicates but sorts the elements, giving [cart, home].',
+          'The **HashMap counts** box uses `merge(k, 1, sum)` to turn the visits into a summary keyed by page: home=2, cart=1, in no guaranteed order.',
+          'Takeaway: the same data takes a different shape depending on whether you need duplicates, order, sorting or a summary by key.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -127,6 +154,14 @@ export const collectionsConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Choosing a collection',
         caption: 'Ask about the shape of the data first, then about order. Each path ends at a sensible default; Linked and Tree variants are refinements, not starting points.',
+        explanation: [
+          'Start with **Key → value?** If you look things up by a key, the yes arrow leads to **HashMap**, switching to a Linked or Tree map only if you need an order.',
+          'If not, ask **Unique elements?** A yes leads to **HashSet**, again refined to LinkedHashSet or TreeSet when order matters.',
+          'If duplicates are fine, ask **Take from ends or by priority?** Taking from the ends leads to **ArrayDeque**, used as a FIFO queue or LIFO stack; the dashed arrow labelled by priority leads to **PriorityQueue**, which always hands out the most urgent element.',
+          'If the answer is neither, you have a plain indexed sequence, so use **ArrayList**.',
+          'The dashed arrow to **Shared by threads?** is a final check: collections used by several threads need concurrent types such as ConcurrentHashMap or a BlockingQueue.',
+          'Takeaway: decide the shape of the data first and the ordering second; every path ends at a sensible default.',
+        ],
         cols: 4,
         rows: 4,
         nodes: [
@@ -227,6 +262,19 @@ export const collectionsConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'c-hashmap': {
+    textbook: {
+      definition:
+        '`HashMap` is a **hash table** based implementation of the `Map` interface that stores key-value **mappings** in an array of **buckets**. The bucket for a key is derived from the key\'s `hashCode()`, and keys within a bucket are distinguished by `equals`. Assuming the hash function disperses keys properly, `get` and `put` run in expected constant time. The map permits one `null` key and `null` values, makes no guarantee about iteration order, is not synchronised, and automatically **rehashes** into a larger table when the number of entries exceeds the product of its **capacity** and **load factor**.',
+      terms: [
+        { term: 'Hash table', meaning: 'A data structure that stores entries in an array and computes each entry\'s array index from a hash of its key, giving expected O(1) lookup.' },
+        { term: 'Bucket', meaning: 'One slot of the hash table; it holds every entry whose key maps to that index, as a linked list or, when crowded, a red-black tree.' },
+        { term: 'Collision', meaning: 'The situation in which two distinct keys map to the same bucket; the map resolves it by comparing stored hashes and then calling `equals`.' },
+        { term: 'Capacity', meaning: 'The number of buckets in the table; in `HashMap` always a power of two, 16 by default.' },
+        { term: 'Load factor', meaning: 'The maximum ratio of entries to capacity before the table is doubled and every entry rehashed; 0.75 by default.' },
+        { term: 'hashCode/equals contract', meaning: 'The rule from `java.lang.Object` that objects which are equal according to `equals` must return the same `hashCode`.' },
+      ],
+      source: 'Javadoc for java.util.HashMap and java.lang.Object.hashCode; JEP 180',
+    },
     interviewDefinition:
       '`HashMap` is an array of **buckets**. A key\'s `hashCode()` is spread (`h ^ (h >>> 16)`) and masked with `capacity - 1` to pick a bucket; inside it, entries are compared by hash and then `equals`. Collided entries form a linked list that becomes a red-black tree at 8 entries once the table has at least 64 buckets. The table doubles when size exceeds capacity × load factor (0.75). Lookups are expected O(1) only if `hashCode` and `equals` are consistent and well distributed; the map is unordered and not thread-safe.',
     interviewFollowUps: [
@@ -285,6 +333,13 @@ export const collectionsConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Buckets, collisions and a tree bin',
         caption: '"Aa" and "BB" share hash 2112, so they chain in bucket 0 and are told apart by equals. A bucket that grows to 8 entries in a table of 64+ buckets becomes a red-black tree.',
+        explanation: [
+          'The left column, grouped as **table (capacity 2^n)**, is the bucket array. Each key\'s hash, masked by capacity minus one, picks exactly one of **bucket 0**, **bucket 1**, **bucket 2** or **bucket 3**.',
+          '**bucket 0** holds **"Aa" → 1**. The key **"BB" → 2** has the same hash, 2112, so it collides and is chained after it through the next link. A lookup for "BB" walks the chain and uses equals to find the right entry.',
+          '**bucket 1** holds a single entry, **"apple" → 3**, which is the ideal case: one hop and one comparison. **bucket 2** is empty, which is normal; at a 0.75 load factor many buckets stay unused.',
+          '**bucket 3** has become crowded, so its chain was converted into a **Tree bin**, a red-black tree. Smaller keys go to the **left subtree** and larger ones to the **right subtree**, so a search costs O(log n) instead of O(n).',
+          'Takeaway: good hash codes keep chains short; tree bins are only a safety net for bad hashes or deliberate collision attacks.',
+        ],
         cols: 4,
         rows: 4,
         nodes: [
@@ -314,6 +369,14 @@ export const collectionsConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'What put(key, value) does',
         caption: 'One hash, one hop, one hunt. Replacing an existing key does not change the size; only a new entry can trigger a resize.',
+        explanation: [
+          '**hash(key)** calls the key\'s hashCode and XORs the high 16 bits into the low 16 bits, so the low bits used for indexing depend on the whole hash. A null key always hashes to 0.',
+          '**index** masks the spread hash with capacity minus one to pick a bucket in a single cheap operation. Then **Bucket empty?** decides the path.',
+          'If the bucket is empty, the yes arrow leads to **Store new node**. Otherwise **Hunt in bucket** compares each entry\'s stored hash and then equals with the key.',
+          'If the key is found, **Replace value** overwrites it and returns the old value; the size does not change. If not found, **Append to bin** adds a node and treeifies the bin at 8 entries when the table has at least 64 buckets.',
+          'Only new entries reach **size > threshold?** (the dashed arrow from a new node goes there too). If size now exceeds capacity times 0.75, **Resize ×2** doubles the table and splits every bin into a low and a high list.',
+          'Takeaway: put costs one hash, one hop and one short hunt, plus an occasional resize that is amortised over many inserts.',
+        ],
         cols: 4,
         rows: 4,
         nodes: [
@@ -344,6 +407,13 @@ export const collectionsConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'LinkedHashMap: a hash table threaded by a list',
         caption: 'Entries live in hash buckets for O(1) lookup and are also linked head-to-tail. With accessOrder = true, every get moves the entry to the tail, so the head is always the least recently used — the one removeEldestEntry evicts.',
+        explanation: [
+          'The **Bucket array** at the centre is an ordinary HashMap table; the dashed arrow labelled lookup shows that get still finds an entry such as **b → B** in O(1) by hashing.',
+          'The top row, the **Doubly linked entry list**, threads the same entries in order from **head (eldest)** through **b → B** and **c → C** to **a → A (tail)**. The double-headed arrows mean each entry links to both neighbours.',
+          'With access order switched on, **get("a")** moves the entry for a to the tail, marking it as the most recently used.',
+          'When **put("d")** adds a new entry, `removeEldestEntry` can return true, and the map drops the entry at the head, here b, the least recently used.',
+          'Takeaway: hashing gives fast lookup, the linked list gives a predictable order, and together they make a simple LRU cache.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -413,6 +483,18 @@ export const collectionsConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'c-sorted': {
+    textbook: {
+      definition:
+        'An **ordering** in Java is a rule that imposes a **total order** on objects of a type. The **natural ordering** is defined by the class itself by implementing `Comparable<T>` and its `compareTo` method; any number of additional orderings are defined externally by `Comparator<T>` objects. Both return a negative integer, zero or a positive integer as the first argument is less than, equal to or greater than the second, and must be antisymmetric and transitive. **Sorted collections** such as `TreeSet` and `TreeMap` maintain their elements in this order and use the comparison result, not `equals`, to determine element identity.',
+      terms: [
+        { term: 'Total order', meaning: 'An ordering in which every pair of elements is comparable and the relation is antisymmetric and transitive, so every element has a single well-defined position.' },
+        { term: 'Natural ordering', meaning: 'The single ordering a class defines for its own instances by implementing `Comparable.compareTo`, as `String`, `Integer` and `LocalDate` do.' },
+        { term: 'Comparator', meaning: 'A functional interface whose `compare(a, b)` method defines an ordering outside the compared class; comparators can be composed and reversed.' },
+        { term: 'Consistent with equals', meaning: 'Property of an ordering where `compare(a, b) == 0` holds exactly when `a.equals(b)`; required for sorted sets and maps to obey the `Set` and `Map` contracts.' },
+        { term: 'Stable sort', meaning: 'A sort that keeps elements which compare as equal in their original relative order; guaranteed for Java object sorts.' },
+      ],
+      source: 'Javadoc for java.lang.Comparable, java.util.Comparator and java.util.TreeMap',
+    },
     interviewDefinition:
       'Java separates a type\'s **natural ordering** — `Comparable.compareTo`, implemented by the class itself — from any number of external orderings expressed as `Comparator` objects, which compose with `comparing`, `thenComparing`, `reversed` and `nullsFirst`. Object sorts (`List.sort`, `Arrays.sort` on objects) use TimSort: stable, O(n log n). `TreeSet` and `TreeMap` keep elements sorted in a red-black tree and treat `compare == 0` as **equality**, so comparators must be consistent with equals; their `Navigable` API answers floor, ceiling and range queries in O(log n).',
     interviewFollowUps: [
@@ -471,6 +553,13 @@ export const collectionsConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Navigable queries on a sorted key line',
         caption: 'For a lookup value of 9,999 grams, floor finds the greatest key ≤ it (2,000 → medium) and ceiling the least key ≥ it (10,000 → large). headMap(10_000, false) is a live view of everything to the left.',
+        explanation: [
+          'The top row, **TreeMap keys (ascending)**, shows four shipping bands keyed by their lower bound: **0 → small**, **2000 → medium**, **10000 → large** and **30000 → freight**.',
+          'The pill **lookup 9999** is a parcel weight that falls between two keys, so a plain get would find nothing.',
+          'Following the arrow labelled floorEntry returns the greatest key not above 9999, which is **2000 → medium**, the correct band. The arrow labelled ceilingEntry returns the least key not below it, **10000 → large**.',
+          '**headMap(10000, false)** is a live view of every key strictly below 10000, while **tailMap(10000, true)** is a view of every key from 10000 upwards. Changes to the map show up in these views.',
+          'Takeaway: a sorted map answers "which range does this value fall into?" in O(log n) without any if/else chain.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -496,6 +585,13 @@ export const collectionsConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'How a comparator chain decides',
         caption: 'Each thenComparing is consulted only when everything before it returned 0. Passing reverseOrder() to one step reverses only that key; calling reversed() at the end would reverse the whole chain.',
+        explanation: [
+          'Every comparison starts at **compare(a, b)** and goes first to **dept ascending**, the comparator built with `comparing(dept)`.',
+          'If the departments differ (the arrow labelled ≠ 0), that result is returned at once by the first **return result** pill; the later keys are never consulted.',
+          'Only on a tie, the arrow labelled 0 (tie), does **salary descending** run. Because it was given `reverseOrder()`, a higher salary sorts first, and a non-zero answer is returned.',
+          'On a second tie, **name ascending** decides. The chain can only return 0 if the names are equal too, which is exactly what a TreeSet needs to avoid dropping distinct employees.',
+          'Takeaway: each `thenComparing` is a tie-breaker; it is consulted only when everything before it returned 0.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -521,6 +617,13 @@ export const collectionsConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'Inside TreeSet and TreeMap',
         caption: 'A TreeSet is a TreeMap whose values are a dummy object. Both store entries in a self-balancing red-black tree (every root-to-leaf path has the same number of black nodes) and route every insert and lookup with compare — equals is never called.',
+        explanation: [
+          'A **TreeSet<E>** has no tree of its own: the arrow labelled delegates shows it storing each element as a key in a **TreeMap<E, PRESENT>**, with a dummy value.',
+          'The map asks the **Comparator**, or the natural order if none was supplied, to compare keys; the compare() arrow shows that this is the only test of equality it uses.',
+          'Entries form a red-black tree under **root: 50**. Keys less than 50 go left to **20**, keys greater go right to **80**; below 20 sit **10** and **30**.',
+          'The red nodes 10 and 30 and the black ones obey colour rules that keep every root-to-leaf path the same number of black nodes, so the tree stays balanced.',
+          'Takeaway: balance keeps the height O(log n), so every insert, lookup and range query costs O(log n) comparisons.',
+        ],
         cols: 3,
         rows: 4,
         nodes: [
@@ -605,6 +708,18 @@ export const collectionsConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'c-iteration': {
+    textbook: {
+      definition:
+        '**Iteration** is the sequential traversal of the elements of a collection. In Java it is abstracted by the `Iterator<E>` interface, whose `hasNext`, `next` and optional `remove` methods let a client visit each element exactly once without knowing the collection\'s internal structure; any type implementing `Iterable<T>` may be traversed by the **enhanced for statement**, which the compiler translates into an iterator loop. Iterators of the general-purpose `java.util` collections are **fail-fast**: on a best-effort basis they throw `ConcurrentModificationException` if the collection is structurally modified other than through the iterator itself.',
+      terms: [
+        { term: 'Iterator', meaning: 'An object that yields the elements of a collection one at a time through `hasNext()` and `next()`, and may support `remove()` of the last element returned.' },
+        { term: 'Iterable', meaning: 'An interface with a single method, `iterator()`; implementing it allows a type to be used in an enhanced for statement.' },
+        { term: 'Structural modification', meaning: 'Any operation that adds or removes elements, or otherwise changes a collection\'s size or shape; merely setting an element\'s value is not structural.' },
+        { term: 'Fail-fast iterator', meaning: 'An iterator that detects concurrent structural modification by comparing a modification counter and throws `ConcurrentModificationException` instead of risking undefined behaviour.' },
+        { term: 'View', meaning: 'A collection that has no storage of its own and reads from, and possibly writes to, a backing collection or map.' },
+      ],
+      source: 'JLS §14.14.2; Javadoc for java.util.Iterator and java.util.ConcurrentModificationException',
+    },
     interviewDefinition:
       'Every `Collection` is iterated through an `Iterator` — the enhanced for loop is compiled to one. Iterators of the standard non-concurrent collections are **fail-fast**: they compare the collection\'s `modCount` with a snapshot in `next()` and throw `ConcurrentModificationException` on structural change, on a best-effort basis. Remove safely with `Iterator.remove` or `removeIf`. Distinguish **views** (`subList`, `keySet`, `unmodifiableList` — live), **unmodifiable wrappers** (read-only view) and **immutable** collections (`List.of`, `List.copyOf` — frozen, null-hostile).',
     interviewFollowUps: [
@@ -658,6 +773,14 @@ export const collectionsConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'What a for-each loop really does',
         caption: 'The compiler turns for (T x : coll) into an Iterator loop. The modCount check lives in next(), which is why removing the second-to-last element ends the loop silently instead of throwing.',
+        explanation: [
+          'The loop starts by calling **coll.iterator()**, which records the collection\'s current modCount as the iterator\'s expected value.',
+          'Each round asks **hasNext()?**, which only checks whether the cursor has reached the size. If it returns false, the loop takes the false arrow and **loop ends** normally.',
+          'If true, **next()** first checks whether modCount has changed. If it is unchanged, the element is handed to the **loop body** as x.',
+          'The dashed arrow to **list.remove(x) in body** is the classic bug: removing through the list, not the iterator, increments modCount behind the iterator\'s back.',
+          'On the next call, next() sees the changed count and throws **ConcurrentModification Exception**. Because the check is in next(), not hasNext(), removing the second-to-last element can end the loop silently instead.',
+          'Takeaway: modify a collection during iteration only through `Iterator.remove` or use `removeIf`.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -683,6 +806,13 @@ export const collectionsConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'View, unmodifiable wrapper, immutable copy',
         caption: 'After backing.add("c"), the view and the unmodifiable wrapper both show c because they read the same list; the copy was frozen when it was made.',
+        explanation: [
+          'At the top is the **backing ArrayList**, which starts as [a, b] and then has c added. The three boxes below are made from it in different ways.',
+          '**subList(0, 2)** is a live view: the two-way arrow labelled shared means writes through it change the backing list. But if the parent list itself is structurally changed, the note **Parent add → sublist CME** warns that using the sublist afterwards throws ConcurrentModificationException.',
+          '**unmodifiableList** reads through to the same list, so it shows [a, b, c] after the add. Its note, **add() throws UOE**, means callers cannot change it, even though they see the owner\'s changes.',
+          '**List.copyOf** was copied once, as the dashed arrow says, so it stays a frozen [a, b]. It also rejects adds with UnsupportedOperationException, and it rejects nulls.',
+          'Takeaway: a view is a live window, an unmodifiable wrapper is a locked window, and an immutable copy is a photograph.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -708,6 +838,13 @@ export const collectionsConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'A Map\'s three collection views',
         caption: 'keySet, values and entrySet are views backed by the map, not copies: removing through them removes the mapping, and entry.setValue writes into the map. None of them supports add.',
+        explanation: [
+          'The **Map<K, V>** at the top is the only real storage; the three boxes below hold no data of their own.',
+          '**keySet()** presents the keys as a Set. Removing a key from it, for example with removeIf, removes the whole mapping from the map.',
+          '**values()** presents the values as a Collection, which may contain duplicates; `removeIf(v -> …)` on it also removes the matching mappings.',
+          '**entrySet()** presents each key-value pair as an entry. Iterating it is the efficient way to read both, and `entry.setValue` writes straight into the map.',
+          'The two-way arrows show that changes flow in both directions. Takeaway: views are cheap windows onto the map, and none of them supports add.',
+        ],
         cols: 3,
         rows: 2,
         nodes: [
@@ -784,6 +921,19 @@ export const collectionsConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'c-queues-stacks': {
+    textbook: {
+      definition:
+        'A **queue** is a linear collection designed for holding elements prior to processing, in which elements are removed from the **head**; a **FIFO** queue removes them in the order they were inserted at the **tail**. A **stack** is a linear collection with **LIFO** discipline, in which insertion and removal both occur at the same end. Java models these with `Queue<E>` and `Deque<E>` (a double-ended queue supporting insertion and removal at both ends, usable as either), and with `PriorityQueue<E>`, an unbounded priority queue based on a binary **heap** whose head is the least element according to its ordering.',
+      terms: [
+        { term: 'FIFO', meaning: 'First-in, first-out: the element that has waited longest is the next one removed, as in a waiting line.' },
+        { term: 'LIFO', meaning: 'Last-in, first-out: the most recently inserted element is the next one removed, as in a pile of plates.' },
+        { term: 'Deque', meaning: 'A double-ended queue: a linear collection that supports element insertion and removal at both the head and the tail.' },
+        { term: 'Priority queue', meaning: 'A queue whose head is always the smallest element by natural order or comparator, regardless of insertion order.' },
+        { term: 'Binary heap', meaning: 'A complete binary tree, stored in an array, in which every parent is less than or equal to its children.' },
+        { term: 'Blocking queue', meaning: 'A thread-safe queue whose operations can wait for space to become available or for an element to arrive.' },
+      ],
+      source: 'Javadoc for java.util.Queue, java.util.Deque, java.util.PriorityQueue and java.util.concurrent.BlockingQueue',
+    },
     interviewDefinition:
       'A **stack** is LIFO and a **queue** is FIFO; a `Deque` supports both by allowing insertion and removal at either end. `ArrayDeque`, a circular array with amortised O(1) operations at both ends, is the standard choice for both and replaces the legacy synchronised `Stack`. `Queue` methods come in pairs: `add`/`remove`/`element` throw, `offer`/`poll`/`peek` return `false` or `null`. `PriorityQueue` is a binary heap — O(log n) `offer`/`poll`, O(1) `peek` — whose iteration order is not sorted. `BlockingQueue` adds methods that wait.',
     interviewFollowUps: [
@@ -844,6 +994,13 @@ export const collectionsConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'LIFO stack vs FIFO queue on one ArrayDeque',
         caption: 'As a stack, push and pop both use the head, so the newest element leaves first. As a queue, offer adds at the tail and poll removes at the head, so the oldest leaves first.',
+        explanation: [
+          'The top row is the **Stack (LIFO)** use of an ArrayDeque. **push / pop** both work at the head, which the two-way arrow shows.',
+          'Pages were pushed in the order **home**, **cart**, **checkout**, so **checkout** is now at the head and is the first to be popped: the newest element leaves first.',
+          'The bottom row is the **Queue (FIFO)** use of the same class. **offer(e)** adds a new element at the tail, joining behind **job-3**.',
+          '**poll()** removes from the head, so **job-1**, the oldest, leaves first, followed by **job-2** and then job-3.',
+          'Takeaway: one ArrayDeque gives you a stack or a queue depending only on which ends you use.',
+        ],
         cols: 5,
         rows: 3,
         nodes: [
@@ -876,6 +1033,13 @@ export const collectionsConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'A PriorityQueue is a tree stored in an array',
         caption: 'The array [1, 2, 4, 5, 3] is the heap: index i has children 2i+1 and 2i+2, and every parent is ≤ its children. Only the root is guaranteed smallest, so toString() is not sorted.',
+        explanation: [
+          'The note **array [1, 2, 4, 5, 3]** is what the PriorityQueue really stores, and what iteration and toString show. The dashed arrow labelled same data means the tree below is just another way of reading that array.',
+          'Index 0 holds the root, **1**. Its children are at indexes 1 and 2, holding **2** and **4**; the children of index i are always at 2i+1 and 2i+2, so no pointers are needed.',
+          'Below **2** sit **5** and **3**. Every parent is less than or equal to its children, which is the only rule a heap keeps.',
+          '**peek() / poll()** always read the root, so the smallest element comes out in O(1) for peek and O(log n) for poll.',
+          'Takeaway: the heap is only partially ordered; 5 before 3 in the array is allowed, which is why printing a PriorityQueue does not look sorted.',
+        ],
         cols: 4,
         rows: 4,
         nodes: [
@@ -901,6 +1065,13 @@ export const collectionsConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'How poll() repairs the heap in O(log n)',
         caption: 'Removing the root leaves a hole; the last element fills it and sinks down, swapping with its smaller child, until the heap rule holds again. offer() is the mirror image: append, then sift up.',
+        explanation: [
+          '**Take root**: the smallest element sits at index 0, so poll() removes it and will return it as its result.',
+          '**Move last to root**: to keep the tree complete, the last element of the array fills the hole at the root and the array shrinks by one.',
+          '**Larger than a child?** compares the moved element with its children using the comparator. If yes, **Swap with smaller child** moves it one level down, and the dashed arrow labelled repeat sends it back to the comparison.',
+          'When the element is no longer larger than any child, the no arrow leads to **Heap restored**. At most one swap per level means at most log₂(n) swaps.',
+          'Takeaway: poll sifts down and offer sifts up, so both cost O(log n) while peek stays O(1).',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -923,6 +1094,13 @@ export const collectionsConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'Producer-consumer with a bounded BlockingQueue',
         caption: 'The queue is the only shared object. put blocks producers when it is full (back-pressure) and take blocks consumers when it is empty, so no thread busy-waits and memory stays bounded.',
+        explanation: [
+          'On the left, each **Producer thread** creates tasks. One uses `put(task)`, which waits if the queue is full; the other uses `offer(task, timeout)`, which gives up after a time limit.',
+          'In the middle, the **ArrayBlockingQueue** with capacity 100 is the only object the threads share, and it handles all locking internally.',
+          'On the right, each **Consumer thread** takes work. `take()` waits if the queue is empty, and `poll(timeout)` waits only up to a limit.',
+          'The arrow labels waits if full and waits if empty show back-pressure: fast producers are slowed down instead of filling memory, and idle consumers sleep instead of spinning.',
+          'Takeaway: a bounded blocking queue is the simplest safe way to hand work between threads.',
+        ],
         cols: 3,
         rows: 2,
         nodes: [

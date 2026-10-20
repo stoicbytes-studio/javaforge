@@ -3,6 +3,18 @@ import type { LessonConcepts } from '@/types/curriculum';
 /** Concept pages for module 14 (Data structures, algorithms and problem solving), keyed by lesson id. */
 export const dsaConcepts: Record<string, LessonConcepts> = {
   'a-complexity': {
+    textbook: {
+      definition:
+        'The **computational complexity** of an algorithm is a function that gives the amount of a resource, usually running time or memory, that it requires as a function of the **input size** n. **Asymptotic analysis** characterises this function by its order of growth as n tends to infinity, discarding constant factors and lower-order terms. A function f(n) is **O(g(n))** if there exist positive constants c and n₀ such that f(n) ≤ c·g(n) for all n ≥ n₀; **Ω** gives the corresponding lower bound and **Θ** a bound that is both. The analysis may be stated for the worst case, the average case, or as an **amortised** bound over a sequence of operations.',
+      terms: [
+        { term: 'Input size', meaning: 'The measure n of how large an instance is, such as the number of elements in an array or the number of vertices and edges in a graph.' },
+        { term: 'Order of growth', meaning: 'The dominant term of a cost function, which determines how cost scales for large n once constants and smaller terms are ignored.' },
+        { term: 'Big-O notation', meaning: 'An asymptotic upper bound: f(n) is O(g(n)) when f grows no faster than a constant multiple of g for all sufficiently large n.' },
+        { term: 'Amortised cost', meaning: 'The total cost of any sequence of operations divided by the number of operations, a worst-case guarantee on the average per operation.' },
+        { term: 'Auxiliary space', meaning: 'The extra memory an algorithm uses beyond its input, including the call stack used by recursion.' },
+      ],
+      source: 'Cormen, Leiserson, Rivest and Stein, Introduction to Algorithms, chapters 2, 3 and 17',
+    },
     interviewDefinition:
       '**Asymptotic complexity** describes how an algorithm\'s time or extra memory grows as the input size n grows, ignoring constant factors and lower-order terms. **Big-O** gives an upper bound, **Big-Ω** a lower bound and **Big-Θ** a tight bound. We state worst-case, expected (e.g. hashing) or **amortised** cost — `ArrayList.add` is amortised O(1) despite occasional O(n) resizes. Complexity predicts how cost *scales*, not wall-clock speed, so reason first and then measure with a profiler or JMH.',
     interviewFollowUps: [
@@ -60,6 +72,13 @@ export const dsaConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'The growth ladder at n = 1,000',
         caption: 'Approximate step counts for n = 1,000. The first four classes scale to millions of items; O(n^2) is borderline; exponential and factorial are only feasible for tiny n.',
+        explanation: [
+          'Follow the arrows from the top-left. **O(1)** takes one step whatever n is, and **O(log n)** needs only about 10 steps for 1,000 items because each step halves the work.',
+          '**O(n)** touches each item once, 1,000 steps, and **O(n log n)**, the cost of good sorting, needs about 10,000. These four sit in the group that scales to millions.',
+          'The arrow then drops to the bottom row. **O(n^2)** compares all pairs: a million steps at n = 1,000, fine here but borderline for larger inputs.',
+          '**O(2^n)** tries every subset and **O(n!)** every ordering. At n = 1,000 their step counts have hundreds or thousands of digits.',
+          'The dashed arrow ends at **Infeasible**: no hardware could finish them. The takeaway is that the growth class, not the machine, decides what input sizes are possible.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -88,6 +107,13 @@ export const dsaConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Analysing a method step by step',
         caption: 'Name the input size, cost each block (including library calls), combine with add and multiply rules, then simplify. Always finish with both time and extra space.',
+        explanation: [
+          'Begin with **Name n (and m)**: decide what grows. A method over a list and a string may have two sizes, and both must appear in the answer.',
+          '**Cost each loop**: a loop over n items is O(n), and a loop that halves or doubles its counter is O(log n). Then **Cost library calls**, because `contains`, `remove(0)` and string `+` hide loops.',
+          'Ask **Recursion?** If so, cost it as the number of calls times the work per call, or write a recurrence.',
+          '**Combine** the parts: blocks in sequence add, nested blocks multiply. Then **Simplify** by dropping constants and keeping only the largest term.',
+          'Finish with **State time + space**, including recursion stack depth. The dashed arrow to **Same class?** reminds you that when two options share a class, only measuring with JMH can choose.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -115,6 +141,12 @@ export const dsaConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Amortised O(1): rare expensive appends',
         caption: 'Most appends write into spare capacity. When the array is full, ArrayList copies everything into an array about 1.5x larger. Because capacity grows geometrically, total copying stays under about 3n.',
+        explanation: [
+          'Most of the time an `ArrayList.add` is **Append into space**: the backing array has spare capacity, so it is a single O(1) write. The repeat arrow shows this happening again and again.',
+          'Eventually the list reaches **Array full**, when size equals capacity, and the next append cannot simply write.',
+          '**Grow and copy** allocates an array about 1.5 times larger and copies every element across, an O(n) step. The dashed arrow back shows there is spare room again for many cheap appends.',
+          'The note **Total over n appends** adds it all up: n writes plus fewer than 3n copies is O(n) in total, so each append costs amortised O(1) even though a few are slow.',
+        ],
         cols: 3,
         rows: 2,
         nodes: [
@@ -183,6 +215,18 @@ export const dsaConcepts: Record<string, LessonConcepts> = {
   },
 
   'a-data-structures': {
+    textbook: {
+      definition:
+        'A **data structure** is a way of organising and storing data in memory, together with the operations defined on it, so that those operations can be performed efficiently. It is the concrete realisation of an **abstract data type** (ADT), which specifies the operations and their behaviour without fixing a representation. Data structures are classified as **linear**, whose elements form a sequence (arrays, linked lists, stacks, queues), or **non-linear**, whose elements form hierarchies or networks (trees, heaps, graphs); hash tables organise elements by key. Each representation trades time against space, and the cost of the same operation differs between structures.',
+      terms: [
+        { term: 'Abstract data type (ADT)', meaning: 'A mathematical specification of a type by its values and operations, such as a stack with push and pop, independent of any implementation.' },
+        { term: 'Linear data structure', meaning: 'A structure whose elements are arranged in a single sequence, each element having at most one predecessor and one successor.' },
+        { term: 'Non-linear data structure', meaning: 'A structure in which an element may relate to several others, forming a hierarchy (tree) or an arbitrary network (graph).' },
+        { term: 'Contiguous representation', meaning: 'Storage of elements in adjacent memory locations, as in an array, giving constant-time access by index.' },
+        { term: 'Linked representation', meaning: 'Storage of elements in separate nodes connected by references, allowing insertion and removal without moving other elements.' },
+      ],
+      source: 'Cormen et al., Introduction to Algorithms, part III; Javadoc for the java.util Collections Framework',
+    },
     interviewDefinition:
       'A **data structure** organises data so that particular operations are cheap, trading one operation\'s cost against another\'s. **Linear** structures — arrays, linked lists, stacks, queues — keep elements in sequence; **non-linear** ones — trees, heaps, hash tables, graphs — organise them by hierarchy, priority, key or relationship. In Java the defaults are `ArrayList` (resizable array), `ArrayDeque` (stack and queue), `HashMap` (hash table), `TreeMap` (red-black tree) and `PriorityQueue` (binary heap); graphs are built from collections as adjacency lists.',
     interviewFollowUps: [
@@ -238,6 +282,13 @@ export const dsaConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Linear and non-linear structures',
         caption: 'Linear structures keep a single sequence; non-linear ones organise by hierarchy, priority, key or arbitrary relationships. Each box names the JDK class that implements it.',
+        explanation: [
+          'The top row splits all structures into two families: **Linear**, which keeps elements in one sequence, and **Non-linear**, which organises them by hierarchy, key or links.',
+          'In the linear group, an **Array** stores slots side by side (`int[]`, `ArrayList`), a **Linked list** chains nodes by references, and a **Stack / Queue** restricts access to the ends, implemented by `ArrayDeque`.',
+          'In the non-linear group, a **Tree / BST** keeps keys sorted in a hierarchy (`TreeMap`), and a **Heap** keeps the smallest item at the top (`PriorityQueue`).',
+          'A **Hash table** finds items by key in expected constant time (`HashMap`). The **Graph** box is highlighted because the JDK has no graph class; you build one from lists.',
+          'The takeaway: knowing which family a structure belongs to tells you how elements relate, and the JDK class name tells you what to type.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -267,6 +318,13 @@ export const dsaConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'The binary search tree from the example',
         caption: 'Smaller keys go left, larger go right. Searching for 60 follows 50 → 70 → 60: one comparison per level. An in-order walk (left, node, right) reads 20, 30, 40, 50, 60, 70, 80.',
+        explanation: [
+          'Start at the root, **50**. Every key in its left subtree is smaller and every key in its right subtree is larger, as the arrow labels show.',
+          'On the second level, **30** heads the smaller keys and **70** heads the larger ones. The same rule applies again inside each subtree.',
+          'The leaves are **20** and **40** under 30, and **60** and **80** under 70. Leaves have no children.',
+          'To search for 60: it is bigger than 50, so go right; smaller than 70, so go left; and you reach **60** in three steps, one comparison per level.',
+          'The takeaway: search cost equals the tree height, O(log n) when balanced, and an in-order walk visits keys in sorted order.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -292,6 +350,13 @@ export const dsaConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'What the JDK collections really are',
         caption: 'Each interface you program against is backed by one of a few classic structures. Knowing the structure tells you the cost of every operation.',
+        explanation: [
+          'Each row starts with interfaces you program against, on the left, followed by the classes that implement them. Dashed arrows point to the less common alternative.',
+          '**List** is usually an **ArrayList**, a resizable array with fast index access; **LinkedList**, made of doubly linked nodes, is the rarer choice.',
+          '**Deque / Queue** is usually an **ArrayDeque**, a circular array that serves as stack or queue. **PriorityQueue** is a binary heap stored in an array, always giving the smallest item next.',
+          '**Map / Set** is usually a **HashMap**, an array of buckets that may hold small tree bins; **TreeMap**, a red-black tree, keeps keys sorted.',
+          'The bottom note, **Graph (your code)**, reminds you that graphs are not in the JDK: you build them as adjacency lists such as `List<List<Integer>>`.',
+        ],
         cols: 3,
         rows: 4,
         nodes: [
@@ -385,6 +450,18 @@ export const dsaConcepts: Record<string, LessonConcepts> = {
   },
 
   'a-sorting-searching': {
+    textbook: {
+      definition:
+        '**Sorting** is the problem of rearranging a sequence of n elements into a permutation that is non-decreasing according to a **total order** on their keys. **Searching** is the problem of determining whether, and where, an element with a given key occurs in a collection. Sorting algorithms are characterised by their time complexity, their auxiliary space (**in-place** or not), **stability**, and whether they rely only on **comparisons**, in which case at least Ω(n log n) comparisons are required in the worst case. Searching costs O(n) for an unordered sequence and O(log n) by **binary search** on a sorted, randomly accessible one.',
+      terms: [
+        { term: 'Total order', meaning: 'A relation on keys that is reflexive, antisymmetric, transitive and total, so any two keys can be compared; in Java, a consistent `Comparable` or `Comparator`.' },
+        { term: 'Stable sort', meaning: 'A sort that preserves the relative order of elements with equal keys, as `List.sort` and `Arrays.sort(Object[])` guarantee.' },
+        { term: 'In-place sort', meaning: 'A sort that uses only O(1), or O(log n) stack, auxiliary space beyond the input array.' },
+        { term: 'Comparison sort', meaning: 'A sort that gains information about the order only by comparing pairs of keys; its worst case is bounded below by Ω(n log n).' },
+        { term: 'Binary search', meaning: 'A search that compares the key with the middle element of a sorted range and discards the half that cannot contain it.' },
+      ],
+      source: 'Knuth, The Art of Computer Programming, Vol. 3; Cormen et al., chapters 2, 6-8; Javadoc for java.util.Arrays',
+    },
     interviewDefinition:
       '**Linear search** scans every element, O(n); **binary search** halves a sorted, random-access range each step, O(log n). Sorting algorithms are compared by best, average and worst-case time, extra space (in place or not), **stability** (equal keys keep their order) and adaptivity. Comparison sorts cannot beat Ω(n log n) in the worst case; counting and radix sort escape that by exploiting key structure. Java sorts primitive arrays with **dual-pivot quicksort** and objects with **TimSort**, a stable, adaptive merge sort.',
     interviewFollowUps: [
@@ -440,6 +517,13 @@ export const dsaConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Merge sort: divide, then merge',
         caption: 'The array is halved until single elements remain (trivially sorted), then sorted halves are merged pairwise. log2(n) levels, each doing O(n) merging work: O(n log n).',
+        explanation: [
+          'Start at the top with the unsorted array **[5, 2, 9, 1]**. The split arrows cut it in half into **[5, 2]** and **[9, 1]**.',
+          'Each half is split again into single elements: **[5]**, **[2]**, **[9]** and **[1]**. A one-element array is already sorted, so the divide phase stops here.',
+          'Now the merge phase begins. Pairs are merged in order: [5] and [2] become **[2, 5]**, and [9] and [1] become **[1, 9]**.',
+          'Finally the two sorted halves merge into **[1, 2, 5, 9]** by repeatedly taking the smaller front element of each half.',
+          'The takeaway: there are about log2(n) levels and each level merges n elements in total, so merge sort is O(n log n) in every case.',
+        ],
         cols: 4,
         rows: 5,
         nodes: [
@@ -478,6 +562,13 @@ export const dsaConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Binary search for 7 in [1, 3, 4, 6, 7, 9, 11]',
         caption: 'Each comparison discards half of the remaining range. Seven elements need at most three probes; a million need at most twenty.',
+        explanation: [
+          'Start with **lo=0, hi=6**: the search range is the whole sorted array of seven elements.',
+          'The first probe is **mid=3 → 6**. Since 6 is less than 7, the target must be in the right half, so lo becomes 4.',
+          'The next probe is **mid=5 → 9**. Since 9 is greater than 7, the target is in the left half of what remains, so hi becomes 4.',
+          'The third probe is **mid=4 → 7**, a match, so the method can **Return 4** after three probes instead of the five a linear scan needs.',
+          'The dashed branch shows a miss: if 7 were absent the range would empty, **lo > hi**, and `Arrays.binarySearch` returns minus the insertion point minus one.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -501,6 +592,13 @@ export const dsaConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'What happens when you call a JDK sort',
         caption: 'Primitive arrays and object sorts take different paths. Both fall back to insertion sort for small ranges, where its low overhead wins.',
+        explanation: [
+          'There are two entry points. **Arrays.sort(int[])** sorts primitives; **List.sort / Collections.sort** sort objects through `Arrays.sort(Object[])`.',
+          'Primitives go to **Dual-pivot quicksort**: unstable and in place. Stability does not matter because equal primitives cannot be told apart.',
+          'For small ranges, quicksort hands over to **Insertion sort**, whose low overhead beats recursion on a few elements.',
+          'Objects go to **TimSort**, a stable, adaptive merge sort. It must be stable because equal keys can belong to different objects.',
+          'TimSort first steps through the data to **Find natural runs** that are already sorted, extending short ones, and then **Merge runs** using galloping, so nearly sorted input sorts in close to O(n).',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -548,6 +646,18 @@ export const dsaConcepts: Record<string, LessonConcepts> = {
           { name: 'Tree search', summary: 'Follow a balanced BST from the root: O(log n), plus floor/ceiling/range queries.', support: 'supported', note: 'TreeMap.get, floorKey, ceilingKey, subMap.' },
         ],
       },
+      {
+        title: 'Ways to classify sorting algorithms',
+        intro: 'Textbooks group sorts by these properties; every algorithm above sits somewhere on each axis.',
+        items: [
+          { name: 'Comparison vs non-comparison', summary: 'Comparison sorts (merge, quick, heap, TimSort) only compare keys and need Ω(n log n) in the worst case. Non-comparison sorts (counting, radix, bucket) use key values directly and can run in linear time.', note: 'All JDK sort methods are comparison sorts.' },
+          { name: 'Stable vs unstable', summary: 'A stable sort keeps equal keys in their original order (insertion, merge, TimSort); an unstable one may reorder them (quick, heap, selection).', note: 'Javadoc guarantees stability for Arrays.sort(Object[]) and List.sort.' },
+          { name: 'In-place vs not in-place', summary: 'In-place sorts need O(1) or O(log n) extra space (quick, heap, insertion); merge sort and TimSort need an O(n) buffer.' },
+          { name: 'Adaptive vs non-adaptive', summary: 'An adaptive sort runs faster on partly sorted input (insertion sort, TimSort); a non-adaptive one does the same work regardless (heap sort, selection sort).' },
+          { name: 'Internal vs external', summary: 'Internal sorts keep all data in memory; external sorts handle data larger than memory by sorting runs on disk and merging them.', note: 'External merge sort is how databases run ORDER BY on huge tables.' },
+          { name: 'Serial vs parallel', summary: 'A serial sort uses one thread; a parallel sort splits the work across cores and merges the results.', support: 'supported', note: 'Arrays.parallelSort (Java 8+) uses the common ForkJoinPool for large arrays.', code: 'Arrays.parallelSort(bigArray);' },
+        ],
+      },
     ],
     deepDive: [
       {
@@ -583,6 +693,18 @@ export const dsaConcepts: Record<string, LessonConcepts> = {
   },
 
   'a-patterns': {
+    textbook: {
+      definition:
+        'An **algorithmic problem-solving pattern**, or **algorithm design technique**, is a general strategy for constructing algorithms that applies to a whole class of problems sharing a common structure. Classical techniques include **brute-force search**, **divide and conquer**, **greedy** choice, **dynamic programming** and **graph traversal**; practical refinements such as two pointers, sliding windows, prefix sums and heap-based selection eliminate repeated work in a brute-force solution. Applying a pattern means recognising the problem\'s structure and constraints, selecting a technique whose preconditions hold, and proving that it is correct and meets the required complexity.',
+      terms: [
+        { term: 'Brute-force search', meaning: 'Systematically enumerating every candidate solution and checking each one; correct but usually too slow, it serves as a baseline.' },
+        { term: 'Greedy algorithm', meaning: 'An algorithm that makes the locally optimal choice at each step; correct only when an exchange or similar argument proves the choice safe.' },
+        { term: 'Invariant', meaning: 'A condition that holds before and after every iteration of a loop, used to argue that a technique such as a sliding window is correct.' },
+        { term: 'Graph traversal', meaning: 'Visiting all vertices reachable from a source in a systematic order: breadth-first by distance, or depth-first along paths.' },
+        { term: 'Monotonicity', meaning: 'The property that a quantity only increases or only decreases as a parameter grows, which makes windows and binary search valid.' },
+      ],
+      source: 'Kleinberg and Tardos, Algorithm Design (2005); Cormen et al., Introduction to Algorithms, parts IV and VI',
+    },
     interviewDefinition:
       '**Problem-solving patterns** are reusable algorithmic templates — hashing, two pointers, sliding window, prefix sums, binary search, BFS/DFS, heaps, greedy, backtracking and dynamic programming — that you match to a problem by its shape and constraints. The method is: clarify, state a brute force and its cost, identify the repeated work, pick the pattern that removes it, then code, test edge cases and state time and space. Constraints signal the target: n ≈ 10^5 rules out O(n^2).',
     interviewFollowUps: [
@@ -639,6 +761,13 @@ export const dsaConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'From problem cue to pattern',
         caption: 'Most problems announce their pattern through a phrase or a constraint. The right column is the tool and its usual cost.',
+        explanation: [
+          'Read each row from left to right: a phrase in the problem on the left points to the pattern on the right. A cue like "pair / seen before" means **Hashing**, an O(n) pass with a `HashMap`.',
+          'A cue like "sorted array" suggests **Two pointers / binary search**, and "longest substring" suggests a **Sliding window** in which each index enters and leaves once.',
+          'A cue like "range sums" points to **Prefix sums (+ map)**: O(n) preparation, then O(1) per query, and the map handles negative numbers.',
+          'A cue like "fewest moves" means **BFS (Dijkstra if weighted)**, which explores level by level in O(V + E).',
+          'A cue like "k largest / next due" means a **Bounded heap** of size k, costing O(n log k). The takeaway: read the wording and constraints before choosing code.',
+        ],
         cols: 3,
         rows: 6,
         nodes: [
@@ -669,6 +798,13 @@ export const dsaConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'A repeatable approach to a new problem',
         caption: 'The brute force is a correct baseline and shows exactly which work repeats. The loop back from testing is normal: edge cases often change the design.',
+        explanation: [
+          'Start with **Clarify**: ask about input sizes, value ranges, empty input and ties, because the answers decide which approaches are allowed.',
+          'Next write the **Brute force** and state its cost. It is a correct baseline, and looking at it lets you **Find repeated work**, the computation it does again and again.',
+          '**Pick a pattern** that removes that repeated work, matching cues and constraints, such as a hash map instead of an inner loop.',
+          '**Code it** with clear names while explaining aloud, then **Test** with normal and edge cases. The dashed arrow back to Clarify shows that a bug or gap often sends you round again.',
+          'End with **State time + space**. The takeaway: a repeatable process beats waiting for inspiration.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -695,6 +831,13 @@ export const dsaConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'The sliding-window loop',
         caption: 'right moves every iteration; left moves only to restore the rule. Because neither pointer goes backwards, total work is O(n) even though there is an inner loop.',
+        explanation: [
+          'Each iteration starts with **Extend right**: the element at index right joins the window.',
+          'Then ask **Rule broken?**, for example whether the window now contains a repeated character.',
+          'If yes, **Advance left**, removing the element at index left. The dashed recheck arrow shows this repeats until the rule holds again.',
+          'If no, **Update best** with the current window length, right - left + 1.',
+          'Then check **right == n?** If not yet, loop back and extend again; otherwise return best. Because both pointers only move forward, the total work is O(n).',
+        ],
         cols: 3,
         rows: 2,
         nodes: [
@@ -776,6 +919,18 @@ export const dsaConcepts: Record<string, LessonConcepts> = {
   },
 
   'a-recursion-dp': {
+    textbook: {
+      definition:
+        '**Recursion** is a method of definition and computation in which a function is defined in terms of itself applied to smaller instances, together with one or more **base cases** that are answered directly; termination requires every recursive call to progress toward a base case. **Dynamic programming** is an algorithm design technique for optimisation and counting problems that exhibit **optimal substructure** and **overlapping subproblems**: it solves each distinct subproblem once, stores the result, and combines stored results according to a **recurrence**. It is implemented top-down by **memoisation** or bottom-up by tabulation in an order that respects the dependencies between subproblems.',
+      terms: [
+        { term: 'Base case', meaning: 'An input for which a recursive definition gives the answer directly, without a further recursive call.' },
+        { term: 'Optimal substructure', meaning: 'The property that an optimal solution to a problem contains optimal solutions to its subproblems.' },
+        { term: 'Overlapping subproblems', meaning: 'The property that a naive recursive solution solves the same subproblem many times, so caching results saves work.' },
+        { term: 'Recurrence', meaning: 'An equation that expresses the value for a state in terms of values for smaller states, such as dp[i] = dp[i-1] + dp[i-2].' },
+        { term: 'Memoisation', meaning: 'Caching the result of each call, keyed by its arguments, so a repeated call returns the stored value instead of recomputing it.' },
+      ],
+      source: 'Cormen et al., Introduction to Algorithms, chapters 4 and 15; Bellman, Dynamic Programming (1957)',
+    },
     interviewDefinition:
       '**Recursion** solves a problem by reducing it to smaller instances of itself until a **base case** answers directly; each call uses a stack frame, and Java performs no tail-call elimination. **Dynamic programming** applies when a problem has **optimal substructure** and **overlapping subproblems**: solve each distinct subproblem once, either **top-down** (recursion plus a memo cache) or **bottom-up** (tabulation from base cases). Running time is roughly the number of states times the work per state.',
     interviewFollowUps: [
@@ -834,6 +989,13 @@ export const dsaConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Naive fib(5): the same work again and again',
         caption: 'fib(3) is computed twice and fib(2) three times just in the top levels; the full tree has 15 calls. Memoisation collapses every repeat into one cached value, leaving n + 1 distinct states.',
+        explanation: [
+          'Start at the root, **fib(5)**, which calls **fib(4)** and **fib(3)**, because fib(5) = fib(4) + fib(3).',
+          'On the right, fib(3) is computed for the first time and calls **fib(2)** and **fib(1)**. fib(1) is a base case and returns 1 directly.',
+          'On the left, fib(4) calls fib(3) and fib(2) again. The red boxes marked repeat are exactly the same calculations already being done elsewhere.',
+          'Only the top levels are drawn; the full tree has 15 calls and grows about 1.6 times per level, so naive Fibonacci is exponential.',
+          'The takeaway: overlapping subproblems are the signal for dynamic programming. Caching each fib(k) once leaves only n + 1 distinct states.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -859,6 +1021,13 @@ export const dsaConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Top-down memoisation vs bottom-up tabulation',
         caption: 'Both compute each state once. Top-down starts from the question and recurses on demand; bottom-up starts from the base cases and fills the table in dependency order, with no recursion.',
+        explanation: [
+          'The left group is top-down. A call to **solve(n)** first asks **In memo?** to see whether this state was already computed.',
+          'If yes, it can **Return cached** immediately. If no, it must **Recurse on smaller** inputs, shown by the dashed arrow back to solve, then store the result before returning.',
+          'The right group is bottom-up. It starts from the **Base cases**, such as dp[0] and dp[1], which are known without any calculation.',
+          'The loop **for i = 2..n** fills each entry from entries already computed, so no recursion and no stack risk are involved.',
+          'It ends with **Answer dp[n]**, often keeping only two variables instead of a whole table. The takeaway: both styles compute each state exactly once.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -888,6 +1057,13 @@ export const dsaConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'Every recursive call is a stack frame',
         caption: 'Frames pile up on the thread stack until the base case returns. With no tail-call elimination in HotSpot, a million-deep linear recursion overflows a default stack; a loop or explicit ArrayDeque uses O(1) stack.',
+        explanation: [
+          'Read the thread stack from the bottom up. **main()** calls **sum(node 1)**, which pushes a new frame that waits for its result.',
+          '**sum(node 1)** calls **sum(node 2)**, and the dashed arrow means the calls continue, one frame per node, up to **sum(node n)**, the deepest frame.',
+          'No frame can be freed until the base case returns. If the depth is too great, the stack hits the **Stack limit (-Xss)** and throws `StackOverflowError`.',
+          'The dashed arrow labelled rewrite as leads to an **Iterative loop**, which does the same work in a single frame using O(1) stack.',
+          'The takeaway: HotSpot has no tail-call elimination, so recursion depth costs stack memory; use loops or an explicit stack for very deep inputs.',
+        ],
         cols: 3,
         rows: 4,
         nodes: [

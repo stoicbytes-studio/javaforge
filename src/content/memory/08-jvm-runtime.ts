@@ -11,6 +11,19 @@ export const jvmRuntimeMemory: Record<string, MemoryAid> = {
       'Shared by all threads: the heap for objects and arrays, cleaned by the garbage collector.',
       'Class information such as method bytecode lives in Metaspace, which is native memory outside the heap.',
     ],
+    types: [
+      {
+        title: 'Runtime data areas',
+        items: [
+          { name: 'PC register', simple: 'A bookmark for each thread, showing which instruction it is on right now.' },
+          { name: 'JVM stack', simple: 'Each thread\'s pile of sticky notes: one note per method call, with its local variables, thrown away when the call returns.' },
+          { name: 'Native method stack', simple: 'The same kind of note pile, but for native (non-Java) code called through JNI.' },
+          { name: 'Heap', simple: 'The big shared warehouse where every object made with `new` is stored until the garbage collector clears it.' },
+          { name: 'Method area (Metaspace)', simple: 'The shared library of blueprints: what each class looks like, its methods and constants.' },
+          { name: 'Code cache', simple: 'The workshop shelf where the JIT keeps fast machine code for the busiest methods.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: 'where a local variable and its object live',
       difference: 'A local variable like `list` sits in the stack frame, but it only holds a reference; the `ArrayList` object itself is on the heap.',
@@ -45,6 +58,27 @@ export const jvmRuntimeMemory: Record<string, MemoryAid> = {
       'Three steps: loading finds the bytes, linking verifies and prepares, initialising runs static code once.',
       'Parent delegation: a loader asks its parent first, so core classes always come from the bootstrap loader.',
       'A class is identified by its name plus the loader that defined it.',
+    ],
+    types: [
+      {
+        title: 'Class loader types',
+        items: [
+          { name: 'Bootstrap', simple: 'The head office built into the JVM. It loads core classes like `String` and shows up as null.' },
+          { name: 'Platform', simple: 'The regional office: loads the rest of Java\'s own modules, such as `java.sql`.' },
+          { name: 'Application', simple: 'Your local office: loads your own classes and the libraries on your classpath.' },
+          { name: 'Custom loaders', simple: 'Extra offices that servers and plugin systems open, so each app or plugin keeps its own copies of classes.' },
+        ],
+      },
+      {
+        title: 'Loading phases',
+        items: [
+          { name: 'Loading', simple: 'Find the class file and read its bytes, like fetching a book from the shelf.' },
+          { name: 'Verification', simple: 'Check the bytecode is safe and well formed, like a security check at the door.' },
+          { name: 'Preparation', simple: 'Make room for static fields and fill them with zero or null.' },
+          { name: 'Resolution', simple: 'Look up the other classes and methods it names, only when they are first needed.' },
+          { name: 'Initialisation', simple: 'Run the static setup code once, the first time the class is really used.' },
+        ],
+      },
     ],
     confusion: {
       mixedUpWith: 'loading and initialising',
@@ -82,6 +116,27 @@ export const jvmRuntimeMemory: Record<string, MemoryAid> = {
       'An object is kept while it is reachable from a GC root, and freed once it is not.',
       'Most objects die young, so the young area is collected often and survivors are promoted.',
       'G1 is the default collector; ZGC and Shenandoah aim for very short pauses.',
+    ],
+    types: [
+      {
+        title: 'HotSpot garbage collectors',
+        items: [
+          { name: 'Serial', simple: 'One cleaner who stops everyone while working. Fine for a tiny flat, too slow for a big office.' },
+          { name: 'Parallel', simple: 'A whole team of cleaners who stop everyone but finish fast. Best when short breaks do not matter.' },
+          { name: 'G1 (default)', simple: 'Cleans the messiest rooms first in short, planned breaks. A good balance for most apps.' },
+          { name: 'ZGC', simple: 'Cleaners who work while people keep working, so pauses last less than a millisecond, even in huge heaps.' },
+          { name: 'Shenandoah', simple: 'Another clean-while-you-work collector with tiny pauses, found in most OpenJDK builds.' },
+        ],
+      },
+      {
+        title: 'Reference types',
+        items: [
+          { name: 'Strong', simple: 'A normal reference. As long as you hold it, the object is never thrown away.' },
+          { name: 'Soft', simple: 'Kept while memory is plentiful, thrown away when memory runs short, like a spare-room storage box.' },
+          { name: 'Weak', simple: 'Thrown away at the next collection once nothing else strongly holds the object.' },
+          { name: 'Phantom', simple: 'Only tells you an object is gone, so you can clean up things like native memory or files.' },
+        ],
+      },
     ],
     confusion: {
       mixedUpWith: 'a memory leak in Java',

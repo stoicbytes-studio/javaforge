@@ -11,6 +11,35 @@ export const collectionsMemory: Record<string, MemoryAid> = {
       '`Map` stores key-value pairs and finds a value by its key; it is not a `Collection`.',
       'Start with the defaults `ArrayList`, `HashSet`, `HashMap` and `ArrayDeque`, and change only for a reason.',
     ],
+    types: [
+      {
+        title: 'List implementations',
+        items: [
+          { name: '`ArrayList`', simple: 'The default list: a numbered shelf that grows when full, quick to read any slot by number.' },
+          { name: '`LinkedList`', simple: 'A chain of linked items; sounds clever but is usually slower and uses more memory.' },
+          { name: '`CopyOnWriteArrayList`', simple: 'Makes a fresh copy on every change, so many threads can read it safely; good for rarely changed lists.' },
+        ],
+      },
+      {
+        title: 'Set implementations',
+        items: [
+          { name: '`HashSet`', simple: 'The default set: each item at most once, very fast checks, no particular order.' },
+          { name: '`LinkedHashSet`', simple: 'No repeats, and remembers the order items first arrived, like a guest book.' },
+          { name: '`TreeSet`', simple: 'No repeats, and always kept sorted, like names in a phone book.' },
+          { name: '`EnumSet`', simple: 'A tiny, super-fast set of enum constants, like ticking boxes for days of the week.' },
+        ],
+      },
+      {
+        title: 'Map implementations',
+        items: [
+          { name: '`HashMap`', simple: 'The everyday choice: very fast lookup, but keys come out in no particular order.' },
+          { name: '`LinkedHashMap`', simple: 'Like `HashMap`, but remembers the order you added keys, like a numbered queue of tickets.' },
+          { name: '`TreeMap`', simple: 'Keeps keys sorted, like a dictionary, and can find the nearest key below or above a value.' },
+          { name: '`EnumMap`', simple: 'A tiny, fast map when the keys are the constants of one enum, like days of the week.' },
+          { name: '`ConcurrentHashMap`', simple: 'A map many threads can use at once safely, like a shared notice board with a careful clerk.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: 'the interface and the implementation',
       difference: '`List` is the interface that says what you can do; `ArrayList` is one class that does it. Declare variables with the interface type.',
@@ -48,6 +77,27 @@ export const collectionsMemory: Record<string, MemoryAid> = {
       'Get and put are usually very fast, but only if keys spread well across buckets.',
       'A `HashMap` has no order and is not safe for many threads at once.',
     ],
+    types: [
+      {
+        title: 'Hash-based maps in the JDK',
+        items: [
+          { name: '`HashMap`', simple: 'The general-purpose map: fast, no order, one `null` key allowed, for one thread at a time.' },
+          { name: '`LinkedHashMap` (insertion order)', simple: 'Hands keys back in the order you first added them, like names on a sign-up sheet.' },
+          { name: '`LinkedHashMap` (access order)', simple: 'Moves each used key to the end, so the least used is first: the basis of an LRU cache.' },
+          { name: '`ConcurrentHashMap`', simple: 'Safe for many threads at once and never allows `null`; the right choice for shared caches.' },
+          { name: '`IdentityHashMap`', simple: 'Treats two keys as the same only if they are the very same object, not just equal twins.' },
+          { name: '`WeakHashMap`', simple: 'An entry quietly disappears once nothing else uses its key, like a note that fades away.' },
+        ],
+      },
+      {
+        title: 'Ways to handle collisions',
+        items: [
+          { name: 'Separate chaining', simple: 'Two keys landing in the same box are kept in a little list inside that box. `HashMap` does this.' },
+          { name: 'Tree bins (Java 8)', simple: 'A box that gets very crowded is reorganised into a sorted tree so searching stays quick.' },
+          { name: 'Open addressing', simple: 'If a box is taken, try the next empty box, like parking in the next free space.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: 'overriding `equals` but not `hashCode`',
       difference: 'Equal keys must have the same `hashCode`. If they do not, the map looks in the wrong bucket and `get` returns `null`.',
@@ -83,6 +133,27 @@ export const collectionsMemory: Record<string, MemoryAid> = {
       'Build comparators with `Comparator.comparing(...)`, then add tie-breakers with `thenComparing` and flip with `reversed()`.',
       '`TreeSet` and `TreeMap` treat a compare result of zero as the same element.',
     ],
+    types: [
+      {
+        title: 'Ways to sort',
+        items: [
+          { name: '`list.sort(comparator)`', simple: 'Sorts the list in place, keeping equal items in their old order, like re-shelving one shelf.' },
+          { name: '`Arrays.sort(array)`', simple: 'Sorts an array in place; works for numbers and for objects.' },
+          { name: '`stream.sorted()`', simple: 'Produces a new sorted sequence in a stream and leaves the original list untouched.' },
+          { name: '`TreeSet` / `TreeMap`', simple: 'Keep items sorted all the time, like a dictionary that files each new word in its place.' },
+          { name: '`PriorityQueue`', simple: 'Only promises the smallest item is at the front, like a triage nurse picking the next patient.' },
+        ],
+      },
+      {
+        title: 'Comparator building blocks',
+        items: [
+          { name: '`comparing(key)`', simple: 'Sort by one property, such as a person\'s age or a word\'s length.' },
+          { name: '`thenComparing(key)`', simple: 'A tie-breaker used only when the first rule says two items are equal, like sorting by surname, then first name.' },
+          { name: '`reversed()`', simple: 'Flips the whole order upside down: largest first instead of smallest first.' },
+          { name: '`nullsFirst` / `nullsLast`', simple: 'Decides where empty (`null`) values go instead of crashing, like putting blank forms at the end.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: '`Comparable` versus `Comparator`',
       difference: '`Comparable` lives inside the class and gives one natural order. A `Comparator` is a separate object, so you can have many orders.',
@@ -115,6 +186,27 @@ export const collectionsMemory: Record<string, MemoryAid> = {
       'A for-each loop over a collection uses an `Iterator` behind the scenes.',
       'Changing the collection during the loop usually throws `ConcurrentModificationException`.',
       'Remove safely with `iterator.remove()` or `list.removeIf(...)`.',
+    ],
+    types: [
+      {
+        title: 'Iteration styles',
+        items: [
+          { name: 'For-each loop', simple: 'The easiest way to visit every item, one by one, but you cannot remove items with it.' },
+          { name: 'Explicit `Iterator`', simple: 'Walk the items yourself and call `remove()` to safely take out the current one.' },
+          { name: 'Indexed `for` loop', simple: 'Visit items by position number; fine for an `ArrayList`, slow for a `LinkedList`.' },
+          { name: '`forEach(...)` with a lambda', simple: 'Hand the collection a small job and let it run the job on every item for you.' },
+          { name: '`removeIf(...)`', simple: 'Remove every item that matches a rule in one safe step, like clearing out all expired milk.' },
+        ],
+      },
+      {
+        title: 'Read-only collection kinds',
+        items: [
+          { name: '`Collections.unmodifiableList`', simple: 'A locked window: you cannot change it, but you still see changes the owner makes.' },
+          { name: '`List.of` / `List.copyOf`', simple: 'A photograph: frozen forever, nobody can change it, and `null` is not allowed.' },
+          { name: '`stream.toList()`', simple: 'A read-only list made at the end of a stream; unlike `List.of` it may hold `null`.' },
+          { name: '`Arrays.asList`', simple: 'A fixed-size list over an array: you can replace items but not add or remove them.' },
+        ],
+      },
     ],
     confusion: {
       mixedUpWith: 'an unmodifiable view versus an immutable list',
@@ -151,6 +243,27 @@ export const collectionsMemory: Record<string, MemoryAid> = {
       'Stack: `push` and `pop` work on the same end, so the newest item leaves first.',
       'Queue: `offer` adds at the back and `poll` takes from the front.',
       '`offer`, `poll` and `peek` return `false` or `null` instead of throwing like `add`, `remove` and `element`.',
+    ],
+    types: [
+      {
+        title: 'Queue and Deque implementations',
+        items: [
+          { name: '`ArrayDeque`', simple: 'The everyday choice for both stacks and queues: fast at both ends, like a line with two doors.' },
+          { name: '`PriorityQueue`', simple: 'Always hands out the smallest or most urgent item next, like an emergency room.' },
+          { name: '`LinkedList`', simple: 'Also works as a queue, but uses more memory and is usually slower than `ArrayDeque`.' },
+          { name: '`ArrayBlockingQueue`', simple: 'A fixed-size, thread-safe line: adders wait when it is full, takers wait when it is empty.' },
+          { name: '`Stack`', simple: 'An old class kept only for old code; use `ArrayDeque` with `push` and `pop` instead.' },
+        ],
+      },
+      {
+        title: 'Four method families',
+        items: [
+          { name: 'Throws: `add`, `remove`, `element`', simple: 'Complains loudly with an exception if the queue is full or empty.' },
+          { name: 'Special value: `offer`, `poll`, `peek`', simple: 'Just shrugs and gives back `false` or `null` when it cannot do the job.' },
+          { name: 'Blocks: `put`, `take`', simple: 'Waits patiently until there is room or an item; only blocking queues have these.' },
+          { name: 'Times out: `offer`/`poll` with time', simple: 'Waits, but only up to a time limit, like waiting ten minutes for a bus.' },
+        ],
+      },
     ],
     confusion: {
       mixedUpWith: 'the old `Stack` class',

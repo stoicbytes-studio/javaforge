@@ -4,6 +4,18 @@ import type { LessonConcepts } from '@/types/curriculum';
 export const performanceConcepts: Record<string, LessonConcepts> = {
   // -------------------------------------------------------------------------
   'perf-diagnostics': {
+    textbook: {
+      definition:
+        '**Performance diagnosis** is the systematic investigation of a running program to establish the cause of a measured deviation from its performance objectives, such as excessive latency, CPU consumption or memory growth. It proceeds by quantifying the symptom with **metrics**, forming a hypothesis, and collecting **observability** evidence that confirms or refutes it: **profiles** that attribute resource use to code, **thread dumps** that capture the state of every thread at an instant, **heap dumps** that capture the object graph, and **event recordings** such as Java Flight Recorder. In HotSpot this evidence is gathered through serviceability tools that attach to the live JVM.',
+      terms: [
+        { term: 'Profile', meaning: 'A statistical summary attributing a resource, such as CPU time, allocation or lock waiting, to the call stacks that consumed it, usually gathered by sampling.' },
+        { term: 'Thread dump', meaning: 'A snapshot of every Java thread\'s state and stack trace at one instant, including the monitors each holds or awaits.' },
+        { term: 'Heap dump', meaning: 'A file, typically in HPROF format, recording every object on the heap and the references between them at one instant.' },
+        { term: 'Latency percentile', meaning: 'The response time below which a given fraction of requests complete; p99 is exceeded by only 1% of requests.' },
+        { term: 'Safepoint bias', meaning: 'A distortion in samplers that can capture stacks only at JVM safepoints, attributing time to the next safepoint poll instead of the costly code.' },
+      ],
+      source: 'Java SE Troubleshooting Guide; JEP 328 (Flight Recorder); jcmd command reference',
+    },
     interviewDefinition:
       'Diagnosing a JVM is evidence-gathering on a live process with the JDK\'s own tools: **latency percentiles** to define the symptom, **Java Flight Recorder** for low-overhead continuous recording of CPU samples, allocations, locks, GC and I/O, **jcmd** as the front end for thread dumps, heap histograms, heap dumps, JFR control and native-memory tracking, and sampling profilers such as **async-profiler** for flame graphs. The skill is matching each symptom — hot CPU, stuck threads, growing heap, long pauses — to the cheapest tool that can prove its cause.',
     interviewFollowUps: [
@@ -58,6 +70,13 @@ export const performanceConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Match the symptom to the tool',
         caption: 'Each symptom has a cheapest tool that can prove its cause. Start there; escalate to expensive evidence such as heap dumps only when the cheap one points that way.',
+        explanation: [
+          'The top row lists four symptoms and the bottom row the cheapest tool that proves each cause. Read each column top to bottom.',
+          '**Hot CPU**, with cores saturated, leads to a **CPU flame graph** from JFR or async-profiler, whose widest frames show the code burning the CPU.',
+          '**Stuck**, no progress with low CPU, leads to **3 thread dumps** taken seconds apart with `jcmd Thread.print`; threads frozen in the same frame or BLOCKED reveal the wait.',
+          '**Growing heap**, where the heap after GC keeps rising, leads to **Histogram, then dump**: compare class histograms first and take a heap dump for MAT only to find who holds the objects.',
+          '**Latency spikes** while code looks idle lead to the **GC log + JFR GC** events, which show pauses. The takeaway: start cheap and escalate only when evidence points there.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -82,6 +101,13 @@ export const performanceConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'The diagnostic loop',
         caption: 'Quantify the symptom first, capture evidence for one hypothesis, change one thing and re-measure the same metric. A change that does not move the metric is reverted.',
+        explanation: [
+          'It starts with a **Symptom**, an alert or a user report. Before touching anything, **Quantify** it: which endpoint, and how bad are p50 and p99?',
+          'Form one **Hypothesis**: is the process hot, stuck, fat or paused? Then **Capture evidence** for that hypothesis with JFR, thread dumps or the GC log.',
+          '**Analyse** the evidence in JMC, MAT or a flame graph, and **Change one thing**: the smallest fix that addresses the proven cause.',
+          '**Re-measure** the same metric under the same load. If it is better, the loop ends at **Improved**: keep the change and record why.',
+          'The dashed arrow shows the other outcome: no change means revert and return to a new hypothesis. The takeaway is evidence first, one change at a time.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -110,6 +136,13 @@ export const performanceConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'How the tools reach a running JVM',
         caption: 'jcmd, jstack and async-profiler connect through the Attach API; the JVM itself writes recordings and dumps to files that are analysed elsewhere, ideally off the production host.',
+        explanation: [
+          'The top row holds the tools on the production host. **jcmd** is the recommended entry point, **jstack** is the older thread-dump tool, and **async-profiler** is a third-party sampling agent.',
+          'jcmd and jstack reach the **Target JVM** through the Attach API, a local channel that sends diagnostic commands; async-profiler loads itself into the JVM as an agent.',
+          'The JVM writes evidence to files: `GC.heap_dump` produces **heap.hprof** for Eclipse MAT, and `JFR.dump` produces **app.jfr** for JDK Mission Control or the `jfr` tool.',
+          'async-profiler writes **flame.html**, which opens in any browser.',
+          'The group boundary is the takeaway: capture on the production host, then copy the files off and analyse them elsewhere, so analysis does not load production.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -185,6 +218,18 @@ export const performanceConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'perf-jmh': {
+    textbook: {
+      definition:
+        'A **microbenchmark** is a program that measures the performance of a small, isolated unit of code, such as a single method or operation, under controlled conditions. On an adaptively optimising runtime its results are valid only if the measurement reaches a **steady state** and the code under test is not altered by optimisations that would not occur in the real program, such as **dead-code elimination** and **constant folding**. **JMH**, the Java Microbenchmark Harness, is the OpenJDK framework that generates the measurement harness, separates warm-up from measurement iterations, runs trials in **forked JVMs**, and reports each score with a statistical confidence interval.',
+      terms: [
+        { term: 'Steady state', meaning: 'The phase after warm-up in which JIT compilation has settled and repeated measurements of the same operation are statistically stable.' },
+        { term: 'Dead-code elimination', meaning: 'A compiler optimisation that removes computations whose results are never used, which can make a benchmark measure nothing.' },
+        { term: 'Constant folding', meaning: 'A compiler optimisation that evaluates expressions with inputs known at compile time, replacing the computation by its result.' },
+        { term: 'Fork', meaning: 'A separate JVM process in which JMH runs a benchmark, isolating it from profiles and compiled code left by other benchmarks.' },
+        { term: 'Confidence interval', meaning: 'A range around the measured mean that, at a stated confidence level (99.9% in JMH), is expected to contain the true mean.' },
+      ],
+      source: 'OpenJDK JMH project documentation and samples; JEP 230 (Microbenchmark Suite)',
+    },
     interviewDefinition:
       '**JMH** (Java Microbenchmark Harness) is the OpenJDK project for writing benchmarks that survive the JVM\'s adaptive optimisation. It generates harness code around `@Benchmark` methods, runs **warm-up** iterations until compiled code is steady, isolates each benchmark in **forked JVMs**, defeats dead-code elimination through return values and `Blackhole`, and prevents constant folding by reading inputs from non-final `@State` fields. Every score comes with an error margin (a 99.9% confidence interval), so you can tell a real difference from noise.',
     interviewFollowUps: [
@@ -240,6 +285,13 @@ export const performanceConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Why a naive timer measures the wrong program',
         caption: 'The same method runs as interpreted code, then C1 code, then C2 code. A naive timer averages all three; JMH discards warm-up and measures only the steady state.',
+        explanation: [
+          'Read the top row left to right as time passes. A method first runs in the **Interpreter**, which is slow but collects profiling data.',
+          'Once the method is hot, it becomes **C1 compiled**: quickly compiled code that still counts branches and types. With enough profile data it is recompiled as **C2 compiled**, aggressively optimised code.',
+          'C2 may remove dead code and fold constants, and only then does the method reach the **Steady state**, the performance you actually want to know.',
+          'The bottom-left **Naive nanoTime loop** times all of this together, so it averages three different programs and reports a meaningless number.',
+          'The bottom-right **JMH warm-up, then measure** discards the early phases and records only steady-state iterations. The takeaway: never time Java code without warm-up.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -261,6 +313,13 @@ export const performanceConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'Anatomy of a JMH run',
         caption: 'Each fork is a fresh JVM that runs warm-up iterations (discarded) and measurement iterations (recorded). Scores from all forks are combined into one result with a confidence interval.',
+        explanation: [
+          'Start at **benchmarks.jar**, which contains your `@Benchmark` methods plus the harness code JMH generated around them.',
+          'JMH launches **Fork 1**, **Fork 2** and **Fork 3**, each a fresh JVM, so JIT decisions from one benchmark or run cannot leak into another.',
+          'Inside a fork, **Warm-up iterations** run first and their results are thrown away. Then **Measurement** iterations run and are recorded.',
+          'The dashed arrow to **Blackhole** shows results being sunk, so the JIT cannot delete the work as unused. The other forks repeat the same cycle.',
+          'All recorded iterations from every fork are combined into **Score ± Error**, a mean with a 99.9% confidence interval. The takeaway: one number means little without its error.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -290,6 +349,12 @@ export const performanceConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Is B really faster than A?',
         caption: 'A benchmark win is only a candidate until the intervals separate, allocation is understood, and the real application confirms it.',
+        explanation: [
+          'Begin with **Run A and B** on the same quiet machine with at least three forks each, so both get the same conditions.',
+          'Ask **Intervals overlap?** by comparing each Score ± Error range. If yes, the answer is **No proven difference**: add forks or stop, because the gap may be noise.',
+          'If the intervals are clearly separate, **Check -prof gc** to see bytes allocated per operation, and double-check the unit and mode so you compare like with like.',
+          'Finally **Confirm in the app** with a profile or load test. The takeaway: a microbenchmark win is only a candidate until the real system improves too.',
+        ],
         cols: 3,
         rows: 2,
         nodes: [
@@ -357,6 +422,18 @@ export const performanceConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'perf-optimisation': {
+    textbook: {
+      definition:
+        '**Performance optimisation** is the modification of a program so that it consumes fewer resources, such as time, memory, I/O or network round trips, for the same observable behaviour, measured against an explicit objective. It is guided by measurement: a **profile** identifies the **hotspot**, the component that contributes most to the cost, and **Amdahl\'s law** bounds the overall gain obtainable by improving that part alone. Optimisations act at several levels, from reducing remote and I/O operations, through choosing better **algorithms** and data structures, to reducing allocation and instruction-level work, and each change is validated by re-measuring the same metric under the same load.',
+      terms: [
+        { term: 'Hotspot', meaning: 'A region of code or an operation that accounts for a disproportionate share of a program\'s execution time or resource use.' },
+        { term: 'Amdahl\'s law', meaning: 'The overall speed-up from improving a part that takes fraction p of the time by factor s is 1 / ((1 - p) + p / s).' },
+        { term: 'Latency', meaning: 'The time taken to complete a single operation or request, usually reported as percentiles.' },
+        { term: 'Throughput', meaning: 'The number of operations a system completes per unit of time.' },
+        { term: 'Allocation rate', meaning: 'The number of bytes of new objects created per second, which determines how often the garbage collector must run.' },
+      ],
+      source: 'Amdahl (1967); Java HotSpot VM performance documentation; Brendan Gregg, Systems Performance (2nd ed.)',
+    },
     interviewDefinition:
       'Effective optimisation is **subtractive**: remove work in order of cost. First cut network and disk round trips (N+1 queries, chatty calls, unbuffered I/O), then fix algorithmic complexity and data-structure choice, then reduce allocation, boxing and copying in hot paths, and only then consider micro-level tuning — much of which the JIT already does. Every change starts from a profile, targets one hotspot and is re-measured against the same metric; changes that do not move it are reverted, because they only add complexity.',
     interviewFollowUps: [
@@ -411,6 +488,13 @@ export const performanceConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Attack the most expensive work first',
         caption: 'Costs fall by orders of magnitude from top to bottom, and so does the typical payoff of fixing them. Each level has its own standard remedy.',
+        explanation: [
+          'The left column lists kinds of cost from most to least expensive; each arrow leads right to the usual remedy.',
+          'A **Remote round trip** costs from half a millisecond to over 100 ms, so the fix is **Batch, cache, join**. A **Disk / system call** costs microseconds each, so **Buffer and batch** them.',
+          'An **Algorithm** that is O(n²) where O(n) is possible wastes work at scale; the remedy is usually the **Right data structure**, such as a `HashSet` instead of a list scan.',
+          '**Allocation, boxing** in hot loops drives garbage collection, so prefer **Primitives, presize** collections, and use `long` over `Long`.',
+          'At the bottom, **Instruction level** costs about a nanosecond and is the JIT\'s territory, so **Leave it to the JIT** unless a profile says otherwise. The takeaway: fix from the top down.',
+        ],
         cols: 2,
         rows: 5,
         nodes: [
@@ -438,6 +522,13 @@ export const performanceConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'N+1 round trips vs one batched query',
         caption: 'The per-row query pays network latency a hundred times; collecting ids and asking once pays it once, whatever the database does internally.',
+        explanation: [
+          'The top row is the N+1 problem. A **Loop over 100 orders** looks up each order\'s customer one by one.',
+          'Each **findCustomer(id)** call is a separate round trip to the **Database**, so network latency is paid 100 times even though each query is trivial.',
+          'The bottom row is the fix. **Collect ids first** into a `Set<Long>`, removing duplicates as a bonus.',
+          'Then send a single **WHERE id IN (...)** query: one round trip, after which the results are put in a map by id.',
+          'The edge labels sum it up: 100 × latency against 1 × latency. The takeaway is that the number of round trips matters far more than how fast each query runs.',
+        ],
         cols: 3,
         rows: 2,
         nodes: [
@@ -460,6 +551,13 @@ export const performanceConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'One change at a time',
         caption: 'Optimise the biggest contributor from the profile, change one thing, and keep it only if the same metric improves under the same load.',
+        explanation: [
+          'Start with a **Profile** from JFR, a flame graph or the SQL log, so you work from evidence instead of guesses.',
+          'Pick the **Biggest contributor**. By Amdahl\'s law, the share of time it takes limits the most you can win by fixing it.',
+          'Make **One change**, the smallest one that could help, then **Re-measure** the same metric, such as p99, throughput or allocation, under the same load.',
+          'If the metric improved, **Keep** the change and note why. If nothing changed, the dashed arrow says **Revert**, because it adds complexity for no gain.',
+          'After a revert, the next dashed arrow returns to picking a contributor with a new hypothesis. The takeaway: measure, change one thing, measure again.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -492,6 +590,20 @@ export const performanceConcepts: Record<string, LessonConcepts> = {
           { name: 'TreeMap / TreeSet', summary: 'Sorted keys and range queries in O(log n).', support: 'supported' },
           { name: 'EnumMap / EnumSet', summary: 'Array or bit-vector backed structures for enum keys — compact and very fast.', support: 'supported' },
           { name: 'Primitive arrays', summary: 'No boxing, contiguous memory: the fastest option for large numeric data.', support: 'supported', code: 'long[] totals = new long[n];' },
+        ],
+      },
+      {
+        title: 'Levels of optimisation',
+        intro: 'Ordered roughly by typical payoff, from the most expensive work to the cheapest.',
+        items: [
+          { name: 'I/O and remote calls', summary: 'Remove round trips: batch queries, fix N+1 access, buffer streams, cache remote results. Each avoided call saves milliseconds.', code: 'try (var out = new BufferedWriter(new FileWriter(f))) { ... }' },
+          { name: 'Algorithmic', summary: 'Lower the complexity class, for example from O(n²) to O(n log n) or O(n). No tuning flag can match this at scale.' },
+          { name: 'Data structure', summary: 'Match the structure to the access pattern: HashSet for membership, ArrayDeque for queues, EnumMap for enum keys.' },
+          { name: 'Memory and allocation', summary: 'Fewer, smaller objects: primitives over boxed types, presized collections, no copying in hot paths. Lowers GC frequency.', note: 'Verify with `-prof gc` or JFR allocation events; escape analysis may already remove some allocations.' },
+          { name: 'Caching', summary: 'Store expensive results for reuse, with a size bound, expiry and an invalidation rule.', note: 'Caffeine is a common bounded cache; measure the hit rate.' },
+          { name: 'Concurrency and parallelism', summary: 'Overlap waiting (virtual threads, async I/O) or split CPU work across cores (parallel streams, fork/join).', support: 'supported', note: 'Virtual threads are final since Java 21 (JEP 444). Parallelism helps only CPU-bound work with enough data.' },
+          { name: 'JVM and GC tuning', summary: 'Choose a collector and heap size suited to the latency or throughput goal, such as G1, ZGC or Parallel GC.', support: 'supported', code: '-XX:+UseZGC -Xmx4g' },
+          { name: 'Micro-level', summary: 'Hand-tuning loops and instructions. Usually done by the JIT already; only worth it where a profile proves a tight hot loop.' },
         ],
       },
     ],

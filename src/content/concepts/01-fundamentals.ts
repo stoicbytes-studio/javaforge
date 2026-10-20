@@ -200,6 +200,18 @@ export const fundamentalsConcepts: Record<string, LessonConcepts> = {
     ],
   },
   'f-types-operators': {
+    textbook: {
+      definition:
+        'A **data type** determines the set of values that a variable or expression may hold and the operations defined on those values. Java is **statically typed**: every variable and expression has a type known at compile time. Types are divided into **primitive types**, namely `boolean` and the numeric types (the integral types `byte`, `short`, `int`, `long` and `char`, and the floating-point types `float` and `double`), and **reference types**. An **operator** is a symbol that, applied to one, two or three operands, forms an expression whose type is determined by the operand types after **numeric promotion**.',
+      terms: [
+        { term: 'Primitive type', meaning: 'One of eight predefined types named by reserved keywords, whose values are stored directly and are not objects; their sizes and ranges are fixed by the JLS.' },
+        { term: 'Reference type', meaning: 'A class, interface, type variable or array type; its values are references to objects, or the special value `null`.' },
+        { term: 'Two\'s complement', meaning: 'The binary representation used for Java\'s signed integral types, in which arithmetic results that overflow wrap around modulo 2 to the power of the bit width.' },
+        { term: 'Numeric promotion', meaning: 'The implicit widening of operands before an arithmetic operation: operands narrower than `int` become `int`, and mixed operands widen to the wider type.' },
+        { term: 'Operator precedence', meaning: 'The rules that decide how operators group with their operands when parentheses are absent; for example, multiplication binds tighter than addition.' },
+      ],
+      source: 'JLS chapter 4 (§4.1, §4.2) and chapter 15',
+    },
     interviewDefinition:
       'Java has eight **primitive types** — `byte`, `short`, `int`, `long`, `float`, `double`, `char` and `boolean` — whose sizes and behaviour are fixed by the JLS on every platform and which hold values directly instead of references. Integer types are two\'s-complement and wrap silently on overflow; `float` and `double` follow IEEE 754. Operators apply **numeric promotion** (anything narrower than `int` becomes `int`), follow fixed precedence, and evaluate their operands strictly left to right.',
     interviewFollowUps: [
@@ -258,6 +270,14 @@ export const fundamentalsConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'The eight primitive types by size',
         caption: 'Integers double in size from left to right; float and double sit under the integers of the same width but trade exactness for range. char is 16 bits like short, but unsigned.',
+        explanation: [
+          'The top row holds the **Signed integers (two\'s complement)**: **byte**, **short**, **int** and **long**. Each arrow labelled wider points to a type with twice as many bits.',
+          'Following those arrows, `byte` uses 8 bits, `short` 16, `int` 32 and `long` 64, so each step squares the number of different whole numbers the type can hold.',
+          'The second row is **Floating point (IEEE 754)**: **float** sits under `int` because both are 32 bits, and **double** sits under `long` because both are 64 bits. The arrow shows `float` widening to `double`.',
+          'Floating types cover a far larger range than integers of the same width, but keep only about 7 or 15 to 16 significant digits, so they trade exactness for range.',
+          'The **Other** group holds **boolean**, which is only `true` or `false`, and **char**, a 16-bit unsigned UTF-16 code unit from 0 to 65,535.',
+          'Takeaway: choose `int` for everyday whole numbers, `long` when values may exceed 2.1 billion, and `double` for decimals that need not be exact.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -287,6 +307,14 @@ export const fundamentalsConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Why one L fixes an overflow',
         caption: 'Both rows compute 30 days in milliseconds. The arithmetic type is fixed by the operands before assignment, so only the second row ever works in 64 bits.',
+        explanation: [
+          'The top row starts with **days * 24 * … * 1000**, where every operand is an `int`. Java chooses the arithmetic type from the operands, not from the variable that will receive the result.',
+          'So the expression goes to **int multiply**, which uses 32-bit arithmetic. Thirty days is 2,592,000,000 milliseconds, more than the `int` maximum of 2,147,483,647, so **Overflow wraps** the value silently.',
+          'The assign arrow leads to **Widened to long**: the already wrong `int` result is converted to `long` only after the damage is done, giving -1,702,967,296.',
+          'The bottom row starts with **days * 24L * … * 1000**. The `L` makes one operand a `long`, and the promotion arrow shows the other operands being widened to `long` as well.',
+          'Now **long multiply** works in 64 bits, so there is **No overflow**, and the assignment stores the correct **2,592,000,000**.',
+          'Takeaway: when a product may exceed 2.1 billion, make an early operand `long`; widening the result afterwards is too late.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -313,6 +341,14 @@ export const fundamentalsConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Operator precedence, highest to lowest',
         caption: 'Follow the arrows: operators earlier in the chain bind tighter. Multiplicative beats additive, comparisons beat && and ||, and assignment and lambdas bind loosest of all. When in doubt, add parentheses.',
+        explanation: [
+          'Follow the arrows from the top left: **Postfix** operators such as `x++`, `a[i]` and method calls bind tightest, followed by **Unary** operators such as `-x`, `!` and casts.',
+          'Next come **Multiplicative** (`*`, `/`, `%`), then **Additive** (`+`, `-`), then **Shift** (`<<`, `>>`, `>>>`). That is why `2 + 3 * 4` is 14, not 20.',
+          '**Relational** operators such as `<`, `>` and `instanceof` bind tighter than **Equality** (`==`, `!=`), so `a < b == c < d` compares two boolean results.',
+          '**Bitwise** operators come after equality, which is why `x & 1 == 0` means `x & (1 == 0)` and does not compile for an `int` x. Among the **Logical** operators, `&&` binds tighter than `||`.',
+          'Near the end are the **Ternary** operator `? :` and **Assignment** (`=`, `+=` and friends), which bind loosely so that the whole right-hand side is evaluated before it is stored.',
+          'A **Lambda** arrow binds loosest of all. Takeaway: precedence decides grouping, not evaluation order; whenever a reader might hesitate, add parentheses.',
+        ],
         cols: 3,
         rows: 4,
         nodes: [
@@ -373,6 +409,19 @@ export const fundamentalsConcepts: Record<string, LessonConcepts> = {
           { name: 'Operator overloading', summary: 'User-defined operators are not allowed. The only built-in "overload" is `+` for String concatenation.', support: 'not-supported', note: 'Use methods such as BigDecimal.add instead.' },
         ],
       },
+      {
+        title: 'Primitive and reference types (JLS chapter 4)',
+        intro: 'Every Java type is either a primitive type or a reference type. Primitive types split into the numeric types (integral and floating-point) and boolean.',
+        items: [
+          { name: 'Integral types', summary: '`byte`, `short`, `int`, `long` and `char`. Whole numbers; all except the unsigned `char` are signed two\'s complement.', support: 'supported', code: 'int n = 42; char c = \'A\';' },
+          { name: 'Floating-point types', summary: '`float` and `double`, IEEE 754 binary formats that also have infinities, NaN and a signed zero.', support: 'supported', code: 'double d = 1.0 / 0; // Infinity' },
+          { name: 'boolean type', summary: 'Exactly two values, `true` and `false`. It is not a numeric type and cannot be converted to or from numbers.', support: 'supported', code: 'boolean ok = n > 0;' },
+          { name: 'Class and interface types', summary: 'Reference types such as `String`, `List<String>` or a record. A variable holds a reference to an object, or `null`.', support: 'supported', code: 'String s = "hi";' },
+          { name: 'Array types', summary: '`int[]`, `String[][]`. Arrays are objects, so array types are reference types even when the elements are primitives.', support: 'supported', code: 'int[] a = new int[3];' },
+          { name: 'Type variables', summary: 'Placeholders such as `T` in `List<T>`, standing for a reference type chosen by the code that uses the generic class or method.', support: 'supported', note: 'Java 5+ (generics).' },
+          { name: 'The null type', summary: 'The nameless type of the literal `null`, which can be assigned to any reference type but never to a primitive.', support: 'supported', code: 'String t = null;' },
+        ],
+      },
     ],
     deepDive: [
       {
@@ -402,6 +451,18 @@ export const fundamentalsConcepts: Record<string, LessonConcepts> = {
     ],
   },
   'f-type-conversion': {
+    textbook: {
+      definition:
+        'A **conversion** is the transformation of a value from one type to a related type, performed either implicitly in a conversion context or explicitly by a **cast expression**. The JLS defines the kinds of conversion, including **widening** and **narrowing primitive conversions**, widening and narrowing reference conversions, **boxing** and **unboxing**, and string conversion, and specifies which kinds each context (assignment, method invocation, casting, string concatenation and numeric promotion) permits. Widening primitive conversions never throw an exception but may lose precision; narrowing primitive conversions may lose information about magnitude, precision and sign.',
+      terms: [
+        { term: 'Widening primitive conversion', meaning: 'A conversion to a primitive type with a larger range, such as `int` to `long`; applied implicitly and never throwing an exception.' },
+        { term: 'Narrowing primitive conversion', meaning: 'A conversion to a primitive type with a smaller range, such as `double` to `int`; it requires a cast unless the value is a constant that fits.' },
+        { term: 'Cast expression', meaning: 'An expression of the form `(T) e` that explicitly converts the value of `e` to type `T`; checked at compile time and, for reference types, also at run time.' },
+        { term: 'Boxing and unboxing', meaning: 'The conversion of a primitive value to an object of its wrapper class, such as `int` to `Integer`, and the reverse conversion.' },
+        { term: 'Parsing', meaning: 'Reading the characters of a `String` and producing the value they denote, as `Integer.parseInt` does; it is a method call, not a language conversion.' },
+      ],
+      source: 'JLS chapter 5 (§5.1.2, §5.1.3, §5.1.7, §5.1.8)',
+    },
     interviewDefinition:
       'A **conversion** changes the type of a value. **Widening** primitive conversions (`byte → short → int → long → float → double`, and `char → int`) happen implicitly because the range always fits, though `int`/`long` to `float` and `long` to `double` may lose precision. **Narrowing** conversions need an explicit cast and can silently change the value: integers keep only their low-order bits, while floating-point values truncate toward zero and clamp. Numeric promotion and compound assignment add conversions you never wrote; text is not converted but **parsed**.',
     interviewFollowUps: [
@@ -469,6 +530,14 @@ export const fundamentalsConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'The widening ladder',
         caption: 'Arrows show widening conversions, which Java applies automatically. Going against an arrow is narrowing and needs a cast. Dashed arrows widen the range but can lose precision.',
+        explanation: [
+          'Start at the top left with **byte**. The arrows carry it to **short**, then **int**, then **long**: each step goes to a type with a larger range, so Java converts automatically.',
+          '**char** joins the ladder at **int**. It does not widen to `short`, because `char` is unsigned and `short` is signed, so neither range contains the other.',
+          'From `int` a dashed arrow labelled may round reaches **float**, and from `long` another reaches **double**. These are still widening, but the floating type cannot keep every digit of a large integer.',
+          'The solid arrow from **float** to **double** is exact: every `float` value is also a `double` value.',
+          'The note **Against the arrows** covers narrowing: any conversion opposite to an arrow needs an explicit cast, such as `(int) 3.9`, and may change the value.',
+          'Takeaway: follow an arrow and Java converts for you; go against one and you must write a cast and accept the risk.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -496,6 +565,14 @@ export const fundamentalsConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'What a narrowing cast does to the value',
         caption: 'Floating-point sources are first truncated toward zero (NaN becomes 0, huge values clamp); integer sources simply lose their high-order bits, which is how the sign can flip.',
+        explanation: [
+          'Everything starts at **(T) value**, an explicit narrowing cast written by the programmer, such as `(int) 9.99` or `(byte) 200`.',
+          'The decision box **Source type?** asks whether the value being cast is floating point or an integer type, because the two follow different rules.',
+          'A `float` or `double` first goes to **Truncate toward zero**: the fraction is dropped, NaN becomes 0, and values outside the `int` or `long` range are clamped to its limits.',
+          'If the target T is `int` or `long`, that truncated number is the **Result**, so `(int) 9.99` gives 9.',
+          'If T is `byte`, `short` or `char`, the value continues to **Keep low-order bits**, which is also where integer sources go directly. Bits that do not fit are thrown away.',
+          'Dropping high bits can flip the sign, so the bottom result for `(byte) 200` is -56. Takeaway: a primitive cast never fails; it silently produces a possibly different number.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -520,6 +597,14 @@ export const fundamentalsConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'How javac types b = b + 1 versus b += 1',
         caption: 'Both start with the same promotion to int. The plain assignment then needs a narrowing cast you did not write, so it fails; compound assignment inserts that cast for you — and with it, silent wrap-around.',
+        explanation: [
+          'The top row starts with **b = b + 1**, where `b` is a `byte`. Before adding, **Numeric promotion** widens `b` to `int`, because Java does arithmetic in at least 32 bits.',
+          'So the sum has **Result type: int**. Storing an `int` into a `byte` is a narrowing conversion, and no cast was written.',
+          'The arrow labelled no cast written therefore ends in a **Compile error**: "incompatible types: possible lossy conversion from int to byte".',
+          'The bottom row starts with **b += 1**, where `b` is again a `byte`. The same promotion to `int` happens first.',
+          'But compound assignment is defined by JLS 15.26.2 to include a **Hidden (byte) cast**, so the line **Compiles** without any complaint.',
+          'Takeaway: `+=` is convenient but carries the risk of a cast, so a `byte` holding 127 silently becomes -128 after `b += 1`.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -596,6 +681,18 @@ export const fundamentalsConcepts: Record<string, LessonConcepts> = {
     ],
   },
   'f-control-flow': {
+    textbook: {
+      definition:
+        '**Control flow** is the order in which the statements of a program are executed. By default Java executes statements sequentially; **control-flow statements** alter that order. **Selection statements** (`if`, `switch`) choose one of several paths according to a condition or a value; **iteration statements** (`while`, `do`, basic `for` and enhanced `for`) repeat a statement while a condition holds; and **jump statements** (`break`, `continue`, `return`, `yield`, `throw`) transfer control unconditionally. Every condition must be an expression of type `boolean`, and the compiler checks reachability and definite assignment along every path.',
+      terms: [
+        { term: 'Selection statement', meaning: 'A statement that chooses which of several sub-statements to execute, based on a boolean condition (`if`) or on the value of a selector expression (`switch`).' },
+        { term: 'Iteration statement', meaning: 'A statement that executes its body repeatedly while a condition holds; Java provides `while`, `do`, the basic `for` and the enhanced `for`.' },
+        { term: 'Jump statement', meaning: 'A statement that unconditionally transfers control to another point in the program: `break`, `continue`, `return`, `yield` or `throw`.' },
+        { term: 'Fall-through', meaning: 'In a `switch` with colon labels, the continuation of execution from one case into the statements of the next when no `break` intervenes.' },
+        { term: 'Switch expression', meaning: 'A form of `switch` that produces a value, must be exhaustive and returns a value from a block with `yield`; standard since Java 14.' },
+      ],
+      source: 'JLS chapter 14 (§14.9 to §14.21) and §15.28',
+    },
     interviewDefinition:
       'Control-flow statements decide which code runs and how often: `if`/`else` and the ternary operator branch on a boolean; `for`, enhanced `for`, `while` and `do-while` repeat; `break`, `continue`, `return` and `yield` jump. In a classic `switch` statement case labels are entry points, so execution falls through without `break`. Arrow labels (final in Java 14) never fall through, a **switch expression** must be exhaustive and yields a value, and since Java 21 `switch` can match on types with patterns.',
     interviewFollowUps: [
@@ -650,6 +747,13 @@ export const fundamentalsConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Fall-through: classic switch vs arrow labels',
         caption: 'With code = 2, the classic switch enters at case 2 and keeps running into case 3 until break. The arrow form runs exactly one case and exits.',
+        explanation: [
+          'At the top, the selector **code = 2** is the value being switched on. Both switches receive it, so you can compare their behaviour side by side.',
+          'In the **Classic switch** on the left, **case 1:** is skipped and the jump lands on **case 2:**, which is only an entry point. It prints two.',
+          'There is no break after it, so execution falls into **case 3:** and prints three as well, until **break;** finally leaves the switch.',
+          'In the **Arrow switch** on the right, **case 1 ->** is skipped, **case 2 ->** matches and prints two, and **case 3 ->** is never reached.',
+          'The arrow form then **Exits after one case**, with no break needed. Takeaway: colon labels fall through until `break`; arrow labels never do.',
+        ],
         cols: 3,
         rows: 4,
         nodes: [
@@ -680,6 +784,13 @@ export const fundamentalsConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Choosing a loop',
         caption: 'Ask the questions top to bottom. Most everyday loops end at the first or second question; do-while is for "act first, then check".',
+        explanation: [
+          'Start at the top with **Need an index or a count?** If yes, use **for (int i = 0; …)**, which keeps the counter, its limit and its update together in the header.',
+          'If not, ask **Visiting every element?** If yes, use **for (T x : items)**, the enhanced for loop, which walks an array or collection without an index and cannot go off by one.',
+          'Otherwise ask **Must run at least once?** If yes, use **do { … } while (c);**, which runs the body first and checks the condition afterwards.',
+          'If the answer is no, use **while (cond) { … }**, which checks first and may run zero times; it suits waiting for something to change.',
+          'Takeaway: most loops end at the first two questions; reach for `do-while` only when acting first and checking afterwards is the natural order.',
+        ],
         cols: 2,
         rows: 4,
         nodes: [
@@ -705,6 +816,14 @@ export const fundamentalsConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Anatomy of for (init; condition; update)',
         caption: 'init runs once; the condition is checked before every iteration, including the first; continue jumps to the update; break leaves immediately.',
+        explanation: [
+          'The loop begins at **init**, such as `int i = 0`, which runs exactly once before anything else.',
+          'Next the **condition**, for example `i < n`, is checked before every iteration, including the very first. If it is false at once, the body never runs.',
+          'When the condition is true, the **body** runs your statements. At its end, or when `continue` is reached, control moves on to the update.',
+          'The **update**, such as `i++`, changes the counter, and the repeat arrow leads back to the condition for the next check.',
+          'When the condition becomes false, control goes to **After the loop**. The dashed break arrow shows `break` jumping there directly from the body.',
+          'Takeaway: init runs once, then condition, body and update repeat in a cycle; `continue` skips to the update and `break` leaves immediately.',
+        ],
         cols: 3,
         rows: 2,
         nodes: [
@@ -782,6 +901,19 @@ export const fundamentalsConcepts: Record<string, LessonConcepts> = {
     ],
   },
   'f-methods': {
+    textbook: {
+      definition:
+        'A **method** is a named unit of executable code declared in a class or interface. Its declaration consists of optional modifiers, a result type or `void`, a name, a list of **formal parameters**, an optional `throws` clause and, unless the method is abstract or native, a body. The name together with the parameter types forms the method\'s **signature**, which must be unique within the class. A **method invocation** evaluates the arguments, binds copies of their values to the parameters in a new stack frame (**call by value**), executes the body and may return a single value.',
+      terms: [
+        { term: 'Signature', meaning: 'The method name together with the number and types of its formal parameters; the return type, parameter names and throws clause are not part of it.' },
+        { term: 'Formal parameter', meaning: 'A variable declared in the method header that receives a copy of the corresponding argument value when the method is invoked.' },
+        { term: 'Argument', meaning: 'An expression in a method invocation whose value is passed to the corresponding formal parameter of the invoked method.' },
+        { term: 'Call by value', meaning: 'The parameter-passing mechanism in which the invoked method receives copies of the argument values; for an object the copied value is a reference.' },
+        { term: 'Overloading', meaning: 'Declaring several methods with the same name but different signatures in one class; the compiler selects one of them at compile time.' },
+        { term: 'Stack frame', meaning: 'A region of the thread stack created for each invocation, holding the method\'s parameters, local variables and operand stack until it returns.' },
+      ],
+      source: 'JLS §8.4 and §15.12; JVMS §2.6',
+    },
     interviewDefinition:
       'A method is a named block identified by its **signature** — the name plus the parameter types, not the return type. The compiler chooses among **overloads** at compile time from the static argument types, while **overridden** instance methods are chosen at run time from the object\'s class. Java is strictly **pass-by-value**: each call gets a new stack frame whose parameters are copies of the arguments; for objects the copy is the reference, so a method can mutate the object but never rebind the caller\'s variable.',
     interviewFollowUps: [
@@ -839,6 +971,13 @@ export const fundamentalsConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Two frames, one array',
         caption: 'main and mutate each hold their own copy of the reference, but both copies point to the same heap array. increment received a copy of a number, so its change stays in its own frame.',
+        explanation: [
+          'The **Thread stack** on the left holds one frame per active call. The **main() frame** has `value = 1` and `data`, a reference to an array on the **Heap**.',
+          'When `main` calls `mutate(data)`, the **mutate() frame** gets its own parameter `arr`, a copy of that reference. The arrows labelled reference and copied reference reach the same object.',
+          'So when `mutate` writes 42 into the array, the single heap object **int[] {42}** changes, and `main` sees the new value through its own reference.',
+          'The **increment() frame** received a copy of the number 1 and changed only its copy to 2. The dashed arrow to **Caller unchanged** shows that `value` in `main` is still 1.',
+          'Takeaway: Java always copies values into parameters; copying a reference shares the object, but no method can change the caller\'s variable itself.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -863,6 +1002,13 @@ export const fundamentalsConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Overload resolution phases (JLS 15.12.2)',
         caption: 'The first phase that finds any applicable method ends the search; within it, the most specific method wins. Everything happens at compile time.',
+        explanation: [
+          'Everything starts at the **Call site**, where the compiler knows only the static types of the arguments. The whole process happens at compile time.',
+          '**Phase 1** looks for methods applicable using only exact matches, primitive widening and subtyping. If none is found, the search moves on.',
+          '**Phase 2** also allows boxing and unboxing, and **Phase 3** finally allows varargs. Each later phase is tried only when every earlier phase found nothing.',
+          'As soon as a phase finds applicable methods, the found arrow leads to **Most specific wins**: the compiler picks the narrowest candidate, or reports an ambiguity.',
+          'If even Phase 3 finds nothing, the result is a **Compile error**: no applicable method. Takeaway: widening beats boxing, and boxing beats varargs.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -889,6 +1035,14 @@ export const fundamentalsConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'factorial(3) on the call stack',
         caption: 'Each call pushes a frame that waits; the base case starts the returns, and frames pop in reverse order. Without a reachable base case, frames pile up until StackOverflowError.',
+        explanation: [
+          'Calling **factorial(3)** pushes a frame that cannot finish yet: it waits for the result of `3 * factorial(2)`.',
+          'That call pushes **factorial(2)**, which in turn waits for `2 * factorial(1)`. Each push frame arrow adds another frame on top of the stack.',
+          '**factorial(1)** is the base case and simply returns 1, so **returns 1** starts the way back without any further call.',
+          'Frames now pop in reverse order: factorial(2) finishes with **returns 2**, and then factorial(3) finishes with **returns 6** for the original caller.',
+          'The dashed arrow to **No base case?** shows the danger: without a reachable base case, frames pile up until the thread throws `StackOverflowError`.',
+          'Takeaway: every recursive method needs a base case, and every call must move closer to it.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [

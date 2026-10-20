@@ -11,6 +11,28 @@ export const performanceMemory: Record<string, MemoryAid> = {
       'Java Flight Recorder records CPU, allocations, locks, garbage collection and I/O cheaply, even in production.',
       '`jcmd` gives thread dumps, heap histograms and heap dumps from a running JVM.',
     ],
+    types: [
+      {
+        title: 'Diagnostic tools',
+        items: [
+          { name: 'Java Flight Recorder (JFR)', simple: 'A flight recorder for your app: it quietly logs CPU, memory, locks and GC while the app runs.' },
+          { name: 'jcmd', simple: 'One remote control for a running JVM: ask it for thread dumps, heap info or a recording.' },
+          { name: 'Thread dump', simple: 'An X-ray: a quick snapshot of what every thread is doing at one moment.' },
+          { name: 'Heap dump', simple: 'An MRI: a huge, detailed picture of every object in memory. Slow, and the app pauses.' },
+          { name: 'async-profiler', simple: 'A camera that snaps where the CPU is busy many times a second and draws a flame graph.' },
+          { name: 'GC logs', simple: 'A diary of every garbage-collection pause: when, how long, and how much was freed.' },
+        ],
+      },
+      {
+        title: 'Thread states in a dump',
+        items: [
+          { name: 'RUNNABLE', simple: 'Working, or ready to work; also shown while waiting inside a network read.' },
+          { name: 'BLOCKED', simple: 'Waiting outside a locked door (`synchronized`) for another thread to leave.' },
+          { name: 'WAITING', simple: 'Waiting with no time limit until someone else signals, like waiting for a phone call.' },
+          { name: 'TIMED_WAITING', simple: 'Waiting with an alarm clock set, like `Thread.sleep` or a timed poll.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: 'guessing and tuning flags',
       difference: 'Changing JVM flags or code before you have evidence is guessing. Diagnosis means collecting proof of the cause first, then fixing that cause.',
@@ -44,6 +66,25 @@ export const performanceMemory: Record<string, MemoryAid> = {
       'Return results or feed them to a `Blackhole`, so the JVM cannot remove the work as dead code.',
       'Read inputs from non-final `@State` fields, and always look at the error margin before comparing scores.',
     ],
+    types: [
+      {
+        title: 'Benchmark modes',
+        items: [
+          { name: 'Throughput', simple: 'How many operations per second, like counting how many cars pass a gate each minute. Higher is better.' },
+          { name: 'AverageTime', simple: 'How long one operation takes on average, like the average lap time. Lower is better.' },
+          { name: 'SampleTime', simple: 'Times individual calls and shows the slow ones too (p99), not just the average.' },
+          { name: 'SingleShotTime', simple: 'Times one cold run with no warm-up, like starting a car on a frosty morning.' },
+        ],
+      },
+      {
+        title: 'State scopes',
+        items: [
+          { name: 'Scope.Thread', simple: 'Each thread gets its own copy of the data, like everyone having their own notebook.' },
+          { name: 'Scope.Benchmark', simple: 'All threads share one copy, like a single whiteboard everyone writes on, to test contention.' },
+          { name: 'Scope.Group', simple: 'One copy per team of threads, such as a producer and consumer working together.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: 'timing with `System.nanoTime()` in a loop',
       difference: 'A hand-written timing loop measures cold code and can be fooled by JIT tricks. JMH warms up, forks fresh JVMs and reports an error margin.',
@@ -76,6 +117,29 @@ export const performanceMemory: Record<string, MemoryAid> = {
       'Always start from a profile and fix the one hotspot it shows, not the code you suspect.',
       'Remove costs in order: network and disk round trips, then algorithms, then allocations, then micro-tricks.',
       'Measure again after each change, and undo changes that do not improve the number.',
+    ],
+    types: [
+      {
+        title: 'Levels of optimisation',
+        items: [
+          { name: 'I/O and remote calls', simple: 'Make fewer trips: one shopping trip with a list beats a trip for every ingredient.' },
+          { name: 'Algorithmic', simple: 'A smarter method, like looking up a word in an index instead of reading the whole book.' },
+          { name: 'Data structure', simple: 'The right container for the job, like a labelled key rack instead of a drawer full of keys.' },
+          { name: 'Memory and allocation', simple: 'Create fewer throwaway objects, so the garbage collector, the cleaner, visits less often.' },
+          { name: 'Caching', simple: 'Keep frequently used answers close by, like a sticky note, but throw out old ones.' },
+          { name: 'Micro-level', simple: 'Polishing tiny details last; the JIT compiler usually does this for you already.' },
+        ],
+      },
+      {
+        title: 'Choosing a collection by access pattern',
+        items: [
+          { name: 'ArrayList', simple: 'A numbered row of boxes: fast to read by position and to add at the end.' },
+          { name: 'ArrayDeque', simple: 'A queue you can add to or take from at either end, quickly.' },
+          { name: 'HashMap / HashSet', simple: 'A coat check: find anything by its ticket almost instantly.' },
+          { name: 'TreeMap / TreeSet', simple: 'A dictionary kept in alphabetical order, good for "everything between A and F".' },
+          { name: 'Primitive arrays', simple: 'Plain numbers packed tightly side by side, with no wrapper objects: the fastest for big numeric data.' },
+        ],
+      },
     ],
     confusion: {
       mixedUpWith: 'micro-optimising everything',

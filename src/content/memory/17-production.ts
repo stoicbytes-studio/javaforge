@@ -11,6 +11,32 @@ export const productionMemory: Record<string, MemoryAid> = {
       'A shared trace id links all three, even across many services.',
       'An SLO is a reliability target; alert on users being hurt, not on every blip.',
     ],
+    types: [
+      {
+        title: 'The three pillars of observability',
+        items: [
+          { name: 'Metrics', simple: 'The car dashboard: speed and warning lights that tell you THAT something is wrong.' },
+          { name: 'Traces', simple: 'The GPS history of one journey, showing WHERE each minute of the trip was spent.' },
+          { name: 'Logs', simple: 'The mechanic\'s notes explaining WHY one part failed at one moment.' },
+        ],
+      },
+      {
+        title: 'Health probe types',
+        items: [
+          { name: 'Liveness', simple: 'Is the patient breathing? If not, restart them. Never ask about other people here.' },
+          { name: 'Readiness', simple: 'The "open" sign on a shop door: flip it off to stop customers without closing the shop.' },
+          { name: 'Startup', simple: 'Wait until the oven is hot before checking whether the bakery works.' },
+        ],
+      },
+      {
+        title: 'Micrometer meter types',
+        items: [
+          { name: 'Counter', simple: 'A clicker at a stadium gate that only ever counts up.' },
+          { name: 'Gauge', simple: 'A fuel gauge showing the current level, which can go up or down.' },
+          { name: 'Timer', simple: 'A stopwatch that records how long each operation took and how many there were.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: 'liveness and readiness probes',
       difference: 'A failing liveness probe makes the platform restart the instance. A failing readiness probe only stops new traffic until it is ready again.',
@@ -49,6 +75,27 @@ export const productionMemory: Record<string, MemoryAid> = {
       'Retry only safe, repeatable calls, with growing random delays and a limit.',
       'A circuit breaker fails fast while a service is sick, then tests it with a few calls.',
     ],
+    types: [
+      {
+        title: 'Resilience patterns',
+        items: [
+          { name: 'Timeout', simple: 'Hang up if nobody answers the phone within a minute, instead of waiting forever.' },
+          { name: 'Retry with backoff', simple: 'Call again later, waiting a bit longer and a bit randomly each time.' },
+          { name: 'Circuit breaker', simple: 'The fuse box trips so one faulty kettle cannot burn the house; reset it later and test.' },
+          { name: 'Bulkhead', simple: 'Sealed compartments in a ship, so one flooded section cannot sink the whole boat.' },
+          { name: 'Rate limiter', simple: 'A nightclub letting in only so many people per minute.' },
+          { name: 'Fallback', simple: 'The kitchen is out of fish, so you get the set menu instead of nothing.' },
+        ],
+      },
+      {
+        title: 'Backoff strategies',
+        items: [
+          { name: 'Fixed delay', simple: 'Everyone retries every 2 seconds, so they all knock on the door at once.' },
+          { name: 'Exponential', simple: 'Wait 1, 2, 4, 8 seconds: back off quickly, but crowds still arrive together.' },
+          { name: 'Exponential with full jitter', simple: 'Same growing waits, but each person picks a random time, so the crowd spreads out.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: 'retries and circuit breakers',
       difference: 'A retry tries the same call again, hoping a short glitch passed. A circuit breaker stops calling at all while the service keeps failing.',
@@ -86,6 +133,31 @@ export const productionMemory: Record<string, MemoryAid> = {
       'Each service owns one business area and its own data; no shared database.',
       'Services talk over the network with APIs or events, so calls can be slow or fail.',
       'Start with a modular monolith; split out a service when there is a real reason.',
+    ],
+    types: [
+      {
+        title: 'Architecture styles',
+        items: [
+          { name: 'Monolith', simple: 'One restaurant kitchen: one team, one fridge, easy to coordinate a whole meal.' },
+          { name: 'Modular monolith', simple: 'One kitchen with clearly marked stations, each owning its own shelves.' },
+          { name: 'Microservices', simple: 'A food court of independent stalls, each with its own fridge and opening hours.' },
+          { name: 'Serverless', simple: 'A pop-up chef who appears only when an order arrives, and you pay per dish.' },
+        ],
+      },
+      {
+        title: 'Saga coordination styles',
+        items: [
+          { name: 'Orchestration', simple: 'A wedding planner tells each supplier what to do next, and undoes bookings if plans fail.' },
+          { name: 'Choreography', simple: 'Dancers react to each other\'s moves with no conductor in charge.' },
+        ],
+      },
+      {
+        title: 'Communication styles',
+        items: [
+          { name: 'Synchronous request/response', simple: 'A phone call: you wait on the line until you get an answer.' },
+          { name: 'Asynchronous messaging', simple: 'Leaving a voicemail: you carry on and the reply comes later.' },
+        ],
+      },
     ],
     confusion: {
       mixedUpWith: 'a modular monolith',
