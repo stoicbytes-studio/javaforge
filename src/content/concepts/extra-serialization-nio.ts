@@ -16,7 +16,7 @@ export const serializationNioConcepts: Record<string, LessonConcepts> = {
       source: 'Java Object Serialization Specification; Javadoc for java.io.Serializable and java.io.ObjectInputFilter; JEP 290',
     },
     interviewDefinition:
-      '**Serialization** turns an in-memory object graph into a byte (or text) form that can be stored or sent. **Deserialization** rebuilds objects from it. Java\'s built-in mechanism (`Serializable`, `ObjectOutputStream`) writes non-`transient` fields using reflection. It rebuilds objects **without running their constructors**, and lets the byte stream choose which classes to create. That makes deserializing untrusted data a remote-code-execution risk. So modern systems prefer explicit, data-only formats, such as JSON, Protocol Buffers and Avro. They guard any remaining Java serialization with an `ObjectInputFilter` allow-list.',
+      '**Serialization** turns an in-memory object graph into a byte (or text) form that can be stored or sent. **Deserialization** rebuilds objects from it. Java\'s built-in mechanism (`Serializable`, `ObjectOutputStream`) writes non-`transient` fields using reflection. It rebuilds objects **without running their constructors**, and lets the byte stream choose which classes to create. That makes deserializing untrusted data a remote-code-execution risk. So modern systems prefer explicit, data-only formats, such as JSON, Protocol Buffers and Avro. These systems guard any remaining Java serialization with an `ObjectInputFilter` allow-list.',
     interviewFollowUps: [
       {
         question: 'What is `serialVersionUID` and what happens if you omit it?',
@@ -28,7 +28,7 @@ export const serializationNioConcepts: Record<string, LessonConcepts> = {
       },
       {
         question: 'How do records change Java serialization?',
-        answer: 'A record serializes only its components. It is deserialized by calling its **canonical constructor** (the constructor that takes every component). So validation always runs, and fields cannot be forged to get around it. Custom `readObject`/`writeObject` hooks are ignored for records.',
+        answer: 'A record serializes only its components. It is deserialized by calling its **canonical constructor** (the constructor whose parameters match the record components). So validation always runs, and fields cannot be forged to get around it. Custom `readObject`/`writeObject` hooks are ignored for records.',
       },
       {
         question: 'Does `transient` work with JSON libraries such as Jackson?',
@@ -278,7 +278,7 @@ export const serializationNioConcepts: Record<string, LessonConcepts> = {
       },
       {
         question: 'Why can one `write` on a socket arrive as two `read`s?',
-        answer: 'TCP is a byte stream with no message boundaries. The kernel may split or merge data into segments as it likes. Protocols add framing, such as delimiters (for example newlines) or length prefixes. Then the receiver knows where messages start and end.',
+        answer: 'TCP is a byte stream with no message boundaries. The kernel may split or merge data into segments as it likes. Protocols add framing, such as delimiters (for example newlines) or length prefixes. That way, the receiver knows where messages start and end.',
       },
     ],
     mnemonic: {

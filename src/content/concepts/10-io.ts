@@ -236,7 +236,7 @@ export const ioConcepts: Record<string, LessonConcepts> = {
       source: 'JEP 321; Javadoc for java.net.http; RFC 9110 (HTTP Semantics)',
     },
     interviewDefinition:
-      '`java.net.http.HttpClient` (standard since Java 11, JEP 321) is the JDK\'s immutable, thread-safe HTTP/1.1 and HTTP/2 client. You build an immutable `HttpRequest`. You choose a `BodyHandler`, which decides how the response body is consumed. Then you call `send` (blocking) or `sendAsync` (a `CompletableFuture`). Status codes such as 404 or 503 are **normal responses**, not exceptions. Only transport failures throw. Production calls need a connect timeout and a request timeout. They also need explicit status mapping, and retries limited to idempotent requests (ones that are safe to repeat).',
+      '`java.net.http.HttpClient` (standard since Java 11, JEP 321) is the JDK\'s immutable, thread-safe HTTP/1.1 and HTTP/2 client. You build an immutable `HttpRequest`. You choose a `BodyHandler`, which decides how the response body is consumed. Then you call `send` (blocking) or `sendAsync` (a `CompletableFuture`). Status codes such as 404 or 503 are **normal responses**, not exceptions. Only transport failures throw. Production calls need a connect timeout and a request timeout. They also need explicit status mapping, and retries limited to idempotent requests (ones where repeating has the same effect as sending once).',
     interviewFollowUps: [
       {
         question: 'Which HTTP methods are safe to retry automatically?',

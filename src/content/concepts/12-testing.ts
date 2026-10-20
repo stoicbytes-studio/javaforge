@@ -226,7 +226,7 @@ export const testingConcepts: Record<string, LessonConcepts> = {
       source: 'G. Meszaros, xUnit Test Patterns (2007); M. Fowler, "Mocks Aren\'t Stubs"; Mockito Javadoc',
     },
     interviewDefinition:
-      'A **test double** replaces a real collaborator, so a unit can be tested quickly and deterministically. Meszaros\'s taxonomy (classification) has five: **dummy**, **stub**, **spy**, **mock** and **fake**. Stubs and fakes support **state verification** (assert on the result). Mocks support **behaviour verification** (assert which calls happened). Mockito generates doubles at run time. Use `when(...).thenReturn(...)` to stub and `verify(...)` to check interactions. Doubles need seams (places where a double can be swapped in), such as constructor-injected interfaces and a `Clock`. They belong at system boundaries, not between every pair of classes.',
+      'A **test double** replaces a real collaborator, so a unit can be tested quickly and deterministically. Meszaros\'s taxonomy (classification) has five: **dummy**, **stub**, **spy**, **mock** and **fake**. Stubs and fakes support **state verification** (assert on the result). Mocks support **behaviour verification** (assert which calls happened). Mockito generates doubles at run time. Use `when(...).thenReturn(...)` to stub and `verify(...)` to check interactions. Doubles need seams (places where a double can be swapped in), such as constructor-injected interfaces and a `Clock`. Doubles belong at system boundaries, not between every pair of classes.',
     interviewFollowUps: [
       {
         question: 'Classicist or mockist testing?',
@@ -437,11 +437,11 @@ export const testingConcepts: Record<string, LessonConcepts> = {
   'ts-debugging': {
     textbook: {
       definition:
-        '**Debugging** is the process of locating, analysing and removing the cause of a **failure**. A failure is an observable difference between a program\'s behaviour and its specification. A failure starts from a **defect** (fault) in the code. When the defect is executed, it produces an **infection**: a wrong program state that spreads until it becomes visible. Systematic debugging applies the scientific method. The failure is reproduced. **Hypotheses** about its cause are formed and tested by experiment. The defect is corrected, and a regression test confirms the correction. In Java, a **stack trace** records the chain of method calls that were active when an exception was thrown.',
+        '**Debugging** is the process of locating, analysing and removing the cause of a **failure**. A failure is an observable difference between a program\'s behaviour and its specification. A failure starts from a **defect** (fault) in the code. When the defect is executed, it produces an **infection**: a wrong program state that is carried forward (propagates) until it becomes visible. Systematic debugging applies the scientific method. The failure is reproduced. **Hypotheses** about its cause are formed and tested by experiment. The defect is corrected, and a regression test confirms the correction. In Java, a **stack trace** records the chain of method calls that were active when an exception was thrown.',
       terms: [
         { term: 'Failure', meaning: 'An externally observable error in a program\'s behaviour, such as a wrong result, an exception or a hang.' },
         { term: 'Defect (fault)', meaning: 'An error in the program code that can cause an infection and, in turn, a failure when it is executed.' },
-        { term: 'Infection', meaning: 'A wrong program state caused by executing a defect. It may spread through later states before it appears as a failure.' },
+        { term: 'Infection', meaning: 'A wrong program state caused by executing a defect. It may be carried forward (propagate) through later states before it appears as a failure.' },
         { term: 'Hypothesis', meaning: 'A testable explanation of the cause of a failure. It predicts the outcome of an experiment, and the experiment either confirms or refutes (disproves) it.' },
         { term: 'Stack trace', meaning: 'The list of stack frames, innermost first, captured when a `Throwable` is created. It also includes any chained causes.' },
       ],

@@ -9,7 +9,7 @@ export const jdbcConcepts: Record<string, LessonConcepts> = {
       terms: [
         { term: 'JDBC driver', meaning: 'A vendor library that implements the `java.sql` interfaces for one database product. It translates JDBC calls into that database\'s network protocol.' },
         { term: 'Connection', meaning: 'A session with a specific database. Within it, SQL statements are executed and results are returned. It is also the scope of a transaction.' },
-        { term: 'DataSource', meaning: 'A factory for connections that is configured outside the code. It is the preferred alternative to `DriverManager`, and it is commonly backed by a connection pool.' },
+        { term: 'DataSource', meaning: 'A connection factory that is configured outside the code. It is the preferred alternative to `DriverManager`, and it is commonly backed by a connection pool.' },
         { term: 'PreparedStatement', meaning: 'An object that represents a precompiled SQL statement with `?` parameter markers. Typed setter methods set their values before execution.' },
         { term: 'ResultSet', meaning: 'A table of data produced by a query, read through a cursor that starts before the first row and is advanced by `next()`.' },
       ],

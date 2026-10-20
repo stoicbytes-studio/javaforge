@@ -111,6 +111,7 @@ Step-by-step guide for Vercel + Supabase: [docs/deployment.md](docs/deployment.m
 | `npm run e2e` | Playwright against a test web export with a mocked Supabase (`npm run e2e:build` first) |
 | `npm run test:db` | Migrations, seed, RLS and admin tests against Postgres (`PGURL=...`) |
 | `node scripts/check-concepts.mjs` / `node scripts/check-memory.mjs` | Checks concept pages and "Make it stick" memory aids (text limits, picture layout) |
+| `node scripts/check-plain-language.mjs [--base REV]` | After a wording edit: checks that code, numbers and references are unchanged versus a git revision, and reports readability |
 | `npm run seed:generate` | Regenerates `supabase/seed.sql` |
 | `npm run export:web` | Static web build in `dist/` |
 | `cd executor && mvn test` | Execution API and sandbox tests |
