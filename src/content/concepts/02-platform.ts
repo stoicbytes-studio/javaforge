@@ -20,11 +20,11 @@ export const platformConcepts: Record<string, LessonConcepts> = {
     interviewFollowUps: [
       {
         question: 'Is OpenJDK the same as Oracle JDK?',
-        answer: 'Since Java 11, both are built from essentially the same OpenJDK source, and they work the same way. They differ in the licence, the support offering and the update schedule, not in the language or APIs.',
+        answer: 'Since Java 11, both are built from essentially the same OpenJDK source, and one can replace the other. They differ in the licence, the support offering and the update schedule, not in the language or APIs.',
       },
       {
         question: 'Why is HotSpot called HotSpot?',
-        answer: 'It profiles running code to find the "hot spots": the methods and loops that run most often. It spends JIT-compilation effort only there. It uses tiered compilation: first the interpreter, then the fast C1 compiler, then the optimising C2 compiler.',
+        answer: 'It profiles running code to find the "hot spots": the methods and loops that run often. It spends JIT-compilation effort only there. It uses tiered compilation: first the interpreter, then the fast C1 compiler, then the optimising C2 compiler.',
       },
       {
         question: 'What does it mean that a build is "Java SE compatible"?',
@@ -485,7 +485,7 @@ export const platformConcepts: Record<string, LessonConcepts> = {
       source: 'JLS chapter 7 (§7.1, §7.5); JVMS §5.3; Javadoc for java.lang.ClassLoader',
     },
     interviewDefinition:
-      'A **package** is a namespace (`com.shop.billing`). It also forms an access boundary for package-private members. `import` is only a compile-time shorthand and loads nothing. At run time, **class loaders** find classes lazily, on first use. They delegate parent-first (bootstrap → platform → application) before searching the **classpath** of directories and JARs. The **module system** (Java 9) adds `module-info.java` with `requires` and `exports`. This gives reliable configuration, because missing modules fail at startup. It also gives strong encapsulation of packages that are not exported.',
+      'A **package** is a namespace (`com.shop.billing`). It also forms an access boundary for package-private members. `import` is only a compile-time shorthand and loads nothing. At run time, **class loaders** find classes lazily, on first use. They delegate parent-first (bootstrap → platform → application) before searching the **classpath** of directories and JARs. The **module system** (Java 9) adds `module-info.java` with `requires` and `exports`. This gives reliable configuration: missing modules fail at startup. It also gives strong encapsulation of packages that are not exported.',
     interviewFollowUps: [
       {
         question: 'Does `import java.util.*;` import `java.util.function.Function`?',

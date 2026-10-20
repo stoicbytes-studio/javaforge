@@ -597,7 +597,7 @@ export const dsaConcepts: Record<string, LessonConcepts> = {
           'Primitives go to **Dual-pivot quicksort**: unstable and in place. Stability does not matter because equal primitives cannot be told apart.',
           'For small ranges, quicksort hands over to **Insertion sort**. Its low overhead beats recursion on a few elements.',
           'Objects go to **TimSort**, a stable, adaptive merge sort. It must be stable because equal keys can belong to different objects.',
-          'TimSort first steps through the data to **Find natural runs** that are already sorted, and extends short ones. Then it does **Merge runs** using galloping. So nearly sorted input sorts in close to O(n).',
+          'TimSort first steps through the data to **Find natural runs** that are already sorted. It extends short ones, then does **Merge runs** using galloping. So nearly sorted input sorts in close to O(n).',
         ],
         cols: 3,
         rows: 3,
@@ -940,7 +940,7 @@ export const dsaConcepts: Record<string, LessonConcepts> = {
       },
       {
         question: 'How do you know a problem needs DP rather than greedy?',
-        answer: 'Find a counter-example to the greedy choice (coins {1, 3, 4}, amount 6). The best answer may depend on combinations of earlier choices, and subproblems may repeat. If so, define a state and transition. Greedy needs a proof, usually an exchange argument.',
+        answer: 'Find a counter-example to the greedy choice (coins {1, 3, 4}, amount 6). If the best answer depends on combinations of earlier choices, and subproblems repeat, define a state and transition. Greedy needs a proof, usually an exchange argument.',
       },
       {
         question: 'Can you memoise with HashMap.computeIfAbsent?',
@@ -992,7 +992,7 @@ export const dsaConcepts: Record<string, LessonConcepts> = {
         explanation: [
           'Start at the root, **fib(5)**. It calls **fib(4)** and **fib(3)**, because fib(5) = fib(4) + fib(3).',
           'On the right, fib(3) is computed for the first time and calls **fib(2)** and **fib(1)**. fib(1) is a base case and returns 1 directly.',
-          'On the left, fib(4) calls fib(3) and fib(2) again. The red boxes marked repeat are the same calculations that are already done elsewhere.',
+          'On the left, fib(4) calls fib(3) and fib(2) again. The red boxes marked repeat are exactly the same calculations that are already done elsewhere.',
           'Only the top levels are drawn. The full tree has 15 calls and grows about 1.6 times per level. So naive Fibonacci is exponential.',
           'The takeaway: overlapping subproblems are the sign that dynamic programming fits. Caching each fib(k) once leaves only n + 1 distinct states.',
         ],

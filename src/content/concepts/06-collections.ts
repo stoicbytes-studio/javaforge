@@ -10,7 +10,7 @@ export const collectionsConcepts: Record<string, LessonConcepts> = {
       terms: [
         { term: 'Collection', meaning: 'The root interface of the collection hierarchy. It is a group of objects, called elements, and supports size, membership checks, adding, removing and iteration.' },
         { term: 'Map', meaning: 'An object that maps keys to values, with at most one value per key. It is part of the framework but is not a subtype of `Collection`.' },
-        { term: 'Implementation', meaning: 'A concrete class, such as `ArrayList` or `HashMap`, that implements a collection interface. It uses a specific data structure and documents the cost of each operation.' },
+        { term: 'Implementation', meaning: 'A concrete class, such as `ArrayList` or `HashMap`, that implements a collection interface. It uses a specific data structure and has a documented cost for each operation.' },
         { term: 'Encounter order', meaning: 'The order in which a collection gives you its elements during iteration. It is defined for lists and sequenced collections. It is not specified for hash-based sets and maps.' },
         { term: 'View', meaning: 'A collection backed by another collection or map, such as `keySet()` or `reversed()`. Changes to one can be seen through the other.' },
       ],
@@ -411,7 +411,7 @@ export const collectionsConcepts: Record<string, LessonConcepts> = {
           'The **Bucket array** at the centre is an ordinary HashMap table. The dashed arrow labelled lookup shows that get still finds an entry such as **b → B** in O(1) by hashing.',
           'The top row, the **Doubly linked entry list**, links the same entries in order. It goes from **head (eldest)** through **b → B** and **c → C** to **a → A (tail)**. The double-headed arrows mean each entry links to both neighbours.',
           'With access order switched on, **get("a")** moves the entry for a to the tail, marking it as the most recently used.',
-          'When **put("d")** adds a new entry, `removeEldestEntry` can return true. The map then drops the entry at the head, here b, the least recently used.',
+          'When **put("d")** adds a new entry, `removeEldestEntry` can return true. If it does, the map drops the entry at the head, here b, the least recently used.',
           'Takeaway: hashing gives fast lookup, the linked list gives a predictable order, and together they make a simple LRU cache.',
         ],
         cols: 4,
@@ -588,7 +588,7 @@ export const collectionsConcepts: Record<string, LessonConcepts> = {
         explanation: [
           'Every comparison starts at **compare(a, b)** and goes first to **dept ascending**, the comparator built with `comparing(dept)`.',
           'If the departments differ (the arrow labelled ≠ 0), the first **return result** pill returns that result at once. The later keys are never checked.',
-          'Only on a tie (the arrow labelled 0 (tie)) does **salary descending** run. It was given `reverseOrder()`, so a higher salary sorts first, and a non-zero answer is returned.',
+          'Only on a tie, shown by the arrow labelled 0 (tie), does **salary descending** run. It was given `reverseOrder()`, so a higher salary sorts first, and a non-zero answer is returned.',
           'On a second tie, **name ascending** decides. The chain can only return 0 if the names are equal too. That is exactly what a TreeSet needs so it does not drop different employees.',
           'Takeaway: each `thenComparing` is a tie-breaker. It is used only when everything before it returned 0.',
         ],
@@ -729,7 +729,7 @@ export const collectionsConcepts: Record<string, LessonConcepts> = {
       },
       {
         question: 'unmodifiableList vs List.copyOf?',
-        answer: '`Collections.unmodifiableList(list)` is a read-only **view**. Callers cannot change it, but changes to the backing list show through. `List.copyOf(list)` is an independent immutable **snapshot**. (It returns the same instance if the argument is already an immutable list.) Both throw `UnsupportedOperationException` on any change.',
+        answer: '`Collections.unmodifiableList(list)` is a read-only **view**. Callers cannot change it, but changes to the backing list show through. `List.copyOf(list)` is an independent immutable **snapshot**. (It returns the same instance if the argument is already an immutable list.) Both throw `UnsupportedOperationException` on any attempt to change them.',
       },
       {
         question: 'How do concurrent collections iterate?',
@@ -939,7 +939,7 @@ export const collectionsConcepts: Record<string, LessonConcepts> = {
     interviewFollowUps: [
       {
         question: 'Why should you not use java.util.Stack?',
-        answer: '`Stack` extends `Vector`, so every call takes a lock. It also inherits index operations such as `add(0, x)` and `remove(int)` that break LIFO order. The `Deque` javadoc clearly recommends using a Deque instead of Stack.',
+        answer: '`Stack` extends `Vector`, so every call takes a lock. It also inherits index operations such as `add(0, x)` and `remove(int)` that break LIFO order. The `Deque` javadoc explicitly recommends using a Deque instead of Stack.',
       },
       {
         question: 'How would you find the k largest of n numbers?',

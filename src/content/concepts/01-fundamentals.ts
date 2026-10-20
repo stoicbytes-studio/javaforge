@@ -7,10 +7,10 @@ export const fundamentalsConcepts: Record<string, LessonConcepts> = {
       definition:
         'A Java **program** is one or more classes. You write them in source files, called **compilation units**. The Java compiler turns them into **class files** that hold JVM bytecode. To run the program, the Java launcher starts a **Java Virtual Machine**. The JVM loads the first class, **links** it and **initialises** it, and then calls its `main` method. It runs the bytecode in two ways: by interpreting it, and by just-in-time compiling it to native machine code.',
       terms: [
-        { term: 'Compilation unit', meaning: 'The source code in one `.java` file. It can start with a package line and import lines, and then declares one or more top-level types.' },
+        { term: 'Compilation unit', meaning: 'The source code in one `.java` file. It can start with a package declaration and import declarations, and then declares one or more top-level types.' },
         { term: 'Class file', meaning: 'The binary file format, set out in the JVM Specification, for one compiled class or interface. It holds the bytecode, the constant pool, the fields and the methods.' },
-        { term: 'Bytecode', meaning: 'The instructions the Java Virtual Machine understands. They do not depend on any one platform, so every correct JVM can run them.' },
-        { term: 'Java Virtual Machine (JVM)', meaning: 'A computer defined in software by the JVM Specification. It loads class files, checks them and runs them on one particular operating system and processor.' },
+        { term: 'Bytecode', meaning: 'The instructions the Java Virtual Machine understands. They do not depend on any one platform, so every JVM that meets the specification can run them.' },
+        { term: 'Java Virtual Machine (JVM)', meaning: 'An abstract computing machine, defined by the JVM Specification. It loads class files, checks them and runs them on one particular operating system and processor.' },
         { term: 'Linking and initialisation', meaning: 'Linking checks a loaded class and sets up its static fields. Initialisation then runs its static initialisers, just before the class is first used.' },
       ],
       source: 'JLS §7.3 and §12.1; JVMS chapters 4 and 5',
@@ -20,7 +20,7 @@ export const fundamentalsConcepts: Record<string, LessonConcepts> = {
     interviewFollowUps: [
       {
         question: 'Is Java compiled or interpreted?',
-        answer: 'Both. `javac` compiles source code to bytecode before the program runs. At run time, the JVM interprets that bytecode and JIT-compiles the most-used methods to native code.',
+        answer: 'Both. `javac` compiles source code to bytecode before the program runs. At run time, the JVM interprets that bytecode and JIT-compiles methods that run often to native code.',
       },
       {
         question: 'Why must `main` be `public static void main(String[] args)`?',
@@ -683,7 +683,7 @@ export const fundamentalsConcepts: Record<string, LessonConcepts> = {
   'f-control-flow': {
     textbook: {
       definition:
-        '**Control flow** is the order in which a program runs its statements. By default Java runs statements one after another; **control-flow statements** change that order. **Selection statements** (`if`, `switch`) choose one of several paths, based on a condition or a value. **Iteration statements** (`while`, `do`, basic `for` and enhanced `for`) repeat a statement while a condition holds. **Jump statements** (`break`, `continue`, `return`, `yield`, `throw`) move control unconditionally. Every condition must be an expression of type `boolean`. The compiler checks reachability (whether each statement can be reached) and definite assignment (whether each variable surely has a value before it is read) along every path.',
+        '**Control flow** is the order in which a program runs its statements. By default Java runs statements one after another; **control-flow statements** change that order. **Selection statements** (`if`, `switch`) choose one of several paths, based on a condition or a value. **Iteration statements** (`while`, `do`, basic `for` and enhanced `for`) repeat a statement while a condition holds. **Jump statements** (`break`, `continue`, `return`, `yield`, `throw`) move control unconditionally. Every condition must be an expression of type `boolean`. Along every path, the compiler checks reachability: whether each statement can be reached. It also checks definite assignment: whether each variable surely has a value before it is read.',
       terms: [
         { term: 'Selection statement', meaning: 'A statement that chooses which of several sub-statements to run. It decides based on a boolean condition (`if`) or on the value of a selector expression (`switch`).' },
         { term: 'Iteration statement', meaning: 'A statement that runs its body again and again while a condition holds. Java provides `while`, `do`, the basic `for` and the enhanced `for`.' },

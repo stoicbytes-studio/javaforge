@@ -32,7 +32,7 @@ export const designConcepts: Record<string, LessonConcepts> = {
       },
       {
         question: 'When is inheritance the right choice?',
-        answer: 'Use it for a real is-a relationship inside code you control. Also use it when a class is clearly designed and documented for extension (an abstract class with protected hooks, as in Template Method). Otherwise, wrap and forward.',
+        answer: 'Use it for a real is-a relationship inside code you control. Also use it when a class is explicitly designed and documented for extension (an abstract class with protected hooks, as in Template Method). Otherwise, wrap and forward.',
       },
     ],
     mnemonic: {
@@ -281,12 +281,12 @@ export const designConcepts: Record<string, LessonConcepts> = {
         { term: 'Consequences', meaning: 'The results and trade-offs of using a pattern, such as flexibility gained, extra indirection, or costs in performance and complexity.' },
         { term: 'Creational pattern', meaning: 'A pattern that hides how objects are created: which concrete classes are made and how they are put together.' },
         { term: 'Structural pattern', meaning: 'A pattern about combining classes and objects into larger structures while keeping them flexible and efficient.' },
-        { term: 'Behavioural pattern', meaning: 'A pattern about algorithms, how responsibilities are shared between objects, and how those objects communicate.' },
+        { term: 'Behavioural pattern', meaning: 'A pattern about algorithms, how responsibilities are assigned to objects, and how those objects communicate.' },
       ],
       source: 'Gamma, Helm, Johnson and Vlissides, Design Patterns: Elements of Reusable Object-Oriented Software (1994), chapter 1',
     },
     interviewDefinition:
-      'A **design pattern** is a named, reusable solution to a recurring design problem in a given context. The Gang of Four catalogue (1994) lists 23. It groups them as **creational** (how objects are created), **structural** (how objects are composed) and **behavioural** (how objects share responsibility and communicate). In modern Java many shrink to language features. Strategy and Command become lambdas. Singleton becomes an enum or a DI-managed bean. Iterator is `Iterable`. Visitor is often replaced by sealed types with pattern-matching `switch`. The lasting value is a shared vocabulary and recognising intent.',
+      'A **design pattern** is a named, reusable solution to a recurring design problem in a given context. The Gang of Four catalogue (1994) lists 23. It groups them as **creational** (how objects are created), **structural** (how objects are composed) and **behavioural** (how objects divide responsibility and communicate). In modern Java many shrink to language features. Strategy and Command become lambdas. Singleton becomes an enum or a DI-managed bean. Iterator is `Iterable`. Visitor is often replaced by sealed types with pattern-matching `switch`. The lasting value is a shared vocabulary and recognising intent.',
     interviewFollowUps: [
       {
         question: 'Decorator, Proxy and Adapter all wrap an object. How do they differ?',

@@ -5,7 +5,7 @@ export const immutabilityBuildConcepts: Record<string, LessonConcepts> = {
   'o-immutability': {
     textbook: {
       definition:
-        'An object is **immutable** if its state cannot change after it is constructed. In Java, a class is immutable when it meets four rules. It prevents subclassing. It declares all fields `private` and `final`. It has no methods that change state. And it keeps sole access to any mutable parts through **defensive copying**. Take a properly constructed immutable object, one whose `this` reference does not escape during construction. It is **thread-safe** by nature. Under the **final field semantics** of the Java Memory Model, every thread sees its initialised state without synchronisation. Immutability is not the same as **unmodifiability**. Unmodifiability only stops one particular reference from writing.',
+        'An object is **immutable** if its state cannot change after it is constructed. In Java, a class is immutable when it meets four rules. It prevents subclassing. It declares all fields `private` and `final`. It has no methods that change state. And it keeps sole access to any mutable parts through **defensive copying**. A properly constructed immutable object is **thread-safe** by nature. Properly constructed means its `this` reference does not escape during construction. Under the **final field semantics** of the Java Memory Model, every thread sees its initialised state without synchronisation. Immutability is not the same as **unmodifiability**. Unmodifiability only stops one particular reference from writing.',
       terms: [
         { term: 'Defensive copy', meaning: 'A copy of a mutable argument or field that a class makes. It stops callers from changing the class\'s internal state through a shared reference.' },
         { term: 'Final field semantics', meaning: 'A JLS guarantee. If a thread sees a reference to a properly constructed object, it also sees the values the constructor assigned to the object\'s `final` fields.' },
@@ -117,7 +117,7 @@ export const immutabilityBuildConcepts: Record<string, LessonConcepts> = {
           'Step one, **final class**, stops anyone from writing a subclass that adds mutable state or overrides methods.',
           'Step two, **private final fields**, means each field is assigned exactly once, in the constructor. It cannot be seen from outside.',
           'Step three, **No setters**: methods that would change state are replaced by withers. A wither returns a new object.',
-          'A field may refer to a mutable object (the arrow labelled mutable fields?). If so, **Copy inputs** in the constructor: copy first, then validate the copy. Also **Guard outputs** by returning unmodifiable views or copies.',
+          'If any field refers to a mutable object (the arrow labelled mutable fields?), take two more steps. **Copy inputs** in the constructor: copy first, then validate the copy. **Guard outputs** by returning unmodifiable views or copies.',
           'The result is an **Immutable object** that can be shared freely across threads. Takeaway: each step closes one way state could change.',
         ],
         cols: 3,
@@ -452,7 +452,7 @@ export const immutabilityBuildConcepts: Record<string, LessonConcepts> = {
         title: 'Nearest wins: resolving a version conflict',
         caption: 'Two versions of json are requested. Maven keeps the one nearest to the project (1.1, one hop) and leaves out 1.4 (two hops). Gradle\'s default would choose the highest version, 1.4.',
         explanation: [
-          'Your project, **app:1.0**, depends directly on **web:2.0**. Through the arrow labelled direct, it also depends on **json:1.1**.',
+          'Your project, **app:1.0**, depends directly on **web:2.0**. Through the arrow labelled direct, it also depends directly on **json:1.1**.',
           '**web:2.0** brings its own dependencies: **log:3.0** and, along the dashed transitive arrow, **json:1.4**. Now two versions of json are requested, but the classpath can hold only one.',
           'Maven applies nearest wins. json:1.1 is one hop from the project and json:1.4 is two hops away. So 1.1 is chosen and 1.4 is left out.',
           'By default, Gradle would instead pick the highest version, 1.4. If web:2.0 needs methods that exist only in 1.4, Maven\'s choice fails at run time with NoSuchMethodError.',

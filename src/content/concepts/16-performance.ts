@@ -552,7 +552,7 @@ export const performanceConcepts: Record<string, LessonConcepts> = {
         title: 'One change at a time',
         caption: 'Optimise the biggest contributor from the profile and change one thing. Keep the change only if the same metric improves under the same load.',
         explanation: [
-          'Start with a **Profile** from JFR, a flame graph or the SQL log. Then you work from evidence instead of guesses.',
+          'Start with a **Profile** from JFR, a flame graph or the SQL log. That way, you work from evidence instead of guesses.',
           'Pick the **Biggest contributor**. By Amdahl\'s law, the share of time it takes limits the most you can win by fixing it.',
           'Make **One change**, the smallest one that could help. Then **Re-measure** the same metric, such as p99, throughput or allocation, under the same load.',
           'If the metric improved, **Keep** the change and note why. If nothing changed, the dashed arrow says **Revert** (undo it), because it adds complexity for no gain.',

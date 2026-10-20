@@ -452,7 +452,7 @@ export const functionalConcepts: Record<string, LessonConcepts> = {
   'fn-optional-modern': {
     textbook: {
       definition:
-        '`java.util.Optional<T>` is a **container object** that may or may not contain a non-null value. An Optional with a value is **present**. One with no value is **empty**. It is a final, immutable, **value-based class**. It is meant mainly as a **method return type**. Use it where there is a clear need to show "no result", and where `null` would likely cause errors. Some methods change the value only when it is present (`map`, `flatMap`, `filter`). Others give a default or throw an exception when it is absent (`orElse`, `orElseGet`, `orElseThrow`).',
+        '`java.util.Optional<T>` is a **container object** that may or may not contain a non-null value. An Optional with a value is **present**. One with no value is **empty**. It is a final, immutable, **value-based class**. It is meant mainly as a **method return type**. Use it where there is a clear need to show "no result", and where `null` would likely cause errors. Some methods transform the value only when it is present (`map`, `flatMap`, `filter`). Others give a default or throw an exception when it is absent (`orElse`, `orElseGet`, `orElseThrow`).',
       terms: [
         { term: 'Present', meaning: 'The state of an Optional that holds a non-null value. `isPresent()` returns true and `get()` returns the value.' },
         { term: 'Empty', meaning: 'The state of an Optional that holds no value. Transformation methods return empty, and unwrapping methods use the given fallback.' },

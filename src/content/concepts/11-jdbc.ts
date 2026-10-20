@@ -5,30 +5,30 @@ export const jdbcConcepts: Record<string, LessonConcepts> = {
   'j-jdbc': {
     textbook: {
       definition:
-        '**JDBC** (Java Database Connectivity) is the Java SE API, in the packages `java.sql` and `javax.sql`, that provides call-level access from Java programs to tabular data sources, principally relational databases, by means of SQL statements. The API consists chiefly of interfaces, such as `Connection`, `PreparedStatement` and `ResultSet`, whose implementations are supplied by a vendor-specific **JDBC driver**. An application obtains a **connection** from a **`DataSource`** or the `DriverManager`, executes statements within that connection, and processes query results through a **`ResultSet`**, a cursor over the returned rows. A **`PreparedStatement`** holds precompiled SQL whose parameters are bound separately from the statement text.',
+        '**JDBC** (Java Database Connectivity) is the Java SE API in the packages `java.sql` and `javax.sql`. It gives Java programs call-level access to tabular data sources, mainly relational databases, through SQL statements. The API is made up mainly of interfaces, such as `Connection`, `PreparedStatement` and `ResultSet`. A vendor-specific **JDBC driver** supplies their implementations. An application gets a **connection** from a **`DataSource`** or the `DriverManager`, and runs statements within that connection. It processes query results through a **`ResultSet`**, a cursor over the returned rows. A **`PreparedStatement`** holds precompiled SQL. Its parameters are bound separately from the statement text.',
       terms: [
-        { term: 'JDBC driver', meaning: 'A vendor library that implements the `java.sql` interfaces for one database product and translates JDBC calls into that database\'s network protocol.' },
-        { term: 'Connection', meaning: 'A session with a specific database within which SQL statements are executed and results returned; it is also the scope of a transaction.' },
-        { term: 'DataSource', meaning: 'A factory for connections, configured outside the code, that is the preferred alternative to `DriverManager` and is commonly backed by a connection pool.' },
-        { term: 'PreparedStatement', meaning: 'An object representing a precompiled SQL statement with `?` parameter markers whose values are set by typed setter methods before execution.' },
+        { term: 'JDBC driver', meaning: 'A vendor library that implements the `java.sql` interfaces for one database product. It translates JDBC calls into that database\'s network protocol.' },
+        { term: 'Connection', meaning: 'A session with a specific database. Within it, SQL statements are executed and results are returned. It is also the scope of a transaction.' },
+        { term: 'DataSource', meaning: 'A factory for connections that is configured outside the code. It is the preferred alternative to `DriverManager`, and it is commonly backed by a connection pool.' },
+        { term: 'PreparedStatement', meaning: 'An object that represents a precompiled SQL statement with `?` parameter markers. Typed setter methods set their values before execution.' },
         { term: 'ResultSet', meaning: 'A table of data produced by a query, read through a cursor that starts before the first row and is advanced by `next()`.' },
       ],
       source: 'JDBC 4.3 Specification (JSR 221); Javadoc for java.sql and javax.sql',
     },
     interviewDefinition:
-      '**JDBC** is the standard Java API (`java.sql`, `javax.sql`) for relational databases: application code programs against interfaces, and a vendor **driver** implements them. A `DataSource` — in production a connection pool — hands out `Connection`s; a `PreparedStatement` sends fixed SQL with `?` placeholders and binds values separately, which prevents SQL injection; `executeQuery` returns a `ResultSet` cursor read with `next()`. Connections, statements and result sets are scarce resources, closed with try-with-resources.',
+      '**JDBC** is the standard Java API (`java.sql`, `javax.sql`) for relational databases. Application code is written against interfaces, and a vendor **driver** implements them. A `DataSource` hands out `Connection`s. In production, it is a connection pool. A `PreparedStatement` sends fixed SQL with `?` placeholders and binds values separately, which prevents SQL injection. `executeQuery` returns a `ResultSet` cursor, which you read with `next()`. Connections, statements and result sets are scarce resources, so close them with try-with-resources.',
     interviewFollowUps: [
       {
         question: 'Why does PreparedStatement prevent SQL injection?',
-        answer: 'The SQL text is fixed before any user value is seen; values are sent as typed parameters (or escaped correctly by the driver), so they can never become SQL syntax. Placeholders only work for values, so table names, column names and sort directions must come from an allow-list.',
+        answer: 'The SQL text is fixed before any user value is seen. Values are sent as typed parameters (or escaped correctly by the driver), so they can never become SQL syntax. Placeholders only work for values. So table names, column names and sort directions must come from an allow-list.',
       },
       {
         question: 'Does a PreparedStatement always create a server-side prepared statement?',
-        answer: 'No, it depends on the driver. The PostgreSQL driver switches to a named server-side statement after the same statement has run a few times (`prepareThreshold`, default 5); MySQL Connector/J prepares on the client unless `useServerPrepStmts=true`. Injection safety holds either way.',
+        answer: 'No, it depends on the driver. The PostgreSQL driver switches to a named server-side statement after the same statement has run a few times (`prepareThreshold`, default 5). MySQL Connector/J prepares on the client unless `useServerPrepStmts=true`. Injection safety holds either way.',
       },
       {
         question: 'How do you read a nullable INTEGER column?',
-        answer: '`rs.getInt` returns 0 for SQL NULL, which is indistinguishable from a real 0. Use `rs.getObject("col", Integer.class)` (returns null) or call `rs.wasNull()` right after the primitive getter.',
+        answer: '`rs.getInt` returns 0 for SQL NULL, and you cannot tell that apart from a real 0. Use `rs.getObject("col", Integer.class)`, which returns null. Or call `rs.wasNull()` right after the primitive getter.',
       },
     ],
     mnemonic: {
@@ -70,10 +70,10 @@ export const jdbcConcepts: Record<string, LessonConcepts> = {
         id: 'j1-injection',
         kind: 'concept',
         title: 'Same input, two very different queries',
-        caption: 'With concatenation the input becomes SQL code and rewrites the WHERE clause. With a placeholder the SQL text never changes and the input is only ever compared as a value.',
+        caption: 'With concatenation, the input becomes SQL code and rewrites the WHERE clause. With a placeholder, the SQL text never changes, and the input is only ever compared as a value.',
         explanation: [
           'Both rows receive the same malicious input, x\' OR \'1\'=\'1, typed into a name field. The only difference is how the query is built.',
-          'Top row: **Concatenation** pastes the input into the SQL text, producing **WHERE name = \'x\' OR \'1\'=\'1\'**, so the input has become SQL code.',
+          'Top row: **Concatenation** pastes the input into the SQL text. This produces **WHERE name = \'x\' OR \'1\'=\'1\'**, so the input has become SQL code.',
           'Because \'1\'=\'1\' is always true, the database returns **Every row**: a data leak, with no error to warn you.',
           'Bottom row: a **Placeholder** keeps the SQL fixed as **WHERE name = ?** and sends the input separately with `setString`.',
           'The database compares the whole input as one value, finds no customer with that odd name and returns **No rows**. Takeaway: placeholders stop data from ever being parsed as code.',
@@ -101,9 +101,9 @@ export const jdbcConcepts: Record<string, LessonConcepts> = {
         title: 'Who implements what',
         caption: 'Your DAO depends only on java.sql interfaces. The pool and the vendor driver can be swapped through configuration without changing a line of DAO code.',
         explanation: [
-          'Your **DAO / repository** code calls `getConnection()` on a **DataSource**, here a HikariCP pool that lends out connections it already holds open.',
+          'Your **DAO / repository** code calls `getConnection()` on a **DataSource**. Here it is a HikariCP pool, which lends out connections it already holds open.',
           'The pool hands back a **Connection**, borrowed for this unit of work and returned to the pool when it is closed.',
-          'On that connection, `prepareStatement` creates a **PreparedStatement** holding SQL plus bound values, and `executeQuery` returns a **ResultSet**, a cursor over the rows.',
+          'On that connection, `prepareStatement` creates a **PreparedStatement** holding SQL plus bound values. Then `executeQuery` returns a **ResultSet**, a cursor over the rows.',
           'All of these sit in the "java.sql / javax.sql interfaces" group. The classes behind them come from the **Vendor driver**, in the "Implemented by the driver JAR" group.',
           'The driver talks to the **Database** over TCP in its wire protocol, in both directions. Takeaway: you can swap the pool or the driver through configuration without changing DAO code.',
         ],
@@ -134,12 +134,12 @@ export const jdbcConcepts: Record<string, LessonConcepts> = {
         id: 'j1-lifecycle',
         kind: 'flow',
         title: 'One query, start to finish',
-        caption: 'try-with-resources closes in reverse order: ResultSet, then statement, then connection — which, for a pooled connection, returns it to the pool rather than disconnecting.',
+        caption: 'try-with-resources closes in reverse order: ResultSet, then statement, then connection. Closing a pooled connection returns it to the pool rather than disconnecting.',
         explanation: [
           '**Borrow connection** from the pool with `dataSource.getConnection()`. This is cheap because the physical database connection already exists.',
           '**Prepare + bind**: create the PreparedStatement and set each placeholder, for example `setLong(1, id)`, so values never touch the SQL text.',
           '**executeQuery()** sends the statement to the database and returns a ResultSet positioned before the first row.',
-          '**while (rs.next())** moves the cursor row by row and maps each row to a record, until next() returns false because there are no more rows.',
+          '**while (rs.next())** moves the cursor row by row and maps each row to a record. It stops when next() returns false because there are no more rows.',
           'try-with-resources then performs **Close rs, ps, con** in reverse order on every path, including when an exception is thrown.',
           'For a pooled connection, `con.close()` sends it **Back to the pool** rather than disconnecting. Takeaway: always close, because one leaked connection per request soon drains the pool.',
         ],
@@ -225,30 +225,30 @@ export const jdbcConcepts: Record<string, LessonConcepts> = {
   'j-transactions': {
     textbook: {
       definition:
-        'A **transaction** is a sequence of database operations executed as a single logical unit of work that satisfies the **ACID** properties: atomicity, consistency, isolation and durability. In JDBC a transaction is scoped to one `Connection`: when **auto-commit** mode is disabled, statements accumulate in the current transaction until `commit()` makes their effects permanent or `rollback()` discards them. The **isolation level**, set with `setTransactionIsolation`, specifies which effects of concurrently executing transactions are visible, and therefore which **read phenomena** (dirty, non-repeatable and phantom reads) may occur. Stronger levels admit fewer phenomena at the cost of reduced concurrency.',
+        'A **transaction** is a sequence of database operations run as a single logical unit of work. It satisfies the **ACID** properties: atomicity, consistency, isolation and durability. In JDBC, a transaction belongs to one `Connection`. When **auto-commit** mode is turned off, statements collect in the current transaction. They stay there until `commit()` makes their effects permanent or `rollback()` discards them. The **isolation level** is set with `setTransactionIsolation`. It specifies which effects of transactions running at the same time are visible. So it also sets which **read phenomena** (dirty, non-repeatable and phantom reads) may occur. Stronger levels allow fewer phenomena, at the cost of less concurrency.',
       terms: [
         { term: 'ACID', meaning: 'Atomicity (all or nothing), consistency (constraints hold), isolation (concurrent transactions do not interfere) and durability (committed data survives failures).' },
         { term: 'Auto-commit', meaning: 'The default JDBC mode in which every SQL statement is committed as its own transaction immediately after it completes.' },
-        { term: 'Isolation level', meaning: 'One of four SQL-standard degrees of isolation, from READ UNCOMMITTED to SERIALIZABLE, each defined by the read phenomena it forbids.' },
-        { term: 'Read phenomenon', meaning: 'An anomaly caused by concurrent transactions, such as reading uncommitted data, a changed row on re-read, or new rows matching a repeated query.' },
-        { term: 'Savepoint', meaning: 'A named point within a transaction to which `rollback(savepoint)` can return without discarding the earlier work of the transaction.' },
+        { term: 'Isolation level', meaning: 'One of four degrees of isolation in the SQL standard, from READ UNCOMMITTED to SERIALIZABLE. Each is defined by the read phenomena it forbids.' },
+        { term: 'Read phenomenon', meaning: 'An anomaly (unexpected result) caused by concurrent transactions. Examples are reading uncommitted data, a changed row on re-read, or new rows matching a repeated query.' },
+        { term: 'Savepoint', meaning: 'A named point within a transaction. `rollback(savepoint)` can return to it without discarding the earlier work of the transaction.' },
       ],
       source: 'ISO/IEC 9075 (SQL standard); JDBC 4.3 Specification; Javadoc for java.sql.Connection',
     },
     interviewDefinition:
-      'A **transaction** is a unit of work that is atomic, consistent, isolated and durable (ACID). In JDBC it belongs to one `Connection`: `setAutoCommit(false)`, run the statements, then `commit()` — or `rollback()` on every failure path. The **isolation level** decides which concurrency anomalies (dirty, non-repeatable and phantom reads; lost updates; write skew) other transactions can cause. Stronger levels prevent more at the cost of locking, aborts and retries; lost updates are prevented with atomic SQL, pessimistic `SELECT ... FOR UPDATE` or optimistic version checks.',
+      'A **transaction** is a unit of work that is atomic, consistent, isolated and durable (ACID). In JDBC, it belongs to one `Connection`. You call `setAutoCommit(false)`, run the statements, then call `commit()`. On every failure path, you call `rollback()` instead. The **isolation level** decides which concurrency anomalies (dirty, non-repeatable and phantom reads; lost updates; write skew) other transactions can cause. Stronger levels prevent more, at the cost of locking, aborts and retries. Lost updates are prevented with atomic SQL, pessimistic `SELECT ... FOR UPDATE` or optimistic version checks.',
     interviewFollowUps: [
       {
         question: 'Does REPEATABLE READ prevent phantom reads?',
-        answer: 'The SQL standard allows phantoms at REPEATABLE READ, but implementations differ: PostgreSQL implements it as snapshot isolation, so plain reads see no phantoms; MySQL InnoDB uses a consistent snapshot for plain reads and next-key locks for locking reads. Always check the engine\'s documentation.',
+        answer: 'The SQL standard allows phantoms at REPEATABLE READ, but implementations differ. PostgreSQL implements it as snapshot isolation, so plain reads see no phantoms. MySQL InnoDB uses a consistent snapshot for plain reads, and next-key locks for locking reads. Always check the engine\'s documentation.',
       },
       {
         question: 'What is write skew?',
-        answer: 'Two transactions read overlapping data, each checks an invariant ("at least one doctor on call"), then each updates a different row. Neither overwrote the other, yet together they break the invariant. Snapshot isolation allows it; SERIALIZABLE (or an explicit lock on the rows checked) prevents it.',
+        answer: 'Two transactions read overlapping data. Each checks an invariant, a rule that must stay true ("at least one doctor on call"). Then each updates a different row. Neither overwrote the other, yet together they break the invariant. Snapshot isolation allows it. SERIALIZABLE (or an explicit lock on the rows checked) prevents it.',
       },
       {
         question: 'Optimistic or pessimistic locking?',
-        answer: 'Optimistic (a version column checked in the UPDATE) suits low contention and long think-time: no locks are held, conflicts are detected at write time. Pessimistic (`SELECT ... FOR UPDATE`) suits short, high-contention updates where retrying would be wasteful, at the risk of waiting and deadlocks.',
+        answer: 'Optimistic (a version column checked in the UPDATE) suits low contention and long think-time. No locks are held, and conflicts are detected at write time. Pessimistic (`SELECT ... FOR UPDATE`) suits short, high-contention updates where retrying would be wasteful. It risks waiting and deadlocks.',
       },
       {
         question: 'What happens if you call setAutoCommit(true) in the middle of a transaction?',
@@ -292,14 +292,14 @@ export const jdbcConcepts: Record<string, LessonConcepts> = {
         id: 'j2-isolation-ladder',
         kind: 'concept',
         title: 'Which anomalies each isolation level prevents (SQL standard)',
-        caption: 'Each step up prevents one more anomaly. Real engines often do better than the standard minimum, for example PostgreSQL\'s REPEATABLE READ also prevents phantoms.',
+        caption: 'Each step up prevents one more anomaly. Real engines often do better than the standard minimum. For example, PostgreSQL\'s REPEATABLE READ also prevents phantoms.',
         explanation: [
           'Read it as a table. The header row names the **Isolation level** column and three anomalies: **Dirty read**, **Non-repeatable read** and **Phantom read**.',
-          '**READ UNCOMMITTED** is the bottom rung, where all three are possible, because a transaction may even see changes that others have not committed.',
-          'Following the "stronger" arrow, **READ COMMITTED**, the PostgreSQL default, has dirty reads prevented, but re-reading a row or re-running a query can still give different results.',
+          '**READ UNCOMMITTED** is the bottom rung, where all three are possible. A transaction may even see changes that others have not committed.',
+          'Following the "stronger" arrow, **READ COMMITTED** is the PostgreSQL default. It prevents dirty reads, but re-reading a row or re-running a query can still give different results.',
           '**REPEATABLE READ**, the MySQL InnoDB default, also prevents non-repeatable reads. By the standard, phantom rows from new inserts are still possible.',
           '**SERIALIZABLE** prevents all three and behaves as if transactions ran one after another. Engines may abort a transaction with SQLState 40001, so callers must retry.',
-          'Takeaway: each step up prevents one more anomaly at the cost of more locking or aborts, and real engines often do better than this standard minimum.',
+          'Takeaway: each step up prevents one more anomaly, at the cost of more locking or aborts. Real engines often do better than this standard minimum.',
         ],
         cols: 4,
         rows: 5,
@@ -335,13 +335,13 @@ export const jdbcConcepts: Record<string, LessonConcepts> = {
         id: 'j2-lost-update',
         kind: 'flow',
         title: 'A lost update, step by step',
-        caption: 'Both transactions read 100 and write back their own result. No error occurs, yet one withdrawal disappears: the final balance should be 70.',
+        caption: 'Both transactions read 100 and write back their own result. No error occurs, yet one withdrawal disappears. The final balance should be 70.',
         explanation: [
           'The **balance row** starts at 100. **Transaction 1** wants to withdraw 10 and **Transaction 2** wants to withdraw 20 at the same time.',
           'Both transactions **read 100** before either has written anything, so each computes its new balance from the same value.',
           'Transaction 1 commits **write 100 - 10 = 90**. The dashed arrow shows that this write lands first, but only briefly.',
           'Transaction 2 then commits **write 100 - 20 = 80**, which overwrites 90 without ever having seen it.',
-          'The result is **balance = 80** instead of 70: the update of Transaction 1 is lost and no error occurred. Prevent it with an atomic UPDATE, a row lock or a version check.',
+          'The result is **balance = 80** instead of 70. The update of Transaction 1 is lost, and no error occurred. Prevent it with an atomic UPDATE, a row lock or a version check.',
         ],
         cols: 3,
         rows: 5,
@@ -368,7 +368,7 @@ export const jdbcConcepts: Record<string, LessonConcepts> = {
         id: 'j2-optimistic',
         kind: 'flow',
         title: 'Optimistic locking with a version column',
-        caption: 'No lock is held while the user thinks. The WHERE clause checks the version you read; an update count of 0 means somebody else committed first.',
+        caption: 'No lock is held while the user thinks. The WHERE clause checks the version you read. An update count of 0 means somebody else committed first.',
         explanation: [
           '**SELECT ... version** reads the row together with its version column, here version 7, and holds no lock afterwards.',
           '**Change in memory** while the user edits or the code computes. Other transactions are free to update the row meanwhile.',
