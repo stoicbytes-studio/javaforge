@@ -303,6 +303,14 @@ export const platformConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Inside a .class file (JVMS §4.1)',
         caption: 'The structure is read top to bottom. Most other parts point into the constant pool by index rather than repeating names and literals.',
+        explanation: [
+          'A class file is read top to bottom. It opens with **Magic**, the four bytes `0xCAFEBABE`, followed by **Version**, the minor and major numbers that say which Java release can load it.',
+          'Next comes the **Constant pool**, usually the largest table: string and number literals plus symbolic references to classes, fields and methods.',
+          '**Access flags** say whether the type is public, final, an interface and so on. **this / super class** name the class and its parent; the #index arrow shows they point into the constant pool.',
+          '**Interfaces** lists the directly implemented interfaces, and **Fields** lists each field with its name, type descriptor and flags, again using pool indexes.',
+          '**Methods** carry the actual bytecode in a Code attribute, with max_stack, max_locals and the exception table. **Attributes** at the end add metadata such as SourceFile and StackMapTable.',
+          'Takeaway: names and literals are stored once in the constant pool, and everything else refers to them by number.',
+        ],
         cols: 2,
         rows: 6,
         nodes: [
@@ -323,6 +331,13 @@ export const platformConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'return a + b on the operand stack (a = 2, b = 3)',
         caption: 'Top row: the instructions javap -c shows. Bottom row: the operand stack after each one. Values are pushed, the instruction pops its inputs and pushes its result.',
+        explanation: [
+          'The top row shows the instructions that `javap -c` prints for `return a + b`; the bottom row shows the operand stack after each one, with a = 2 and b = 3.',
+          '**iload_0** pushes local variable 0, the value of a, so the stack becomes **[ 2 ]**.',
+          '**iload_1** pushes local variable 1, the value of b, giving **[ 2, 3 ]**. Nothing has been added yet; both values are simply waiting.',
+          '**iadd** pops the two ints, adds them and pushes the sum, leaving **[ 5 ]** on the stack.',
+          '**ireturn** pops that 5 and returns it to the caller, leaving the stack empty: **[ ]**. Takeaway: each instruction pops its inputs and pushes its result.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -350,6 +365,14 @@ export const platformConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'What the JVM does with bytecode',
         caption: 'Bytecode is parsed, verified and linked lazily, then interpreted while being profiled. Hot methods move up to C1 and C2 compiled code, which lives in the code cache.',
+        explanation: [
+          'In the **Load and link** stage, **Main.class** is read by the **Class loader**, which parses the class file into the JVM\'s internal structures.',
+          'The **Verifier** type-checks the bytecode with the help of the StackMapTable, so malformed or unsafe code is rejected before it ever runs.',
+          'The **Linker** resolves constant-pool references lazily, the first time each instruction uses them, rather than all at start-up.',
+          'In the **Execute** stage, the **Interpreter** runs the bytecode while counting how often each method runs. A warm method is handed to the **C1 JIT** for a quick compile with profiling.',
+          'If it stays hot, the **C2 JIT** recompiles it with heavy optimisation using the collected profile, and the native code is kept in the **Code cache** for reuse.',
+          'Takeaway: Java starts by interpreting and then compiles only the code that matters, which is why programs warm up.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -403,6 +426,21 @@ export const platformConcepts: Record<string, LessonConcepts> = {
         ],
       },
       {
+        title: 'Categories of bytecode instructions (JVMS §2.11)',
+        intro: 'The JVM Specification groups its instructions by purpose. Most arithmetic and load/store instructions come in typed variants, marked by a prefix: i (int), l (long), f (float), d (double) and a (reference).',
+        items: [
+          { name: 'Load and store', summary: 'Move values between local variables and the operand stack, and push constants onto the stack.', code: 'iload_1  istore_2  aload_0  bipush 10  ldc "hi"' },
+          { name: 'Arithmetic', summary: 'Add, subtract, multiply, divide, remainder, negate, shift, bitwise operations and comparisons, with a separate opcode per type.', code: 'iadd  dmul  irem  ishl  lcmp' },
+          { name: 'Type conversion', summary: 'Widening and narrowing numeric conversions between int, long, float and double, and narrowing int to byte, char or short.', code: 'i2l  d2i  i2b' },
+          { name: 'Object creation and manipulation', summary: 'Create objects and arrays, read and write fields and array elements, and test or check types.', code: 'new  newarray  getfield  putstatic  iaload  arraylength  checkcast  instanceof' },
+          { name: 'Operand stack management', summary: 'Manipulate the stack directly: discard, duplicate or swap the top values.', code: 'pop  dup  swap' },
+          { name: 'Control transfer', summary: 'Conditional and unconditional branches, plus jump tables for switch statements.', code: 'ifeq  if_icmplt  goto  tableswitch  lookupswitch' },
+          { name: 'Method invocation and return', summary: 'The five invoke instructions and the typed return instructions that hand a value back to the caller.', code: 'invokevirtual  invokestatic  ireturn  return' },
+          { name: 'Throwing exceptions', summary: '`athrow` throws an exception explicitly. Catching is described by each method\'s exception table, not by an instruction.', code: 'athrow' },
+          { name: 'Synchronization', summary: '`monitorenter` and `monitorexit` implement `synchronized` blocks; synchronized methods use an access flag instead.', code: 'monitorenter  monitorexit' },
+        ],
+      },
+      {
         title: 'Ways to read and generate bytecode',
         items: [
           { name: 'javap', summary: 'JDK tool: `-c` disassembles code, `-v` adds the constant pool, flags and attributes.', support: 'supported', code: 'javap -c -v Main.class' },
@@ -434,6 +472,18 @@ export const platformConcepts: Record<string, LessonConcepts> = {
     ],
   },
   'p-packages-classpath': {
+    textbook: {
+      definition:
+        'A **package** is a named collection of related classes and interfaces that forms a **namespace** and a unit of access control. Each top-level type has a **fully qualified name** consisting of its package name and its simple name, such as `java.util.List`. An **import declaration** allows a type to be referred to by its simple name within one compilation unit and has no effect at run time. The **class path** is the ordered list of directories and JAR files that the application class loader searches for class files; since Java 9, the **module path** locates modules in a similar way.',
+      terms: [
+        { term: 'Namespace', meaning: 'A scope within which each name must be unique; packages let two classes share a simple name, such as `java.util.List` and `java.awt.List`.' },
+        { term: 'Fully qualified name', meaning: 'The package name, a dot and the simple type name, which together uniquely identify a top-level type, for example `com.shop.Invoice`.' },
+        { term: 'Package-private access', meaning: 'The default access level when no access modifier is written; such members are accessible only to code in the same package.' },
+        { term: 'Class loader', meaning: 'An object that locates the binary representation of a class by its name and defines the class in the JVM, normally delegating to a parent loader first.' },
+        { term: 'Module', meaning: 'A named, self-describing group of packages declared in `module-info.java`, stating which modules it requires and which packages it exports.' },
+      ],
+      source: 'JLS chapter 7 (§7.1, §7.5); JVMS §5.3; Javadoc for java.lang.ClassLoader',
+    },
     interviewDefinition:
       'A **package** is a namespace (`com.shop.billing`) that also forms an access boundary for package-private members; `import` is only a compile-time shorthand and loads nothing. At run time **class loaders** find classes lazily, on first use, delegating parent-first (bootstrap → platform → application) before searching the **classpath** of directories and JARs. The **module system** (Java 9) adds `module-info.java` with `requires` and `exports`, giving reliable configuration — missing modules fail at startup — and strong encapsulation of packages that are not exported.',
     interviewFollowUps: [
@@ -488,6 +538,13 @@ export const platformConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Parent-first delegation for com.shop.Invoice',
         caption: 'The application loader asks the platform loader, which asks the bootstrap loader. Only when both parents fail does the application loader search the classpath. That is why nobody can replace java.lang.String with a class on the classpath.',
+        explanation: [
+          'The request to load `com.shop.Invoice` arrives at the **Application loader** at the bottom left. Before searching anything itself, it follows arrow 1 and asks its parent.',
+          'The **Platform loader** also asks its own parent first, following arrow 2 up to the **Bootstrap loader**, which is built into the JVM and loads `java.base`.',
+          'The bootstrap loader searches and reports **Not found**, because Invoice is not in java.base. The platform loader then searches its own modules and also finds nothing.',
+          'Only now, at step 3, does the application loader search the **Classpath**: the classes folder, app.jar and the library JARs, in order.',
+          'It finds the class file, and the result is **Invoice defined** by the app loader. Takeaway: parents always win, so a classpath class can never replace `java.lang.String`.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -513,6 +570,13 @@ export const platformConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'One name, three places',
         caption: 'The package name must match the source folder, becomes the folder inside the JAR, and is the only name bytecode ever uses. The import in OrderService is resolved by javac and then disappears.',
+        explanation: [
+          'Start at the top left with **Invoice.java**, which declares `package com.shop.billing;` and sits in the matching folder src/com/shop/billing/.',
+          '**javac** checks that the package matches the folder and compiles it. The arrow labelled same folder layout shows **Invoice.class** placed under com/shop/billing/ inside app.jar.',
+          '**OrderService.java** imports the class so that it can simply write Invoice. It is compiled too, and javac replaces the short name with the full one.',
+          'So **Its bytecode** contains only the full name com/shop/billing/Invoice; the import has disappeared. The arrow labelled full name only shows that name reaching the **Class loader**.',
+          'The class loader turns the name into the path com/shop/billing/Invoice.class and finds the file. Takeaway: the package name is the folder path, everywhere.',
+        ],
         cols: 3,
         rows: 2,
         nodes: [
@@ -536,6 +600,13 @@ export const platformConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'Named, automatic and unnamed modules',
         caption: 'Named modules read only what they require; automatic modules bridge plain JARs onto the module path; everything on the classpath lands in the unnamed module, which named modules cannot require.',
+        explanation: [
+          'The **Module path** group on the left holds two kinds. A **Named module** has a module-info.java and **Reads its requires**: only the modules it lists, exporting only the packages it names.',
+          'An **Automatic module** is a plain JAR placed on the module path. It **Reads all modules** and exports every package, so it works as a bridge during migration.',
+          'The arrow requires by name shows that a named module can depend on an automatic module, and the can read arrow shows that an automatic module can also see classpath code.',
+          'In the **Classpath** group, everything loaded from the classpath lands in the **Unnamed module**. It also reads all modules, but no named module can require it.',
+          'At the bottom, **java.base and other JDK modules** serve all of them, and every module reads java.base. Takeaway: named modules see only what they declare.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [

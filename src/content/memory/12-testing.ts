@@ -11,6 +11,28 @@ export const testingMemory: Record<string, MemoryAid> = {
       'Use `assertEquals`, `assertThrows` and friends. A failed assertion is a failure; any other exception is an error.',
       'Pick inputs on and around limits, like 0, 1 and the maximum, because bugs gather there.',
     ],
+    types: [
+      {
+        title: 'Types of tests',
+        items: [
+          { name: 'Unit', simple: 'Check one small part alone, like testing a single light bulb on the bench. Very fast.' },
+          { name: 'Integration', simple: 'Check your code with a real database or service, like testing the bulb in the actual lamp.' },
+          { name: 'Contract', simple: 'Check two services still agree on how they talk, like both sides keeping to a signed agreement.' },
+          { name: 'End-to-end', simple: 'Use the whole finished app like a real user would. Realistic but slow, so keep only a few.' },
+        ],
+      },
+      {
+        title: 'JUnit 5 annotation families',
+        items: [
+          { name: 'Test kinds', simple: '`@Test` for one check, `@ParameterizedTest` to run the same check with many inputs.' },
+          { name: 'Lifecycle', simple: '`@BeforeEach` and `@AfterEach` set up and tidy up around every test, like laying and clearing the table.' },
+          { name: 'Parameter sources', simple: '`@ValueSource` or `@CsvSource` supply the list of inputs for a parameterised test.' },
+          { name: 'Naming, filtering and control', simple: '`@DisplayName` gives a readable name, `@Tag` groups tests, `@Disabled` skips one for now.' },
+          { name: 'Conditions', simple: 'Run a test only on some systems, such as only on Linux or only on Java 21.' },
+          { name: 'Extensions', simple: '`@ExtendWith` plugs in extra helpers, such as Mockito; `@TempDir` gives a scratch folder that is deleted afterwards.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: 'high code coverage meaning good tests',
       difference: 'Coverage only shows which lines ran. A test with no assertions can cover everything and still check nothing.',
@@ -45,6 +67,25 @@ export const testingMemory: Record<string, MemoryAid> = {
       'Your code needs a seam, like an interface passed into the constructor, to swap in a double.',
       'Use doubles at the edges, like networks, databases and clocks, not between every pair of classes.',
     ],
+    types: [
+      {
+        title: 'Types of test double',
+        items: [
+          { name: 'Dummy', simple: 'A cardboard stand-in that just fills an empty seat. Nobody talks to it.' },
+          { name: 'Stub', simple: 'An actor who always says the same scripted line, like "payment approved".' },
+          { name: 'Spy', simple: 'A real helper with a notebook, writing down every call made to it so you can check later.' },
+          { name: 'Mock', simple: 'A stand-in that knows which calls it should get, so the test can verify they really happened.' },
+          { name: 'Fake', simple: 'A simple working version, like a toy kitchen that really cooks: an in-memory database instead of a real one.' },
+        ],
+      },
+      {
+        title: 'Schools of unit testing',
+        items: [
+          { name: 'Classicist (Detroit)', simple: 'Use real objects wherever you can and replace only slow or outside things, like databases.' },
+          { name: 'Mockist (London)', simple: 'Replace every collaborator with a mock and check the conversations between objects.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: 'a stub and a mock',
       difference: 'With a stub you check the answer your code produced. With a mock you check that your code made the right calls.',
@@ -77,6 +118,38 @@ export const testingMemory: Record<string, MemoryAid> = {
       'First make the bug happen reliably, ideally as a small failing test.',
       'In a stack trace, the top line is where it was thrown. The last `Caused by` is usually the real cause.',
       'Change one thing at a time, fix the cause not the symptom, and keep the test.',
+    ],
+    types: [
+      {
+        title: 'Breakpoint types',
+        items: [
+          { name: 'Line breakpoint', simple: 'Pause when the program reaches this line, like a bookmark that stops your reading.' },
+          { name: 'Conditional breakpoint', simple: 'Pause on this line only when a condition is true, such as `i == 999`.' },
+          { name: 'Exception breakpoint', simple: 'Pause the moment a certain exception is thrown, even before anything catches it.' },
+          { name: 'Method breakpoint', simple: 'Pause whenever a method is entered or left. Handy but can make the program slow.' },
+          { name: 'Field watchpoint', simple: 'Pause whenever a field is read or changed, like a camera on one drawer.' },
+          { name: 'Logpoint', simple: 'Print a message instead of pausing, like a sticky note that reports as you pass.' },
+        ],
+      },
+      {
+        title: 'Common bug categories',
+        items: [
+          { name: 'Off-by-one', simple: 'Counting one too many or one too few, like a fence with one post missing.' },
+          { name: 'Null', simple: 'Using something that is not there, like dialling a phone number that was never written down.' },
+          { name: 'Equality', simple: 'Comparing objects with `==` instead of `equals`, so two equal things look different.' },
+          { name: 'Shared mutation', simple: 'Two parts of the code hold the same object, and one changes it behind the other\'s back.' },
+          { name: 'Concurrency', simple: 'Threads trip over each other, so the bug appears only sometimes, depending on timing.' },
+          { name: 'Resource and state leaks', simple: 'Files, connections or memory are taken and never given back, until something runs out.' },
+        ],
+      },
+      {
+        title: 'Stepping actions',
+        items: [
+          { name: 'Step over', simple: 'Run the whole current line, including any method calls, and stop at the next line.' },
+          { name: 'Step into', simple: 'Go inside the method called on this line to watch it work.' },
+          { name: 'Step out', simple: 'Finish the current method and stop back where it was called.' },
+        ],
+      },
     ],
     confusion: {
       mixedUpWith: 'the top line and the root cause of a stack trace',

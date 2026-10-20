@@ -11,6 +11,35 @@ export const typesMemory: Record<string, MemoryAid> = {
       'Compare text with `equals`, not `==`, because `==` only asks if both are the same object.',
       'Use `StringBuilder` to build text in a loop, then call `toString()` once at the end.',
     ],
+    types: [
+      {
+        title: 'Ways to compare strings',
+        items: [
+          { name: '`==`', simple: 'Asks "is this the very same sign?", not "does it say the same words?". Wrong for comparing text.' },
+          { name: '`equals`', simple: 'Reads both signs letter by letter: same words and same capitals means equal. The normal way to compare text.' },
+          { name: '`equalsIgnoreCase`', simple: 'Same words count as equal even if the capitals differ, so "HELLO" equals "hello".' },
+          { name: '`compareTo`', simple: 'Says which word comes first in dictionary-like order; capital letters sort before small letters.' },
+          { name: '`Objects.equals`', simple: 'Like equals, but it does not crash when one or both values are missing (null).' },
+        ],
+      },
+      {
+        title: 'String vs StringBuilder vs StringBuffer',
+        items: [
+          { name: '`String`', simple: 'A printed sign: it never changes, and every edit prints a brand new sign.' },
+          { name: '`StringBuilder`', simple: 'A whiteboard: write, erase and add as much as you like, then print the final sign once.' },
+          { name: '`StringBuffer`', simple: 'A whiteboard with a lock, so only one person writes at a time. Slower and rarely needed.' },
+        ],
+      },
+      {
+        title: 'Ways to create a String',
+        items: [
+          { name: 'String literal', simple: 'Writing "java" in quotes. Every identical literal shares one sign from the shop window, the string pool.' },
+          { name: '`new String(...)`', simple: 'Forces a brand new copy of the sign even when an identical one exists. Almost never useful.' },
+          { name: 'Text block (Java 15)', simple: 'A sign with several lines, written between triple quotes. Handy for JSON or SQL.' },
+          { name: 'Built at run time', simple: 'Joining pieces while the program runs makes a fresh sign that is not in the pool.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: '`==` and `equals`',
       difference: '`==` checks whether two variables point to the very same object, while `equals` checks whether the characters inside are the same.',
@@ -45,6 +74,28 @@ export const typesMemory: Record<string, MemoryAid> = {
       'Each primitive has a wrapper class, for example `int` and `Integer`, or `boolean` and `Boolean`.',
       'Autoboxing turns `int` into `Integer` for you, and unboxing turns it back.',
       'Unboxing `null` throws `NullPointerException`, and `==` on wrappers compares boxes, not values.',
+    ],
+    types: [
+      {
+        title: 'The primitive / wrapper pairs',
+        items: [
+          { name: '`int` → `Integer`', simple: 'The everyday whole number in a box. Note the full name: Integer, not Int.' },
+          { name: '`long` → `Long`', simple: 'A box for very big whole numbers, like a timestamp or a database id.' },
+          { name: '`double` → `Double`', simple: 'A box for numbers with decimals, like a weight of 2.5 kg.' },
+          { name: '`boolean` → `Boolean`', simple: 'A box holding yes or no. Only two boxes exist, TRUE and FALSE, reused everywhere.' },
+          { name: '`char` → `Character`', simple: 'A box holding one letter or symbol. The other irregular name to remember.' },
+          { name: '`byte`, `short`, `float` → wrappers', simple: 'Boxes for small whole numbers and less precise decimals: Byte, Short and Float. Used less often.' },
+        ],
+      },
+      {
+        title: 'Ways to compare wrapper values',
+        items: [
+          { name: '`==` between two wrappers', simple: 'Asks "same box?", not "same coin inside?". Only small cached numbers seem to work, so it is a bug.' },
+          { name: '`==` with a primitive', simple: 'Opens the box and compares the coins. Fine, unless the box is empty (null): then it crashes.' },
+          { name: '`equals` / `Objects.equals`', simple: 'Compares the coins inside two boxes of the same kind; Objects.equals also copes with empty boxes.' },
+          { name: '`Integer.compare`', simple: 'Says which number is smaller, safely, without the overflow that subtracting can cause.' },
+        ],
+      },
     ],
     confusion: {
       mixedUpWith: '`int` and `Integer`',
@@ -83,6 +134,26 @@ export const typesMemory: Record<string, MemoryAid> = {
       'The compiler checks the types; at run time they are erased, so the JVM does not see them.',
       '`List<Integer>` is not a `List<Number>`; use `? extends` to read and `? super` to write.',
     ],
+    types: [
+      {
+        title: 'Wildcards',
+        items: [
+          { name: '`?` (unbounded)', simple: 'A crate labelled "something". You can look inside, but you cannot add anything because you do not know what fits.' },
+          { name: '`? extends T`', simple: 'A vending machine of Ts or their subtypes: you can take Ts out, but you cannot put anything in.' },
+          { name: '`? super T`', simple: 'A donation bin for Ts: you can drop Ts in, but what comes out is just "some object".' },
+        ],
+      },
+      {
+        title: 'Generic forms',
+        items: [
+          { name: 'Generic class', simple: 'A box with a label slot: `Box<String>` holds only Strings, `Box<Integer>` only Integers.' },
+          { name: 'Generic method', simple: 'A tool that adapts to whatever you hand it, like `first(list)` working for any kind of list.' },
+          { name: 'Bounded type parameter', simple: 'A label saying "numbers only": with `T extends Number` you may call number methods on T.' },
+          { name: 'Generic record', simple: 'A record with label slots, like `Pair<K, V>` holding any two kinds of value.' },
+          { name: 'No primitive type arguments', simple: '`List<int>` is not allowed. Use `List<Integer>`, putting the coins in boxes first.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: 'a `List<Object>` that holds anything',
       difference: 'A `List<Object>` accepts any object, so you must cast when reading, while a `List<String>` lets the compiler check every value for you.',
@@ -117,6 +188,28 @@ export const typesMemory: Record<string, MemoryAid> = {
       '`var` (Java 10) lets the compiler infer a local variable\'s type; it is still fully typed.',
       '`if (obj instanceof String s)` (Java 16) tests, casts and names the value in one step.',
       '`switch` with type and record patterns (Java 21) must cover every possible case.',
+    ],
+    types: [
+      {
+        title: 'Pattern matching forms',
+        items: [
+          { name: '`instanceof` type pattern', simple: 'Check that it is a String and name it s in one move: `o instanceof String s`.' },
+          { name: 'Type pattern in `switch`', simple: 'Sort values into branches by their kind, like a mail desk with one slot per parcel type.' },
+          { name: 'Guarded case (`when`)', simple: 'A branch with an extra condition, such as only big numbers: `case Integer i when i > 100`.' },
+          { name: 'Record pattern', simple: 'Opens a record and unpacks its parts onto labelled trays: `Point(int x, int y)`.' },
+          { name: '`case null`', simple: 'An explicit slot for "nothing arrived", so a null value does not crash the switch.' },
+          { name: 'Unnamed pattern `_` (Java 22)', simple: 'Says "I do not care about this part", like ignoring the return address on a parcel.' },
+        ],
+      },
+      {
+        title: 'Where var is allowed',
+        items: [
+          { name: 'Local variable with a value', simple: '`var list = new ArrayList<String>()`: the compiler reads the type from the right-hand side.' },
+          { name: 'Loop variables', simple: 'In `for (var e : map.entrySet())` the compiler works out the element type for you.' },
+          { name: 'Lambda parameters (Java 11)', simple: '`(var a, var b) -> a + b`, mainly so you can put annotations on the parameters.' },
+          { name: 'Fields and method signatures', simple: 'Not allowed: they are the public shape of a class, so their types must be written out.' },
+        ],
+      },
     ],
     confusion: {
       mixedUpWith: '`var` as a dynamic type',

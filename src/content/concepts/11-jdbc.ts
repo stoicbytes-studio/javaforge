@@ -3,6 +3,18 @@ import type { LessonConcepts } from '@/types/curriculum';
 /** Concept pages for module 11 (JDBC, SQL Integration and Transactions), keyed by lesson id. */
 export const jdbcConcepts: Record<string, LessonConcepts> = {
   'j-jdbc': {
+    textbook: {
+      definition:
+        '**JDBC** (Java Database Connectivity) is the Java SE API, in the packages `java.sql` and `javax.sql`, that provides call-level access from Java programs to tabular data sources, principally relational databases, by means of SQL statements. The API consists chiefly of interfaces, such as `Connection`, `PreparedStatement` and `ResultSet`, whose implementations are supplied by a vendor-specific **JDBC driver**. An application obtains a **connection** from a **`DataSource`** or the `DriverManager`, executes statements within that connection, and processes query results through a **`ResultSet`**, a cursor over the returned rows. A **`PreparedStatement`** holds precompiled SQL whose parameters are bound separately from the statement text.',
+      terms: [
+        { term: 'JDBC driver', meaning: 'A vendor library that implements the `java.sql` interfaces for one database product and translates JDBC calls into that database\'s network protocol.' },
+        { term: 'Connection', meaning: 'A session with a specific database within which SQL statements are executed and results returned; it is also the scope of a transaction.' },
+        { term: 'DataSource', meaning: 'A factory for connections, configured outside the code, that is the preferred alternative to `DriverManager` and is commonly backed by a connection pool.' },
+        { term: 'PreparedStatement', meaning: 'An object representing a precompiled SQL statement with `?` parameter markers whose values are set by typed setter methods before execution.' },
+        { term: 'ResultSet', meaning: 'A table of data produced by a query, read through a cursor that starts before the first row and is advanced by `next()`.' },
+      ],
+      source: 'JDBC 4.3 Specification (JSR 221); Javadoc for java.sql and javax.sql',
+    },
     interviewDefinition:
       '**JDBC** is the standard Java API (`java.sql`, `javax.sql`) for relational databases: application code programs against interfaces, and a vendor **driver** implements them. A `DataSource` — in production a connection pool — hands out `Connection`s; a `PreparedStatement` sends fixed SQL with `?` placeholders and binds values separately, which prevents SQL injection; `executeQuery` returns a `ResultSet` cursor read with `next()`. Connections, statements and result sets are scarce resources, closed with try-with-resources.',
     interviewFollowUps: [
@@ -59,6 +71,13 @@ export const jdbcConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Same input, two very different queries',
         caption: 'With concatenation the input becomes SQL code and rewrites the WHERE clause. With a placeholder the SQL text never changes and the input is only ever compared as a value.',
+        explanation: [
+          'Both rows receive the same malicious input, x\' OR \'1\'=\'1, typed into a name field. The only difference is how the query is built.',
+          'Top row: **Concatenation** pastes the input into the SQL text, producing **WHERE name = \'x\' OR \'1\'=\'1\'**, so the input has become SQL code.',
+          'Because \'1\'=\'1\' is always true, the database returns **Every row**: a data leak, with no error to warn you.',
+          'Bottom row: a **Placeholder** keeps the SQL fixed as **WHERE name = ?** and sends the input separately with `setString`.',
+          'The database compares the whole input as one value, finds no customer with that odd name and returns **No rows**. Takeaway: placeholders stop data from ever being parsed as code.',
+        ],
         cols: 3,
         rows: 2,
         nodes: [
@@ -81,6 +100,13 @@ export const jdbcConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'Who implements what',
         caption: 'Your DAO depends only on java.sql interfaces. The pool and the vendor driver can be swapped through configuration without changing a line of DAO code.',
+        explanation: [
+          'Your **DAO / repository** code calls `getConnection()` on a **DataSource**, here a HikariCP pool that lends out connections it already holds open.',
+          'The pool hands back a **Connection**, borrowed for this unit of work and returned to the pool when it is closed.',
+          'On that connection, `prepareStatement` creates a **PreparedStatement** holding SQL plus bound values, and `executeQuery` returns a **ResultSet**, a cursor over the rows.',
+          'All of these sit in the "java.sql / javax.sql interfaces" group. The classes behind them come from the **Vendor driver**, in the "Implemented by the driver JAR" group.',
+          'The driver talks to the **Database** over TCP in its wire protocol, in both directions. Takeaway: you can swap the pool or the driver through configuration without changing DAO code.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -109,6 +135,14 @@ export const jdbcConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'One query, start to finish',
         caption: 'try-with-resources closes in reverse order: ResultSet, then statement, then connection — which, for a pooled connection, returns it to the pool rather than disconnecting.',
+        explanation: [
+          '**Borrow connection** from the pool with `dataSource.getConnection()`. This is cheap because the physical database connection already exists.',
+          '**Prepare + bind**: create the PreparedStatement and set each placeholder, for example `setLong(1, id)`, so values never touch the SQL text.',
+          '**executeQuery()** sends the statement to the database and returns a ResultSet positioned before the first row.',
+          '**while (rs.next())** moves the cursor row by row and maps each row to a record, until next() returns false because there are no more rows.',
+          'try-with-resources then performs **Close rs, ps, con** in reverse order on every path, including when an exception is thrown.',
+          'For a pooled connection, `con.close()` sends it **Back to the pool** rather than disconnecting. Takeaway: always close, because one leaked connection per request soon drains the pool.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -156,6 +190,16 @@ export const jdbcConcepts: Record<string, LessonConcepts> = {
           { name: 'execute()', summary: 'For SQL whose kind is unknown in advance; returns true if the first result is a ResultSet.', support: 'supported' },
         ],
       },
+      {
+        title: 'JDBC driver types',
+        intro: 'The JDBC specification classifies drivers into four types by how they reach the database. Almost every modern driver is Type 4.',
+        items: [
+          { name: 'Type 1: JDBC-ODBC bridge', summary: 'Translates JDBC calls into ODBC calls, so it needs an ODBC driver installed on every client machine.', support: 'not-supported', note: 'The JDK\'s bridge was removed in Java 8.' },
+          { name: 'Type 2: native-API driver', summary: 'Java code that calls the database vendor\'s native client library through JNI; fast, but platform-specific and needs native installs.', support: 'partial', note: 'Example: Oracle OCI driver.' },
+          { name: 'Type 3: network-protocol driver', summary: 'Pure Java driver that talks to a middleware server, which in turn translates requests for one or more databases.', support: 'partial', note: 'Rare today.' },
+          { name: 'Type 4: thin (pure Java) driver', summary: 'Pure Java driver that speaks the database\'s own wire protocol directly over a socket. No native code; just add the JAR.', support: 'supported', note: 'Examples: PostgreSQL pgjdbc, MySQL Connector/J, Oracle thin driver.' },
+        ],
+      },
     ],
     deepDive: [
       {
@@ -179,6 +223,18 @@ export const jdbcConcepts: Record<string, LessonConcepts> = {
     ],
   },
   'j-transactions': {
+    textbook: {
+      definition:
+        'A **transaction** is a sequence of database operations executed as a single logical unit of work that satisfies the **ACID** properties: atomicity, consistency, isolation and durability. In JDBC a transaction is scoped to one `Connection`: when **auto-commit** mode is disabled, statements accumulate in the current transaction until `commit()` makes their effects permanent or `rollback()` discards them. The **isolation level**, set with `setTransactionIsolation`, specifies which effects of concurrently executing transactions are visible, and therefore which **read phenomena** (dirty, non-repeatable and phantom reads) may occur. Stronger levels admit fewer phenomena at the cost of reduced concurrency.',
+      terms: [
+        { term: 'ACID', meaning: 'Atomicity (all or nothing), consistency (constraints hold), isolation (concurrent transactions do not interfere) and durability (committed data survives failures).' },
+        { term: 'Auto-commit', meaning: 'The default JDBC mode in which every SQL statement is committed as its own transaction immediately after it completes.' },
+        { term: 'Isolation level', meaning: 'One of four SQL-standard degrees of isolation, from READ UNCOMMITTED to SERIALIZABLE, each defined by the read phenomena it forbids.' },
+        { term: 'Read phenomenon', meaning: 'An anomaly caused by concurrent transactions, such as reading uncommitted data, a changed row on re-read, or new rows matching a repeated query.' },
+        { term: 'Savepoint', meaning: 'A named point within a transaction to which `rollback(savepoint)` can return without discarding the earlier work of the transaction.' },
+      ],
+      source: 'ISO/IEC 9075 (SQL standard); JDBC 4.3 Specification; Javadoc for java.sql.Connection',
+    },
     interviewDefinition:
       'A **transaction** is a unit of work that is atomic, consistent, isolated and durable (ACID). In JDBC it belongs to one `Connection`: `setAutoCommit(false)`, run the statements, then `commit()` — or `rollback()` on every failure path. The **isolation level** decides which concurrency anomalies (dirty, non-repeatable and phantom reads; lost updates; write skew) other transactions can cause. Stronger levels prevent more at the cost of locking, aborts and retries; lost updates are prevented with atomic SQL, pessimistic `SELECT ... FOR UPDATE` or optimistic version checks.',
     interviewFollowUps: [
@@ -237,6 +293,14 @@ export const jdbcConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Which anomalies each isolation level prevents (SQL standard)',
         caption: 'Each step up prevents one more anomaly. Real engines often do better than the standard minimum, for example PostgreSQL\'s REPEATABLE READ also prevents phantoms.',
+        explanation: [
+          'Read it as a table. The header row names the **Isolation level** column and three anomalies: **Dirty read**, **Non-repeatable read** and **Phantom read**.',
+          '**READ UNCOMMITTED** is the bottom rung, where all three are possible, because a transaction may even see changes that others have not committed.',
+          'Following the "stronger" arrow, **READ COMMITTED**, the PostgreSQL default, has dirty reads prevented, but re-reading a row or re-running a query can still give different results.',
+          '**REPEATABLE READ**, the MySQL InnoDB default, also prevents non-repeatable reads. By the standard, phantom rows from new inserts are still possible.',
+          '**SERIALIZABLE** prevents all three and behaves as if transactions ran one after another. Engines may abort a transaction with SQLState 40001, so callers must retry.',
+          'Takeaway: each step up prevents one more anomaly at the cost of more locking or aborts, and real engines often do better than this standard minimum.',
+        ],
         cols: 4,
         rows: 5,
         nodes: [
@@ -272,6 +336,13 @@ export const jdbcConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'A lost update, step by step',
         caption: 'Both transactions read 100 and write back their own result. No error occurs, yet one withdrawal disappears: the final balance should be 70.',
+        explanation: [
+          'The **balance row** starts at 100. **Transaction 1** wants to withdraw 10 and **Transaction 2** wants to withdraw 20 at the same time.',
+          'Both transactions **read 100** before either has written anything, so each computes its new balance from the same value.',
+          'Transaction 1 commits **write 100 - 10 = 90**. The dashed arrow shows that this write lands first, but only briefly.',
+          'Transaction 2 then commits **write 100 - 20 = 80**, which overwrites 90 without ever having seen it.',
+          'The result is **balance = 80** instead of 70: the update of Transaction 1 is lost and no error occurred. Prevent it with an atomic UPDATE, a row lock or a version check.',
+        ],
         cols: 3,
         rows: 5,
         nodes: [
@@ -298,6 +369,13 @@ export const jdbcConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Optimistic locking with a version column',
         caption: 'No lock is held while the user thinks. The WHERE clause checks the version you read; an update count of 0 means somebody else committed first.',
+        explanation: [
+          '**SELECT ... version** reads the row together with its version column, here version 7, and holds no lock afterwards.',
+          '**Change in memory** while the user edits or the code computes. Other transactions are free to update the row meanwhile.',
+          '**UPDATE ... SET version = 8** adds `WHERE id = ? AND version = 7`, so it only matches if nobody has changed the row since your read.',
+          'If the update count is 1, the check passed: **1 row: commit**. The version is now 8 for the next writer.',
+          'If the count is 0, someone else committed first: **0 rows: conflict**. Reload and retry, or report it. Takeaway: conflicts are detected at write time instead of prevented by locks.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [

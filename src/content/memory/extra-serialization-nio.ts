@@ -11,6 +11,27 @@ export const serializationNioMemory: Record<string, MemoryAid> = {
       'Never deserialize untrusted bytes with Java serialization. The stream chooses which classes get created.',
       'Prefer data-only formats like JSON, and declare `serialVersionUID` if you must use `Serializable`.',
     ],
+    types: [
+      {
+        title: 'Serialization formats',
+        items: [
+          { name: 'Java serialization', simple: 'Java packs the whole object into its own private format. Only Java can read it, and untrusted input is dangerous.' },
+          { name: 'JSON', simple: 'Plain text anyone can read, like a labelled form. The usual choice for web APIs.' },
+          { name: 'Protocol Buffers', simple: 'A compact binary format with a shared schema file, like a form both sides agreed on in advance.' },
+          { name: 'Apache Avro', simple: 'A binary format whose schema travels with the data, popular for Kafka and big data files.' },
+          { name: 'XML', simple: 'Text with opening and closing tags around each value. Wordy, but still common in older systems.' },
+        ],
+      },
+      {
+        title: 'Ways to control Java serialization',
+        items: [
+          { name: '`transient`', simple: 'Mark a field "do not pack", like leaving your passwords out of a moving box. It comes back empty.' },
+          { name: '`writeObject` / `readObject`', simple: 'Write your own packing and unpacking steps, for example to check values again when unpacking.' },
+          { name: '`writeReplace` / `readResolve`', simple: 'Swap the object for a stand-in when packing, or for a different object when unpacking, for example to keep singletons single.' },
+          { name: '`Externalizable`', simple: 'Take over the whole job yourself: you write and read every field by hand.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: '`transient` and `volatile`',
       difference: '`transient` means "do not save this field when serializing". `volatile` is about threads seeing the latest value, nothing to do with saving.',
@@ -44,6 +65,36 @@ export const serializationNioMemory: Record<string, MemoryAid> = {
       'A `ByteBuffer` has a position, limit and capacity. Call `flip()` after filling it and before reading it.',
       'A `Selector` lets one thread handle many non-blocking channels, acting only on the ready ones.',
       'TCP is a stream of bytes with no message edges, so add newlines or length prefixes yourself.',
+    ],
+    types: [
+      {
+        title: 'I/O models',
+        items: [
+          { name: 'Blocking', simple: 'Wait by the door until the parcel arrives. Simple, but each waiting person is one thread.' },
+          { name: 'Non-blocking', simple: 'Check the door and walk away at once if nothing is there. Alone, you end up checking constantly.' },
+          { name: 'Multiplexed (Selector)', simple: 'One receptionist watches many doors and only answers the ones where someone knocks.' },
+          { name: 'Asynchronous (NIO.2)', simple: 'Ask the courier to ring you when the parcel arrives, then do other work meanwhile.' },
+          { name: 'Virtual threads', simple: 'Write simple waiting code; Java quietly lets cheap virtual threads wait while a few real threads do the work.' },
+        ],
+      },
+      {
+        title: 'Buffer operations',
+        items: [
+          { name: '`flip()`', simple: 'Done filling the box, now get ready to empty it: start from the front and stop where filling stopped.' },
+          { name: '`clear()`', simple: 'Treat the whole box as empty again. The old bytes stay but will be overwritten.' },
+          { name: '`compact()`', simple: 'Slide the items you have not used yet to the front, then keep filling behind them.' },
+          { name: '`rewind()`', simple: 'Go back to the start and read the same items again.' },
+        ],
+      },
+      {
+        title: 'Kinds of sockets',
+        items: [
+          { name: 'Socket / ServerSocket', simple: 'A phone call over TCP: one line per caller, words arrive in order and nothing is lost.' },
+          { name: 'DatagramSocket', simple: 'Postcards over UDP: each message travels alone and may arrive late, twice or never.' },
+          { name: 'SocketChannel', simple: 'The NIO version of a TCP socket, which can work without blocking and with a Selector.' },
+          { name: 'Unix-domain channel', simple: 'A private line between programs on the same computer, addressed by a file path instead of a port.' },
+        ],
+      },
     ],
     confusion: {
       mixedUpWith: '`flip()` and `clear()`',

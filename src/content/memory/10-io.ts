@@ -11,6 +11,27 @@ export const ioMemory: Record<string, MemoryAid> = {
       'Files hold bytes. To read text, the bytes are decoded with a charset, so name it, for example UTF-8.',
       'Close every open file with try-with-resources, and read big files line by line with `Files.lines`.',
     ],
+    types: [
+      {
+        title: 'Stream families in java.io',
+        items: [
+          { name: 'Byte streams', simple: 'Move raw bytes, like copying pages without reading them. Right for images, ZIP files and any binary data.' },
+          { name: 'Character streams', simple: 'Read and write letters, using a charset to translate bytes into text, like a translator reading a foreign book.' },
+          { name: 'Buffered streams', simple: 'Fetch a big armful at once instead of one item per trip, so reading line by line is fast.' },
+          { name: 'Data streams', simple: 'Write numbers and booleans in a fixed binary layout, so another program can read them back exactly.' },
+          { name: 'Object streams', simple: 'Pack whole Java objects into bytes and unpack them later. Old and risky; prefer JSON for new code.' },
+        ],
+      },
+      {
+        title: 'Ways to read a text file',
+        items: [
+          { name: '`Files.readString`', simple: 'Read the whole short letter in one go. Easiest for small files.' },
+          { name: '`Files.readAllLines`', simple: 'Get the whole file as a list of lines, like a numbered shopping list. Small files only.' },
+          { name: '`Files.lines`', simple: 'Read a huge book one line at a time as a stream, so memory stays small. Close it afterwards.' },
+          { name: '`Files.newBufferedReader`', simple: 'A classic loop calling `readLine()` until it returns null. Good when you remember things between lines.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: 'the old `java.io.File` class',
       difference: '`File` methods like `delete()` just return `false` when they fail. `Files` methods throw an `IOException` that says why.',
@@ -45,6 +66,28 @@ export const ioMemory: Record<string, MemoryAid> = {
       'Create one `HttpClient` and share it. It keeps connections open for reuse and is thread-safe.',
       'A 404 or 500 status is a normal response. Check `statusCode()` yourself; only network failures throw.',
       'Always set timeouts, and only retry automatically requests that are safe to repeat, such as GET.',
+    ],
+    types: [
+      {
+        title: 'HTTP methods',
+        items: [
+          { name: 'GET', simple: 'Ask to read something, like looking at a menu. It changes nothing, so it is safe to repeat.' },
+          { name: 'POST', simple: 'Send something new, like posting a letter. Sending it twice may create two copies.' },
+          { name: 'PUT', simple: 'Replace the whole thing with your version. Doing it twice gives the same result as once.' },
+          { name: 'PATCH', simple: 'Change only some fields, like correcting one line of a form instead of filling in a new one.' },
+          { name: 'DELETE', simple: 'Remove something. Deleting the same thing twice leaves it just as gone.' },
+        ],
+      },
+      {
+        title: 'Status code classes',
+        items: [
+          { name: '1xx Informational', simple: 'A "please wait, still working" note. The client handles it for you.' },
+          { name: '2xx Success', simple: 'Your order arrived as asked. Read the body.' },
+          { name: '3xx Redirection', simple: 'A "we have moved" sign pointing to another address.' },
+          { name: '4xx Client error', simple: 'You asked wrongly, like ordering a dish not on the menu. Asking again the same way will not help.' },
+          { name: '5xx Server error', simple: 'The kitchen broke down. Waiting and trying again later may work, if repeating is safe.' },
+        ],
+      },
     ],
     confusion: {
       mixedUpWith: '`send` and `sendAsync`',

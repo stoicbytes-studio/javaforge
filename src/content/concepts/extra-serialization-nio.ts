@@ -3,6 +3,18 @@ import type { LessonConcepts } from '@/types/curriculum';
 /** Concept pages for the extra I/O lessons: serialization, and NIO channels/buffers/sockets. */
 export const serializationNioConcepts: Record<string, LessonConcepts> = {
   'io-serialization': {
+    textbook: {
+      definition:
+        '**Serialization** is the process of encoding the state of an object, together with the objects reachable from it, into a sequence of bytes from which an equivalent **object graph** can later be reconstructed by **deserialization**. In the Java platform a class opts in by implementing the marker interface **`java.io.Serializable`**; `ObjectOutputStream` writes the values of its non-static, non-**transient** fields, and `ObjectInputStream` re-creates the objects. For an ordinary class it invokes only the no-argument constructor of the first non-serializable superclass, never the class\'s own constructors; a record is rebuilt through its canonical constructor. Compatibility between class versions is governed by the **`serialVersionUID`**.',
+      terms: [
+        { term: 'Object graph', meaning: 'An object together with every object reachable from it through non-transient reference fields; serialization writes the whole graph, preserving shared references and cycles.' },
+        { term: 'Serializable', meaning: 'A marker interface with no methods; implementing it permits instances of a class to be written by `ObjectOutputStream`.' },
+        { term: 'transient', meaning: 'A field modifier that excludes the field from default serialization; on deserialization the field receives its type\'s default value.' },
+        { term: 'serialVersionUID', meaning: 'A `static final long` version number of a serializable class; a mismatch between writer and reader causes `InvalidClassException`.' },
+        { term: 'ObjectInputFilter', meaning: 'A filter, added in Java 9 (JEP 290), that accepts or rejects each class, array length and graph depth before deserialization instantiates anything.' },
+      ],
+      source: 'Java Object Serialization Specification; Javadoc for java.io.Serializable and java.io.ObjectInputFilter; JEP 290',
+    },
     interviewDefinition:
       '**Serialization** converts an in-memory object graph into a byte (or text) representation that can be stored or sent, and **deserialization** rebuilds objects from it. Java\'s built-in mechanism (`Serializable`, `ObjectOutputStream`) writes non-`transient` fields reflectively and rebuilds objects **without running their constructors**, letting the byte stream choose which classes to instantiate. That makes deserializing untrusted data a remote-code-execution risk, so modern systems prefer explicit, data-only formats — JSON, Protocol Buffers, Avro — and guard any remaining Java serialization with an `ObjectInputFilter` allow-list.',
     interviewFollowUps: [
@@ -66,6 +78,13 @@ export const serializationNioConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'An object graph flattened into bytes and rebuilt',
         caption: 'Serialization walks every reachable, non-transient field. The reader gets a brand-new, equal graph; transient fields come back as default values and the original objects are never shared.',
+        explanation: [
+          'In the Original graph, **Account** references **ArrayList tags** and also holds a **transient token**. Serialization starts at Account and follows every reference it can reach.',
+          '**ObjectOutputStream** walks the non-transient fields reflectively. The dashed "not written" arrow shows that the transient token is skipped, so secrets and caches never leave memory.',
+          '`writeObject` produces bytes beginning with **AC ED 00 05 ...**, the stream magic number and version, followed by class descriptors and field values.',
+          '**ObjectInputStream** reads them with `readObject` and builds the Rebuilt copy: a **new Account** that references a **new ArrayList** with the same contents, without calling the Account constructor.',
+          'The skipped field comes back as its default value, so the copy has **token = null**. Takeaway: you get an equal but entirely separate graph, never the original objects.',
+        ],
         cols: 5,
         rows: 3,
         nodes: [
@@ -99,6 +118,14 @@ export const serializationNioConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'What readObject does with a filter installed',
         caption: 'The filter is consulted for every class, array and depth before anything is instantiated. Ordinary classes are allocated without a constructor; records go through the canonical constructor.',
+        explanation: [
+          '**Incoming bytes** arrive from a file, socket or cache. Before creating anything, the stream must **Read class descriptor**: the class name and its serialVersionUID.',
+          'The installed **ObjectInputFilter** checks that class, plus array sizes and graph depth, against an allow-list and limits, before any object is instantiated.',
+          'If the answer is REJECTED, reading stops with **InvalidClassException** and nothing has been created. If it is ALLOWED, the next question is **Record or class?**',
+          'A record goes through its **Canonical constructor**, so the validation you wrote in that constructor also runs on deserialized data.',
+          'An ordinary class takes the other branch: **Allocate, set fields**, with its constructor skipped. Its **readObject, readResolve** hooks then get a chance to re-validate or replace the instance.',
+          'Both branches end at **Object returned**. Takeaway: the filter guards the door, and records or hooks are the only places your validation can run.',
+        ],
         cols: 4,
         rows: 4,
         nodes: [
@@ -129,6 +156,13 @@ export const serializationNioConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'How a gadget chain turns bytes into code execution',
         caption: 'The attacker writes no code into your app: the bytes only name classes that are already on your classpath. An allow-list filter breaks the chain at the first unexpected class.',
+        explanation: [
+          'An **Attacker payload** of crafted serialized bytes reaches an **Endpoint** that deserializes input, such as a cookie, an RMI call or a message queue.',
+          'The endpoint calls **readObject()**, and the stream itself picks which classes to instantiate. The attacker sends no code, only names of classes already on your classpath.',
+          'Without a filter, on the dashed arrow, a **Gadget: map** is rebuilt and calls `hashCode()` on its keys while reading, which triggers a **Gadget: transformer** that makes a reflective call.',
+          'The chain ends at **Runtime.exec**, remote code execution, built entirely from code in the "Libraries on your classpath" group.',
+          'With an **Allow-list filter** such as `com.example.dto.*;!*`, the first unexpected class is rejected with **InvalidClassException**, so the chain never starts.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -215,6 +249,18 @@ export const serializationNioConcepts: Record<string, LessonConcepts> = {
     ],
   },
   'io-nio-sockets': {
+    textbook: {
+      definition:
+        '**NIO** (New I/O, `java.nio`) is the Java API for buffer- and channel-oriented input and output. A **buffer** is a linear, finite sequence of elements of one primitive type, characterised by its capacity, limit and position; a **channel** is an open connection to an entity, such as a file or a **socket**, that can read into and write from buffers. A selectable channel may be placed in non-blocking mode and registered with a **`Selector`**, which multiplexes readiness events so that one thread can serve many channels. A socket is an endpoint of a two-way network connection; a TCP socket carries a reliable, ordered **byte stream** without message boundaries.',
+      terms: [
+        { term: 'Buffer', meaning: 'A fixed-capacity container whose position marks the next element to read or write and whose limit marks the first element that must not be accessed.' },
+        { term: 'Channel', meaning: 'A nexus for I/O operations on an entity such as a file or socket; it is either open or closed, and transfers data through buffers.' },
+        { term: 'Selector', meaning: 'A multiplexor of selectable channels that reports, through selection keys, which registered channels are ready for accept, connect, read or write.' },
+        { term: 'Socket', meaning: 'One endpoint of a network connection, identified by an IP address and a port, through which two programs exchange data.' },
+        { term: 'Non-blocking mode', meaning: 'A channel mode in which an I/O operation transfers whatever it can immediately and returns, possibly having transferred nothing, instead of waiting.' },
+      ],
+      source: 'JSR 51; Javadoc for java.nio.Buffer, java.nio.channels.Channel, java.nio.channels.Selector and java.net.Socket',
+    },
     interviewDefinition:
       'Java has two I/O styles. Classic `java.io` **streams** move bytes one direction and block the calling thread. NIO **channels** move data in and out of **buffers** — a `ByteBuffer` with `position`, `limit` and `capacity` switched between filling and draining by `flip()`, `clear()` and `compact()` — and network channels can run **non-blocking** with a `Selector` so one thread multiplexes many connections. Sockets (`ServerSocket.accept`, `Socket` streams) carry TCP byte streams under both styles. Since Java 21, **virtual threads** let simple blocking, thread-per-connection code scale like an event loop.',
     interviewFollowUps: [
@@ -274,6 +320,14 @@ export const serializationNioConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'One ByteBuffer through put, flip, get and compact',
         caption: 'Watch position (P) and limit (L) move in an 8-byte buffer. flip() switches from filling to draining; compact() keeps unread bytes and switches back to filling.',
+        explanation: [
+          '**allocate(8)** creates an empty 8-byte buffer with position 0, limit 8 and capacity 8. A new buffer starts in Write mode, ready to be filled.',
+          '**put J, a, v** writes three bytes and moves position to 3. Limit stays at 8, so there is still room to fill.',
+          '**flip()** sets limit to the old position, 3, and position to 0. The buffer is now in Read mode and exposes only the bytes actually written.',
+          'Each relative get advances position, so **get() returns J** and leaves position 1 and limit 3: two unread bytes remain.',
+          'To keep the leftovers, **compact()** copies "av" to the front, sets position 2 and limit 8, and returns the buffer to Write mode for more input.',
+          'The final arrow, "or discard all", shows **clear()**: position 0 and limit 8, with old bytes not erased but treated as garbage. Forgetting flip() before reading is the classic NIO bug.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -301,6 +355,14 @@ export const serializationNioConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'A TCP echo conversation over loopback',
         caption: 'The server blocks in accept() and readLine(); the client blocks in readLine() for each reply. Closing one side makes the other side read end of stream (null or -1).',
+        explanation: [
+          'In the Server (virtual thread) group, **ServerSocket(0)** binds to loopback and lets the OS pick a free port, then **accept()** blocks until a client connects.',
+          'In the Client (main thread) group, **new Socket(lo, port)** performs the TCP handshake, which makes accept() return a connected socket on the server.',
+          'The client calls **println("hello")**. The bytes travel through **Loopback TCP**, a byte stream with no message boundaries, so the newline marks where each message ends.',
+          'The server **readLine()** receives the line and answers with println("echo: ..."). The dashed arrow is that echo reply, which the client reads with its own readLine().',
+          'When the server sees "bye" it calls **close()**, which sends a FIN. The client then sees **readLine() == null**, meaning end of stream.',
+          'Takeaway: accept() and readLine() block their thread, which is cheap here because the server handles the connection on a virtual thread.',
+        ],
         cols: 3,
         rows: 5,
         nodes: [
@@ -336,6 +398,14 @@ export const serializationNioConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'Selector event loop versus virtual threads',
         caption: 'Left: one event-loop thread multiplexes many non-blocking channels and keeps per-connection state in key attachments. Right: each connection has its own cheap virtual thread running blocking code; the JDK poller does the multiplexing.',
+        explanation: [
+          'On the left, in the Hand-written NIO (Netty-style) group, **Channel A**, **Channel B** and **Channel C** are non-blocking channels registered with one **Selector** for OP_READ or OP_ACCEPT.',
+          'The Selector asks the kernel, through epoll or kqueue, which channels are ready and hands those ready keys to a single **Event-loop thread**.',
+          'The event loop handles each ready key quickly and keeps per-connection state in key attachments, so one thread serves many connections but must never block.',
+          'On the right, in the Virtual threads (Java 21) group, **Virtual thread A** runs a blocking readLine() and **Virtual thread B** is idle; both park instead of holding an OS thread.',
+          'The **JDK poller** watches the underlying non-blocking sockets and unparks a virtual thread when its data is ready, mounting it on one of a few **Carrier threads**.',
+          'Takeaway: both designs multiplex many connections over few OS threads, but with virtual threads the JDK does it while you write simple blocking code.',
+        ],
         cols: 5,
         rows: 4,
         nodes: [
@@ -388,6 +458,20 @@ export const serializationNioConcepts: Record<string, LessonConcepts> = {
           { name: 'rewind()', summary: 'position = 0, limit unchanged: read the same data again.', support: 'supported' },
           { name: 'mark() / reset()', summary: 'Remember a position and jump back to it, for example to retry parsing a header.', support: 'supported' },
           { name: 'slice() / duplicate()', summary: 'New buffer views sharing the same bytes with independent indexes; slice covers only the remaining region.', support: 'supported', note: 'Changes to bytes are visible through every view.' },
+        ],
+      },
+      {
+        title: 'Kinds of sockets and channels',
+        intro: 'The JDK offers a classic java.net socket and an NIO channel for each transport. Since Java 13 and 15 the classic sockets are themselves implemented on NIO.',
+        items: [
+          { name: 'Socket / ServerSocket', summary: 'Blocking TCP endpoints: ServerSocket listens and accept() returns one Socket per client, each exposing an InputStream and an OutputStream.', support: 'supported', note: 'Since Java 1.0; reimplemented in Java 13 (JEP 353).', code: 'try (var server = new ServerSocket(8080); Socket s = server.accept()) { ... }' },
+          { name: 'DatagramSocket', summary: 'UDP: sends and receives individual DatagramPacket messages with no connection, no ordering and no delivery guarantee.', support: 'supported', note: 'Reimplemented in Java 15 (JEP 373).' },
+          { name: 'MulticastSocket', summary: 'A DatagramSocket that can join a multicast group and receive packets sent to the group address.', support: 'supported' },
+          { name: 'SocketChannel / ServerSocketChannel', summary: 'NIO TCP channels that read and write ByteBuffers; they can be switched to non-blocking mode and registered with a Selector.', support: 'supported', note: 'Java 1.4 (JSR 51).', code: 'SocketChannel ch = SocketChannel.open(new InetSocketAddress("localhost", 8080));' },
+          { name: 'DatagramChannel', summary: 'The NIO channel for UDP, selectable like the TCP channels; it can also join multicast groups.', support: 'supported' },
+          { name: 'AsynchronousSocketChannel', summary: 'NIO.2 TCP channel whose read and write return a Future or call a CompletionHandler when done.', support: 'supported', note: 'Java 7 (JSR 203).' },
+          { name: 'Unix-domain socket channels', summary: 'SocketChannel and ServerSocketChannel opened with StandardProtocolFamily.UNIX connect local processes through a file path instead of a port.', support: 'supported', note: 'Java 16 (JEP 380).', code: 'SocketChannel.open(UnixDomainSocketAddress.of("/tmp/app.sock"));' },
+          { name: 'SSLSocket / SSLEngine', summary: 'TLS encryption: SSLSocket is a blocking socket from an SSLSocketFactory; SSLEngine adds TLS to NIO channels you drive yourself.', support: 'supported', note: 'javax.net.ssl.' },
         ],
       },
     ],

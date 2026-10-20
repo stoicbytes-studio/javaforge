@@ -482,8 +482,7 @@ export const asyncParallelConcepts: Record<string, LessonConcepts> = {
           { name: 'runAsync', summary: 'Runs a Runnable asynchronously and completes with null, as a CompletableFuture<Void>.', support: 'supported', code: 'CompletableFuture.runAsync(() -> audit(event), io)' },
           { name: 'completedFuture', summary: 'An already completed future holding a value; useful for cache hits, default values and tests.', support: 'supported', code: 'CompletableFuture.completedFuture(cached)' },
           { name: 'failedFuture', summary: 'An already failed future holding an exception, so callers see the failure through the normal handlers.', support: 'supported', note: 'Java 9 (JEP 266)', code: 'CompletableFuture.failedFuture(new IOException("down"))' },
-          { name: 'new CompletableFuture<>() + complete', summary: 'An incomplete future that you complete yourself with complete or completeExceptionally, typically to adapt a callback-based API.', support: 'supported', code: 'var f = new CompletableFuture<Reply>();
-listener.onReply(f::complete);' },
+          { name: 'new CompletableFuture<>() + complete', summary: 'An incomplete future that you complete yourself with complete or completeExceptionally, typically to adapt a callback-based API.', support: 'supported', code: 'var f = new CompletableFuture<Reply>();\nlistener.onReply(f::complete);' },
         ],
       },
     ],

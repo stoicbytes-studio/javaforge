@@ -11,6 +11,34 @@ export const jdbcMemory: Record<string, MemoryAid> = {
       'Use `PreparedStatement` with `?` placeholders. Values are sent separately, so they can never become SQL code.',
       'Get connections from a pooled `DataSource` and close connections, statements and result sets with try-with-resources.',
     ],
+    types: [
+      {
+        title: 'Statement types',
+        items: [
+          { name: '`Statement`', simple: 'Sends a finished SQL sentence as it is. Fine for fixed SQL, dangerous with anything a user typed.' },
+          { name: '`PreparedStatement`', simple: 'A form with blanks (`?`) that you fill in separately. Safe from SQL injection; use it by default.' },
+          { name: '`CallableStatement`', simple: 'Calls a stored procedure saved inside the database, like pressing a preset button.' },
+        ],
+      },
+      {
+        title: 'Execute methods',
+        items: [
+          { name: '`executeQuery()`', simple: 'For SELECT: asks a question and gets back rows to read.' },
+          { name: '`executeUpdate()`', simple: 'For INSERT, UPDATE or DELETE: makes a change and tells you how many rows changed.' },
+          { name: '`executeBatch()`', simple: 'Sends many rows in one trip, like posting a whole bundle of letters at once.' },
+          { name: '`execute()`', simple: 'For SQL when you do not know in advance whether it returns rows or a count.' },
+        ],
+      },
+      {
+        title: 'JDBC driver types',
+        items: [
+          { name: 'Type 1: ODBC bridge', simple: 'Talks through a second translator, ODBC. Removed from Java 8, so only history now.' },
+          { name: 'Type 2: native-API', simple: 'Uses the database maker\'s own native program installed on the computer.' },
+          { name: 'Type 3: network-protocol', simple: 'Talks to a middleman server that passes requests on to the database.' },
+          { name: 'Type 4: thin driver', simple: 'Pure Java that speaks the database\'s own language directly. Just add one JAR; what almost everyone uses.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: '`Statement` with string concatenation',
       difference: 'Gluing user input into SQL text lets that input change the query itself. A `PreparedStatement` keeps the SQL fixed and binds values separately.',
@@ -43,6 +71,27 @@ export const jdbcMemory: Record<string, MemoryAid> = {
       'Turn off auto-commit, run all the statements on the same `Connection`, then call `commit()`.',
       'On any failure call `rollback()`, so a half-finished change never stays in the database.',
       'The isolation level decides which effects of other running transactions you can see. Stronger levels block or fail more.',
+    ],
+    types: [
+      {
+        title: 'Isolation levels',
+        items: [
+          { name: 'READ UNCOMMITTED', simple: 'You can peek at other people\'s unfinished drafts. Fast, but you may read things that are later thrown away.' },
+          { name: 'READ COMMITTED', simple: 'You only see finished, saved work, but it can change if you look twice.' },
+          { name: 'REPEATABLE READ', simple: 'A row you have read stays the same for you until you finish, like a photo of it.' },
+          { name: 'SERIALIZABLE', simple: 'As if everyone took turns one at a time. Safest, but some transactions fail and must try again.' },
+        ],
+      },
+      {
+        title: 'Concurrency anomalies',
+        items: [
+          { name: 'Dirty read', simple: 'You read a change someone has not saved yet, and then they cancel it.' },
+          { name: 'Non-repeatable read', simple: 'You read the same row twice and get two different values, because someone saved in between.' },
+          { name: 'Phantom read', simple: 'You run the same search twice and new rows appear, like extra guests arriving at a counted party.' },
+          { name: 'Lost update', simple: 'Two people edit the same number and the second save silently wipes out the first.' },
+          { name: 'Write skew', simple: 'Two people each check a rule, both see it is fine, and together they break it, like two doctors both going off call.' },
+        ],
+      },
     ],
     confusion: {
       mixedUpWith: 'auto-commit mode',

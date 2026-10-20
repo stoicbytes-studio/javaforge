@@ -3,6 +3,18 @@ import type { LessonConcepts } from '@/types/curriculum';
 /** Concept pages for module 10 (Files, NIO and Networking), keyed by lesson id. */
 export const ioConcepts: Record<string, LessonConcepts> = {
   'io-files': {
+    textbook: {
+      definition:
+        'File I/O in Java is the transfer of data between a program and a **file system** through the APIs of `java.io` and `java.nio.file`. A **`Path`** is an immutable, system-dependent object that locates a file without accessing it; the utility class **`Files`** performs operations on the located file and reports failure by throwing an `IOException`. Data is read and written as **byte streams**, which **character streams** decode and encode according to a **charset**. Every opened stream or channel holds an operating-system resource and must be closed after use, typically by a try-with-resources statement.',
+      terms: [
+        { term: 'Path', meaning: 'An immutable object, bound to one file system, that represents a hierarchical sequence of name elements locating a file; creating it performs no I/O.' },
+        { term: 'Files', meaning: 'A final class of static methods in `java.nio.file` that read, write, copy, move, delete and inspect files located by a `Path`.' },
+        { term: 'Byte stream', meaning: 'An ordered sequence of 8-bit bytes read through an `InputStream` or written through an `OutputStream`, with no interpretation of their meaning.' },
+        { term: 'Character stream', meaning: 'A `Reader` or `Writer` that exchanges 16-bit `char` values, converting them to and from bytes with a charset.' },
+        { term: 'Charset', meaning: 'A named mapping between sequences of bytes and sequences of Unicode characters, such as UTF-8 or ISO-8859-1.' },
+      ],
+      source: 'Javadoc for java.nio.file.Path, java.nio.file.Files and java.io; JLS §14.20.3',
+    },
     interviewDefinition:
       'Modern Java file I/O is built on `java.nio.file`: a `Path` is an immutable locator that opens nothing, and `Files` performs the operations, throwing specific `IOException` subclasses instead of returning booleans. Underneath, all I/O moves **bytes**; **character** streams decode them with a **charset**, and buffering batches system calls. Correct file code closes every handle with try-with-resources, names the charset explicitly, and streams large files line by line instead of loading them whole.',
     interviewFollowUps: [
@@ -61,6 +73,13 @@ export const ioConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'The decorator stack behind reading a text file',
         caption: 'Each layer wraps the one below and adds one job: bytes from disk, decoding with a charset, then buffering so readLine() is cheap. Files.newBufferedReader assembles the same stack in one call.',
+        explanation: [
+          'Start at **File on disk**: it holds only bytes, with no idea of letters or lines. Reading text means turning those bytes into characters.',
+          'An **InputStream**, in practice from `Files.newInputStream`, delivers those raw bytes one chunk at a time, as the arrow label bytes shows.',
+          'The **InputStreamReader** wraps the stream and decodes bytes into chars using a charset such as UTF-8. The shaded group marks this step, where bytes become characters, so a wrong charset garbles text.',
+          '**BufferedReader** wraps the reader and fills an 8 KB buffer with a few large reads, so each `readLine()` is cheap and hands **Your code** one String per line.',
+          'Each layer is a decorator that wraps the one below and adds exactly one job. **Files.newBufferedReader(path, UTF_8)** builds this whole stack in one call, which is what modern code should use.',
+        ],
         cols: 5,
         rows: 2,
         nodes: [
@@ -84,6 +103,13 @@ export const ioConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Choosing how to read a file',
         caption: 'The deciding questions are "is it text?" and "could it be large?". Every method on the right-hand path keeps a file handle open and needs try-with-resources.',
+        explanation: [
+          'Begin at **Read a file** and ask whether the content is text at all. If not, follow the "not text" arrow to **Binary data** and use `readAllBytes` or `newInputStream`.',
+          'If it is text that fits in memory, go to **Small text**: `Files.readString` or `readAllLines` loads everything in one call and closes the file for you.',
+          'For megabytes to gigabytes, go to **Large text**. Memory use must stay flat however big the file grows, so you process one line at a time.',
+          'Then ask **Pipeline or loop?** A filter and map job suits **Files.lines**, a lazy `Stream<String>`; a loop that keeps state across lines suits **newBufferedReader** with a `readLine()` loop.',
+          'The "Must be closed" group marks these right-hand choices: each keeps a file handle open until closed, so always wrap it in try-with-resources.',
+        ],
         cols: 3,
         rows: 4,
         nodes: [
@@ -110,6 +136,13 @@ export const ioConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'How java.nio.file is layered',
         caption: 'Your code only talks to Path and Files. The FileSystemProvider behind them decides whether the bytes live on the OS disk, inside a ZIP file or in memory.',
+        explanation: [
+          '**Your code** calls only static methods on **Files**, such as `readString` or `copy`, and never talks to the operating system directly.',
+          'Every **Files** operation works on a **Path**, an immutable locator. Creating a Path opens nothing; it only describes where a file is.',
+          'Each **Path** belongs to a **FileSystem**, which knows the name separator and the root directories and creates paths for that system.',
+          'A FileSystemProvider supplies each FileSystem. The **Default provider** maps to the OS file system; the dashed arrows show alternatives, a **ZIP provider** that treats entries in a .zip or .jar as files, and a **Custom provider** such as an in-memory one for tests.',
+          'Takeaway: the same Path and Files code works unchanged whether the bytes live on disk, inside an archive or in memory.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -191,6 +224,17 @@ export const ioConcepts: Record<string, LessonConcepts> = {
     ],
   },
   'io-http': {
+    textbook: {
+      definition:
+        'The Java HTTP Client is the standard API in the **`java.net.http`** module for sending requests and receiving responses over **HTTP/1.1** and **HTTP/2**. An **`HttpClient`** is an immutable, thread-safe object that holds configuration and connection state and may be shared by many threads; an **`HttpRequest`** is an immutable description of a method, URI, headers and body. Each exchange is performed synchronously with `send` or asynchronously with `sendAsync`, which returns a `CompletableFuture`, and a **`BodyHandler`** determines how the response body is converted. HTTP error **status codes** are returned as ordinary responses; only transport failures raise an `IOException`.',
+      terms: [
+        { term: 'HttpClient', meaning: 'An immutable, reusable container for client configuration (version, redirect policy, timeouts, executor) and pooled connections, used to send any number of requests.' },
+        { term: 'HttpRequest', meaning: 'An immutable value describing one request: the URI, the method, the headers, an optional timeout and a `BodyPublisher` that supplies the request body.' },
+        { term: 'BodyHandler', meaning: 'A function, invoked when the response status and headers arrive, that chooses how the body is consumed, for example as a `String`, a file or a stream.' },
+        { term: 'Status code', meaning: 'A three-digit integer in an HTTP response whose first digit gives its class: informational, success, redirection, client error or server error.' },
+      ],
+      source: 'JEP 321; Javadoc for java.net.http; RFC 9110 (HTTP Semantics)',
+    },
     interviewDefinition:
       '`java.net.http.HttpClient` (standard since Java 11, JEP 321) is the JDK\'s immutable, thread-safe HTTP/1.1 and HTTP/2 client. You build an immutable `HttpRequest`, choose a `BodyHandler` that decides how the response body is consumed, and call `send` (blocking) or `sendAsync` (a `CompletableFuture`). Status codes such as 404 or 503 are **normal responses**, not exceptions; only transport failures throw. Production calls need a connect timeout, a request timeout, explicit status mapping and retries limited to idempotent requests.',
     interviewFollowUps: [
@@ -245,6 +289,13 @@ export const ioConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Status code classes and what to do about them',
         caption: 'Only the first digit decides the category. Note that none of these are exceptions in HttpClient: your code must check statusCode() and decide.',
+        explanation: [
+          'Read each row from left to right: the status class on the left, and the action your code should take on the right. Only the first digit decides the class.',
+          '**1xx Informational** codes such as 100 Continue are interim messages. They are **Handled for you** by the client and never reach your code as the final response.',
+          '**2xx Success** means the request worked, so **Parse the body**. **3xx Redirection** points somewhere else; you decide **Follow or not** with the client redirect policy, which defaults to NEVER.',
+          '**4xx Client error** means the request itself was wrong, so **Map to domain** errors such as "not found". Retrying will not help, except 429 Too Many Requests after a delay.',
+          '**5xx Server error** means the server failed, so use **Backoff + retry**, but only for idempotent requests. None of these classes throw, so always check `statusCode()`.',
+        ],
         cols: 5,
         rows: 2,
         nodes: [
@@ -272,6 +323,14 @@ export const ioConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'One robust outbound call',
         caption: 'Two different failure paths: a transport failure throws, while an HTTP error returns normally with a status code. Both funnel into the same "may I retry?" decision.',
+        explanation: [
+          '**Build request** with a URI, a method and a request timeout, then pass it to **send / sendAsync** on one shared HttpClient.',
+          'If a response arrives, go to **Check statusCode()**. The happy path, labelled 2xx, leads to **2xx: parse body**.',
+          'The dashed "throws" arrow is the other failure path: a connection reset, refusal or timeout throws an **IOException**, and no response exists at all.',
+          'Any other status is **4xx / 5xx**, a normal response rather than an exception. Codes 400, 404 and 409 will not change on retry, so **Fail fast** with a domain exception.',
+          'An IOException, or a 429 or 503 response, flows into **Idempotent?**: retry with backoff and jitter only if repeating the request is safe, as with GET or PUT.',
+          'Takeaway: both failure paths meet at the same retry decision, which is why a robust client handles exceptions and status codes together.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -300,6 +359,13 @@ export const ioConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'What a shared HttpClient owns',
         caption: 'Many threads share one immutable client. It keeps connections open and, with HTTP/2, multiplexes concurrent requests over one connection per host.',
+        explanation: [
+          'Many **Request threads**, or virtual threads, call `send` on one shared **HttpClient**. Because the client is immutable and thread-safe, no locking is needed.',
+          'For `sendAsync`, the client completes the returned future and runs dependent callbacks on its **Executor**, so the calling thread does not wait.',
+          'The "Owned by the client" group shows what it manages. The **Connection pool** keeps HTTP/1.1 connections alive, so calls to **Service A** reuse an open TCP + TLS connection.',
+          'With HTTP/2 the client opens one **HTTP/2 connection** per host and multiplexes many concurrent requests over it as separate streams, as with **Service B**.',
+          'Takeaway: create one client and reuse it. Building a new client per request throws away pooled connections and repeats every handshake.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [

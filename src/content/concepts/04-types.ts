@@ -4,6 +4,17 @@ import type { LessonConcepts } from '@/types/curriculum';
 export const typesConcepts: Record<string, LessonConcepts> = {
   // -------------------------------------------------------------------------
   't-strings': {
+    textbook: {
+      definition:
+        'In Java, a **string** is an instance of the final class `java.lang.String`, which represents an **immutable** sequence of characters encoded as **UTF-16 code units**. A string literal is a reference to a `String` instance, and literals and constant expressions with equal content are **interned**, so they refer to the same instance in a shared pool. Because a string\'s value cannot change after construction, operations that appear to modify it return new instances; mutable character sequences are provided by `StringBuilder` and `StringBuffer`, which, like `String`, implement the **CharSequence** interface.',
+      terms: [
+        { term: 'Immutable object', meaning: 'An object whose observable state cannot change after its constructor completes; every apparent modification produces a new object instead.' },
+        { term: 'UTF-16 code unit', meaning: 'A 16-bit value of type `char`. Characters outside the Basic Multilingual Plane, such as most emoji, need a surrogate pair of two code units.' },
+        { term: 'Interning (string pool)', meaning: 'Keeping one canonical `String` instance per distinct content in a JVM-wide pool; `intern()` returns the pooled instance equal to the receiver, adding it if absent.' },
+        { term: 'CharSequence', meaning: 'The read-only interface for sequences of `char` values, implemented by `String`, `StringBuilder`, `StringBuffer` and `CharBuffer`.' },
+      ],
+      source: 'JLS §3.10.5 and §4.3.3; Javadoc for java.lang.String',
+    },
     interviewDefinition:
       'A Java `String` is a `final`, **immutable** sequence of UTF-16 code units (stored as compact Latin-1 bytes when possible since Java 9). Because it never changes, literals are **interned** in a shared string pool, the hash code is cached, and strings can be shared freely across threads and used safely as map keys. Compare content with `equals`, order with `compareTo`, and build text incrementally with `StringBuilder`.',
     interviewFollowUps: [
@@ -63,6 +74,13 @@ export const typesConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Literals share; new String copies',
         caption: 'a and b hold references to the same pooled object, so a == b is true. c refers to a separate object with the same characters, so a == c is false while a.equals(c) is true. c.intern() hands back the pooled copy.',
+        explanation: [
+          'Read the **Local variables** group on the left first. **a = "java"** and **b = "java"** use the same string literal, while **c = new String(...)** explicitly asks for a new object.',
+          'The literal resolves to one **"java"** instance in the **String pool (in the heap)**. Both a and b store a reference to that same object, which is why `a == b` is true.',
+          '**c = new String(...)** always allocates a separate **"java"** object in the ordinary **Heap**. It has the same characters but a different identity, so `a == c` is false while `a.equals(c)` is true.',
+          'The dashed arrow labelled `c.intern()` is the way back: intern looks up equal content in the pool and returns the pooled instance, so `c.intern() == a` is true.',
+          'Takeaway: `==` asks whether two references point at the same object, while `equals` asks whether the text is the same. Always compare string content with `equals`.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -89,6 +107,13 @@ export const typesConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Choosing how to build text',
         caption: 'Plain + is fine inside one expression. Loops need a mutable builder; StringBuffer is only for the rare builder shared between threads.',
+        explanation: [
+          'Start at **Need to build text** and ask **One expression?** If every part is joined in a single statement with no loop, follow yes to **+ or formatted()**: the compiler already turns that into one efficient concatenation.',
+          'If not, ask **Joining a list?** For a collection of parts with a delimiter, follow yes to **String.join** (or `Collectors.joining`), which sizes and joins the result for you.',
+          'Otherwise you are appending inside a loop, so ask **Shared by threads?** In almost all code the answer is no, which leads to **StringBuilder**, a mutable buffer without any locking.',
+          'Only when one builder really is written by several threads do you follow yes to **StringBuffer**, whose methods are all synchronized and therefore slower.',
+          'Takeaway: plain + is fine within one expression, but `s += x` in a loop copies the whole string on every pass, so use a builder there.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -116,6 +141,13 @@ export const typesConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'Inside a String object (Java 9+)',
         caption: 'Since compact strings, a String holds a byte array plus a coder flag: one byte per character when all characters fit Latin-1, two otherwise. The hash is computed lazily and cached.',
+        explanation: [
+          'The top box is the **String object** itself: an instance of a final class whose fields are private and final, so nothing can change them after construction.',
+          'The arrow to **byte[] value** shows where the characters live. Since Java 9 they are stored as bytes rather than a `char[]`, which saves memory for plain text.',
+          '**byte coder** records how those bytes are encoded: LATIN1 uses one byte per character and UTF16 uses two. Methods check the coder and pick the matching implementation.',
+          '**int hash** starts at zero and is filled in the first time `hashCode()` is called. Because the content never changes, the cached value stays correct forever.',
+          'Takeaway: immutability is what makes compact storage and hash caching safe, and it is why strings work so well as map keys.',
+        ],
         cols: 3,
         rows: 2,
         nodes: [
@@ -192,6 +224,17 @@ export const typesConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   't-wrappers': {
+    textbook: {
+      definition:
+        'A **wrapper class** is one of the eight final classes in `java.lang` (`Byte`, `Short`, `Integer`, `Long`, `Float`, `Double`, `Character` and `Boolean`) whose instances are **immutable** objects, each holding a single value of the corresponding primitive type. The language converts implicitly between the two forms: **boxing conversion** maps a primitive value to a wrapper instance, and **unboxing conversion** maps a wrapper to its primitive value, throwing `NullPointerException` for a null reference. The six numeric wrappers extend the abstract class `java.lang.Number`.',
+      terms: [
+        { term: 'Boxing conversion', meaning: 'The conversion of a primitive value into a reference to a wrapper object of the corresponding type, compiled to a call such as `Integer.valueOf`.' },
+        { term: 'Unboxing conversion', meaning: 'The conversion of a wrapper reference to its primitive value, compiled to a call such as `intValue()`; it throws `NullPointerException` if the reference is null.' },
+        { term: 'Boxing cache', meaning: 'The values for which boxing must return identical objects: `true`, `false`, every `byte`, `char` from 0 to 127, and `short` or `int` from -128 to 127.' },
+        { term: 'Value-based class', meaning: 'A class whose instances are immutable and whose identity is not meaningful, so programs must not rely on `==`, identity hash codes or synchronization on them.' },
+      ],
+      source: 'JLS §5.1.7 and §5.1.8; Javadoc for java.lang.Number',
+    },
     interviewDefinition:
       'Wrapper classes (`Byte`, `Short`, `Integer`, `Long`, `Float`, `Double`, `Character`, `Boolean`) are immutable objects that box the eight primitives so they can live in collections, generics and nullable fields. **Autoboxing** compiles to `valueOf` and **unboxing** to `xxxValue()`. The classic traps: `==` compares references (only cached values, −128 to 127 for `Integer`, happen to match), unboxing `null` throws `NullPointerException`, and `equals` is false across different wrapper types.',
     interviewFollowUps: [
@@ -245,6 +288,13 @@ export const typesConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'The Integer cache',
         caption: 'Boxing 127 twice returns the same cached object, so == is true. Boxing 128 allocates two separate objects, so == is false even though equals is true.',
+        explanation: [
+          '**Integer a = 127** and **Integer b = 127** both compile to `Integer.valueOf(127)`. Because 127 lies in the **IntegerCache (-128..127)** group, valueOf returns an existing object instead of allocating a new one.',
+          'Both arrows therefore end at the same **Integer 127** box, one shared instance. That is why the edge is labelled a == b: the two references are identical.',
+          '**Integer c = 128** and **Integer d = 128** also call valueOf, but 128 is outside the cache, so each call creates its own **Integer 128** object in the **Fresh heap allocations** group.',
+          'The two arrows end at two different boxes, so c != d, even though `c.equals(d)` is true because both objects hold the value 128.',
+          'Takeaway: `==` on wrappers only appears to work for small cached values. Compare wrapper values with `equals` or `Objects.equals`, or unbox them first.',
+        ],
         cols: 3,
         rows: 4,
         nodes: [
@@ -272,6 +322,13 @@ export const typesConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'What `int total = map.get(key)` really does',
         caption: 'The compiler silently inserts intValue(). If the map has no entry, get returns null and the hidden call throws — on a line that looks purely numeric.',
+        explanation: [
+          'Begin with **map.get(key)**, which returns an `Integer` reference, or null when the key is missing. Nothing on the source line shows that a conversion is about to happen.',
+          'The hidden question is **Is it null?** Nobody checks: the compiler simply inserts a call to **intValue()** so the wrapper can be assigned to an `int` variable.',
+          'When the reference is not null, intValue() returns the number and **int total** receives a plain primitive value. This is the path every test with existing keys takes.',
+          'When the reference is null, calling intValue() on it throws a **NullPointerException** on a line that looks purely numeric, which makes the bug hard to spot.',
+          'The dashed fix arrow leads to **getOrDefault(k, 0)**: supply a default, use `merge`, or check for null before unboxing, so a missing key never reaches intValue().',
+        ],
         cols: 3,
         rows: 2,
         nodes: [
@@ -295,6 +352,13 @@ export const typesConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'The eight wrapper classes',
         caption: 'Six numeric wrappers extend the abstract class Number, which provides intValue(), doubleValue() and friends. Character and Boolean extend Object directly. All eight are final and immutable; Float and Double have no cache.',
+        explanation: [
+          'At the top is **Object**, the root of every class. Three arrows labelled extends point up to it, from **Number (abstract)**, from **Character** and from **Boolean**.',
+          '**Number (abstract)** defines conversion methods such as `intValue()`, `longValue()` and `doubleValue()`, so any numeric wrapper can be read as any primitive numeric type.',
+          'The **All extend Number** group holds the six numeric wrappers: **Byte**, **Short**, **Integer** and **Long** for whole numbers, and **Float** and **Double** for floating point.',
+          'The detail lines show the caches: Byte caches every value, Short, Integer and Long cache -128 to 127, and Float and Double cache nothing. Character caches 0 to 127, and Boolean has just two constants.',
+          'Takeaway: all eight wrappers are final and immutable, but only the six numeric ones share the Number methods, which makes `Number` a handy parameter type for numeric code.',
+        ],
         cols: 4,
         rows: 4,
         nodes: [
@@ -376,6 +440,18 @@ export const typesConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   't-generics': {
+    textbook: {
+      definition:
+        '**Generics** are a facility of the Java type system by which classes, interfaces, methods and constructors declare **type parameters** that are replaced by **type arguments** at each use, yielding **parameterized types** such as `List<String>`. The compiler uses the type arguments to check the types of values stored and retrieved, and inserts the necessary casts. Parameterized types are **invariant**; **wildcards** with upper or lower bounds express limited covariance or contravariance. Generic type arguments are removed by **type erasure**, so they are not available at run time.',
+      terms: [
+        { term: 'Type parameter', meaning: 'A placeholder name, such as `T`, declared by a generic class, interface, method or constructor, optionally restricted by one or more bounds.' },
+        { term: 'Parameterized type', meaning: 'A generic type applied to actual type arguments, such as `Map<String, Integer>`; different parameterizations of one generic type are unrelated by subtyping.' },
+        { term: 'Wildcard', meaning: 'A type argument written `?`, optionally bounded with `extends` or `super`, that stands for some unknown type within the given bound.' },
+        { term: 'Type erasure', meaning: 'The compile-time mapping that replaces each type variable by its leftmost bound and each parameterized type by its raw type, so bytecode carries no type arguments.' },
+        { term: 'Invariance', meaning: 'The rule that `G<A>` is not a subtype of `G<B>`, even when `A` is a subtype of `B`.' },
+      ],
+      source: 'JLS §4.4, §4.5, §4.6 and §8.1.2',
+    },
     interviewDefinition:
       'Generics add **compile-time type parameters** to classes, interfaces and methods so one implementation works for many types without casts. Parameterised types are **invariant** (`List<Integer>` is not a `List<Number>`), so flexibility comes from bounded wildcards: `? extends T` for producers you read from, `? super T` for consumers you write to (PECS). They are implemented by **type erasure**: the compiler checks types, inserts casts and erases parameters to their bounds, so objects carry no type arguments at run time.',
     interviewFollowUps: [
@@ -433,6 +509,13 @@ export const typesConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'PECS in one method',
         caption: 'The source only produces Numbers (read with get), so it is ? extends Number. The destination only consumes Numbers (written with add), so it is ? super Number. The notes show which concrete lists each parameter accepts.',
+        explanation: [
+          'Read the method in the middle first: **copy(dest, src)** reads elements from one list and writes them into another, so each parameter has exactly one job.',
+          'On the left, **src** is declared `List<? extends Number>`. The arrow labelled get(): producer shows that the method only takes Numbers out of it, which is exactly what extends allows.',
+          'The dashed note above it, **Accepts List of** Integer, Double or Number, lists what callers may pass: any list whose elements are some subtype of Number.',
+          'On the right, **dest** is `List<? super Number>`. The arrow add(): consumer shows that the method only puts Numbers in, which super allows; its note accepts lists of Number or Object.',
+          'Takeaway, PECS: a producer you read from uses extends, a consumer you write to uses super, and a list you both read and write needs the exact type.',
+        ],
         cols: 3,
         rows: 2,
         nodes: [
@@ -454,6 +537,13 @@ export const typesConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'What happens to type arguments',
         caption: 'All checking happens in javac. The bytecode contains the erased type plus a compiler-inserted cast, so at run time an ArrayList<String> is just an ArrayList.',
+        explanation: [
+          'The source note **List<String> names** declares a typed list and reads `String s = names.get(0)` with no cast. Everything in the **Compile time** group happens inside javac.',
+          '**javac type-checks** every use of the list. A call such as `names.add(42)` takes the dashed wrong type path to a **Compile error**, so the mistake never reaches a running program.',
+          'If the code is ok, the compiler performs **Erase + insert cast**: the type argument is removed and a `(String)` cast is added wherever a value is read.',
+          'The resulting **Bytecode** mentions only the raw `List` and `Object get(int)`. No trace of String remains in the instructions.',
+          'In the **Run time** group, the **JVM at run time** loads and runs that bytecode and sees a plain ArrayList. Type safety was guaranteed earlier by the compiler, not by the JVM.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -481,6 +571,13 @@ export const typesConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Invariance and the wildcard family tree',
         caption: 'List<Integer>, List<Number> and List<Double> are unrelated to each other, but all three are subtypes of List<? extends Number>, which in turn is a List<?>.',
+        explanation: [
+          'Start at the bottom row: **List<Integer>**, **List<Number>** and **List<Double>** are three concrete parameterized types.',
+          'The dashed arrow marked NOT a subtype is the key lesson: although Integer is a Number, **List<Integer>** is not a **List<Number>**. Generics are invariant, because otherwise you could add a Double to a list of Integers.',
+          'All three concrete lists do point up to **List<? extends Number>**. That wildcard type means a list of some unknown subtype of Number, which you may read as Number but not add to.',
+          '**List<? extends Number>** is in turn a **List<?>**, a list of completely unknown element type and the most general type in the tree.',
+          'Takeaway: wildcards build the family tree that plain parameterized types lack, so write methods against wildcard types when they should accept several kinds of list.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -560,6 +657,18 @@ export const typesConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   't-modern-types': {
+    textbook: {
+      definition:
+        'Modern Java\'s type features comprise **local-variable type inference** and **pattern matching**. With `var`, the type of a local variable is inferred at compile time from its initializer and is fixed thereafter. A **pattern** tests whether a value has a certain shape and, if it does, extracts parts of it into **pattern variables**: a type pattern tests the run-time type, and a **record pattern** deconstructs a record into its components. Patterns appear in `instanceof` expressions and `switch` labels, and a pattern `switch` must be **exhaustive**.',
+      terms: [
+        { term: 'Local-variable type inference', meaning: 'Compile-time inference of a local variable\'s static type from its initializer, when the variable is declared with the reserved type name `var`.' },
+        { term: 'Type pattern', meaning: 'A pattern consisting of a type and a variable name, such as `String s`, that matches when the value is an instance of that type.' },
+        { term: 'Record pattern', meaning: 'A pattern that names a record class and lists one nested pattern per record component, matching the record and deconstructing it.' },
+        { term: 'Pattern variable', meaning: 'A variable declared by a pattern; it is definitely assigned and in scope only where flow analysis proves that the match succeeded.' },
+        { term: 'Exhaustiveness', meaning: 'The compile-time requirement that a pattern switch covers every possible value of its selector type, for example every permitted subtype of a sealed interface.' },
+      ],
+      source: 'JLS §14.30 and §14.11.1; JEP 286, JEP 394, JEP 440 and JEP 441',
+    },
     interviewDefinition:
       'Modern Java keeps static typing while cutting ceremony. `var` (Java 10) infers a local variable\'s type from its initialiser at compile time. **Pattern matching** merges a type test, a cast and a variable binding: `instanceof` patterns (Java 16), plus type patterns in `switch`, `when` guards and nestable **record patterns** (Java 21). Pattern switches must be exhaustive, reject dominated cases, and only accept `null` through an explicit `case null`.',
     interviewFollowUps: [
@@ -618,6 +727,13 @@ export const typesConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Test-then-cast vs a type pattern',
         caption: 'The classic version repeats the type and keeps the cast separate from the test. The pattern does test, cast and binding in one step, and s exists only where the test succeeded.',
+        explanation: [
+          'The left column, **Before Java 16**, starts with **o instanceof String**, which only tests the type and yields a boolean.',
+          'If the test is true, a separate line **String s = (String) o** casts and names the value. The type is written twice, and after a copy-paste the cast can drift away from the test.',
+          'Only then can the code call **s.length()**. Three separate statements were needed to express one idea.',
+          'The right column, **Java 16+**, does all of it in **o instanceof String s**: the type test, the cast and the binding of s happen in a single step.',
+          'Here s exists only where the test succeeded, so the second s.length() can never run on a value of the wrong type. Takeaway: patterns remove the duplicated, error-prone cast.',
+        ],
         cols: 2,
         rows: 3,
         nodes: [
@@ -642,6 +758,13 @@ export const typesConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'How a pattern switch picks a branch',
         caption: 'null is handled before any pattern. Cases are then tried top to bottom; a type match whose guard is false falls through to the next case. The first full match wins, which is why specific cases must come first.',
+        explanation: [
+          'Execution enters at **switch (value)** and first asks **value == null?** Null is dealt with before any pattern is tried.',
+          'If the value is null, only an explicit **case null** label can take it; without one the switch throws NullPointerException, just as older switches did.',
+          'Otherwise the cases are tried from top to bottom: **Next case: type matches?** If the type does not match, control goes to **Move to next case**, and default is considered last.',
+          'When the type matches, the guard is checked: **when guard true?** A false guard also sends control to the next case, so a guarded case is only a partial match.',
+          'When both the type and the guard succeed, **Run this branch** executes with the pattern variables in scope. The first full match wins, so specific cases must come before general ones.',
+        ],
         cols: 3,
         rows: 4,
         nodes: [
@@ -668,6 +791,13 @@ export const typesConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'Anatomy of a nested record pattern',
         caption: 'A record pattern contains one sub-pattern per record component, and sub-patterns can be record patterns, type patterns or var. Each leaf binds a variable.',
+        explanation: [
+          'The top box, **case Line(Point(var x1, var y1), Point end)**, is a single record pattern for a Line record that has two components.',
+          'The arrow component from leads to **Point(var x1, var y1)**, a nested record pattern: it matches the first Point and immediately takes it apart.',
+          'Inside it, **var x1** and **var y1** are leaf patterns. var infers each component type, here int, and binds the values to new variables.',
+          'The arrow component to leads to **Point end**, a type pattern. It does not deconstruct the second Point; it binds the whole object to the variable **end**.',
+          'Takeaway: record patterns nest to any depth, each sub-pattern matches one component, and every leaf adds a variable that is in scope only inside that case.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [

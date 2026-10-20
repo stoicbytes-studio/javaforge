@@ -409,8 +409,7 @@ export const concurrencyConcepts: Record<string, LessonConcepts> = {
           { name: 'Synchronized instance method', summary: 'Locks the monitor of `this` for the whole method. Simple, but outside code that synchronizes on the same object shares the lock.', support: 'supported', code: 'public synchronized void deposit(long c) { balance += c; }' },
           { name: 'Static synchronized method', summary: 'Locks the monitor of the `Class` object (for example `Account.class`), one lock shared by all instances and independent of their instance locks.', support: 'supported', code: 'public static synchronized int nextId() { return ++lastId; }' },
           { name: 'Synchronized block on this', summary: 'Locks `this` only around the critical section, so the rest of the method runs without holding the lock.', support: 'supported', code: 'synchronized (this) { balance += c; }' },
-          { name: 'Synchronized block on a private lock', summary: 'Locks a private final object that no outside code can reach, so nobody else can take or hold the lock. Preferred in library code.', support: 'supported', code: 'private final Object lock = new Object();
-synchronized (lock) { balance += c; }' },
+          { name: 'Synchronized block on a private lock', summary: 'Locks a private final object that no outside code can reach, so nobody else can take or hold the lock. Preferred in library code.', support: 'supported', code: 'private final Object lock = new Object();\nsynchronized (lock) { balance += c; }' },
           { name: 'Synchronized block on a class literal', summary: 'Locks the class monitor explicitly: the same lock that static synchronized methods of that class use.', support: 'supported', code: 'synchronized (Account.class) { lastId++; }' },
         ],
       },
