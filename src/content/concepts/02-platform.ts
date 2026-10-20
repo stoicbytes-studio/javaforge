@@ -10,7 +10,7 @@ export const platformConcepts: Record<string, LessonConcepts> = {
         'The JRE (Java Runtime Environment) is the JVM plus the standard Java libraries.',
         'The JDK is the JRE plus developer tools such as `javac` and `jar`.',
         'To only run a program you need a runtime. To write one you need the JDK.',
-        'Modern JDK downloads include everything, and there is usually no separate JRE.',
+        'Since Java 11, JDK downloads include everything, and there is usually no separate JRE.',
       ],
       example: {
         title: 'Two tools from the JDK',
@@ -18,7 +18,7 @@ export const platformConcepts: Record<string, LessonConcepts> = {
         runnable: false,
         explain: '`javac` turns `Main.java` into `Main.class`. `java Main` starts the JVM, which runs that class. `java -version` prints the installed version.',
       },
-      tip: 'If `javac` is not found, you probably have only a runtime installed. Install a JDK.',
+      tip: 'If `javac` is not found, you may have only a runtime, or the JDK is not on your PATH.',
     },
     textbook: {
       definition:
@@ -252,10 +252,10 @@ export const platformConcepts: Record<string, LessonConcepts> = {
       definition: 'Bytecode is the set of simple instructions that the Java compiler writes into `.class` files. The JVM reads these instructions and runs them.',
       points: [
         '`javac` turns your `.java` source code into bytecode.',
-        'Bytecode does not depend on the computer, so the same `.class` file runs on any JVM.',
+        'Bytecode does not depend on the computer, so the same `.class` file runs on any computer with a new enough JVM.',
         'The JVM runs bytecode step by step, and it compiles busy parts into machine code to go faster.',
         'Use the `javap -c` tool to look at the bytecode of a class.',
-        'You never write bytecode by hand. The compiler does it for you.',
+        'You do not write bytecode by hand. The compiler does it for you.',
       ],
       example: {
         title: 'A method and its bytecode',
@@ -509,7 +509,7 @@ export const platformConcepts: Record<string, LessonConcepts> = {
     quick: {
       definition: 'A **package** is a folder-like group of related classes. The **classpath** is the list of places where Java looks for classes when it runs your program.',
       points: [
-        'Each class belongs to one package. Declare it on the first line, like `package com.shop;`.',
+        'Each class belongs to one package. Declare it at the top of the file, like `package com.shop;`.',
         'A class\'s full name is its package plus its name, like `java.util.List`.',
         'Use `import` so you can write the short name instead of the full name.',
         'Classes in `java.lang`, such as `String`, are imported for you.',
@@ -522,7 +522,7 @@ export const platformConcepts: Record<string, LessonConcepts> = {
         runnable: true,
         explain: 'The `import` lets us write `ArrayList`. For `List` and `LinkedList` we wrote the full name with the package instead. `getName()` shows the full name, and `getPackageName()` shows only the package.',
       },
-      tip: 'The package name must match the folder path. `com.shop.Cart` lives in `com/shop/Cart.java`.',
+      tip: 'Keep your folders the same as the package name. `com.shop.Cart` lives in `com/shop/Cart.java`.',
     },
     textbook: {
       definition:
@@ -757,7 +757,7 @@ export const platformConcepts: Record<string, LessonConcepts> = {
         'A new Java version comes out each March and September.',
         'LTS releases include Java 8, 11, 17, 21 and 25. Most companies use these.',
         'Other releases get updates for only about six months.',
-        'New releases add features, such as `var`, text blocks and records, and they keep old code working.',
+        'New releases add features, such as `var`, text blocks and records, and old code almost always keeps working.',
         'Use the newest LTS for a new project unless your team needs another version.',
       ],
       example: {

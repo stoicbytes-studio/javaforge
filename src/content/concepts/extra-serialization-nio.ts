@@ -10,7 +10,7 @@ export const serializationNioConcepts: Record<string, LessonConcepts> = {
         'Use `ObjectOutputStream.writeObject` to write an object and `ObjectInputStream.readObject` to read it back.',
         'Fields marked `transient` are skipped. After reading, they hold their default value, such as `null`.',
         'Static fields are not part of an object, so they are not saved either.',
-        'Declare a `serialVersionUID` so old saved data keeps working when the class changes.',
+        'Declare a `serialVersionUID` so old saved data can still be read after small changes to the class.',
       ],
       example: {
         title: 'Save and load an object',
@@ -268,9 +268,9 @@ export const serializationNioConcepts: Record<string, LessonConcepts> = {
   },
   'io-nio-sockets': {
     quick: {
-      definition: '**NIO** is Java\'s way of doing input and output with buffers and channels. A buffer holds data in memory, and a channel (a file or a network socket) moves data in and out of it.',
+      definition: '**NIO** is Java\'s way of doing input and output with buffers and channels. A buffer holds data in memory, and a channel links to a file or socket to move data in and out.',
       points: [
-        'A `ByteBuffer` has a `position` (where the next byte goes) and a `limit` (where the data ends).',
+        'A `ByteBuffer` has a `position` (where the next byte goes) and a `limit` (the end of the part you can use).',
         'After you write into a buffer, call `flip()`. Now you can read what you wrote.',
         'A `Socket` is one end of a network connection. TCP sockets send a reliable stream of bytes.',
         'A `Selector` lets one thread watch many channels and react when one is ready.',
@@ -282,7 +282,7 @@ export const serializationNioConcepts: Record<string, LessonConcepts> = {
         runnable: true,
         explain: 'The buffer has room for 8 bytes, and we put 3 into it, so the position is 3. `flip()` sets the limit to 3 and the position back to 0, ready for reading. One `get()` reads `10`, and 2 bytes remain.',
       },
-      tip: 'Forgetting `flip()` is the most common NIO mistake. You then read from the wrong place.',
+      tip: 'Forgetting `flip()` is a common NIO mistake. You then read from the wrong place.',
     },
     textbook: {
       definition:

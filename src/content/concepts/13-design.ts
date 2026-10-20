@@ -10,7 +10,7 @@ export const designConcepts: Record<string, LessonConcepts> = {
         '**O**pen/Closed: add new behaviour by adding new classes, not by editing old code.',
         '**L**iskov Substitution: a subclass must work anywhere its parent class is expected.',
         '**I**nterface Segregation: prefer several small interfaces to one big one.',
-        '**D**ependency Inversion: depend on interfaces, not on concrete classes.',
+        '**D**ependency Inversion: let your main logic depend on interfaces, not on concrete classes.',
       ],
       example: {
         title: 'Open/Closed with shapes',

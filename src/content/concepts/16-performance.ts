@@ -17,7 +17,7 @@ export const performanceConcepts: Record<string, LessonConcepts> = {
         title: 'Look at a running JVM',
         code: '# list the running Java processes and their pids\njcmd\n\n# print a thread dump\njcmd 12345 Thread.print\n\n# save a heap dump to a file\njcmd 12345 GC.heap_dump heap.hprof\n\n# record 60 seconds with Java Flight Recorder\njcmd 12345 JFR.start duration=60s filename=recording.jfr',
         runnable: false,
-        explain: 'These are shell commands, not Java code, and they need a running JVM. Replace `12345` with the pid that `jcmd` shows for your program.',
+        explain: 'These are shell commands, not Java code, and they need a running JVM. Replace `12345` with the pid that `jcmd` shows for your program. The JVM writes these files itself. A short name lands in its working folder, so use a full path.',
       },
       tip: 'Change one thing at a time and measure again. Do not guess where the problem is.',
     },
@@ -457,7 +457,7 @@ export const performanceConcepts: Record<string, LessonConcepts> = {
   // -------------------------------------------------------------------------
   'perf-optimisation': {
     quick: {
-      definition: '**Performance optimisation** means changing a program so it does the same job with less time or memory. The first step is always to measure, not to guess.',
+      definition: '**Performance optimisation** means changing a program so it does the same job with less time or memory. The first step is to measure, not to guess.',
       points: [
         'Find the slow part with a profiler. Work on that part first.',
         'A better algorithm or data structure usually helps more than small tricks.',

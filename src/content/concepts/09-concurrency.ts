@@ -6,7 +6,7 @@ export const concurrencyConcepts: Record<string, LessonConcepts> = {
     quick: {
       definition: 'A **thread** is a path of execution inside your program. Threads let several tasks run at the same time.',
       points: [
-        'Every program starts with one thread, the `main` thread.',
+        'Your code starts in one thread, the `main` thread.',
         'Create a `Thread` with a `Runnable`, then call `start()` to run it.',
         'Call `start()`, not `run()`. Only `start()` makes a new thread.',
         'Use `join()` to wait until another thread has finished.',
@@ -244,12 +244,12 @@ export const concurrencyConcepts: Record<string, LessonConcepts> = {
 
   'cc-synchronization': {
     quick: {
-      definition: '**Synchronization** makes sure only one thread at a time runs a piece of code. It protects data that several threads share.',
+      definition: '**Synchronization** makes sure only one thread at a time can run a guarded piece of code. It protects data that several threads share.',
       points: [
         'Without it, two threads that change the same variable can overwrite each other\'s work.',
-        'Mark a method `synchronized` to let one thread in at a time.',
+        'Mark a method `synchronized` to let one thread at a time run it on the same object.',
         'You can also lock on an object with a `synchronized (obj) { ... }` block.',
-        'A thread that gets the lock also sees the latest values written by other threads.',
+        'A thread that gets a lock also sees the values written by earlier threads that used the same lock.',
         'Keep synchronized sections short, so threads do not wait long.',
       ],
       example: {
@@ -259,7 +259,7 @@ export const concurrencyConcepts: Record<string, LessonConcepts> = {
         runnable: true,
         explain: 'Each thread adds 1 to `count` ten thousand times. `count++` is really three steps (read, add, write), so `synchronized` keeps the threads from mixing them up. The total is always 20000.',
       },
-      tip: 'If you remove `synchronized`, the result is often less than 20000, and it changes between runs.',
+      tip: 'If you remove `synchronized`, the result can be less than 20000, and it can change between runs.',
     },
     textbook: {
       definition:
@@ -478,7 +478,7 @@ export const concurrencyConcepts: Record<string, LessonConcepts> = {
 
   'cc-concurrency-utilities': {
     quick: {
-      definition: 'The `java.util.concurrent` package gives you ready-made tools for threads. The most common one is the `ExecutorService`, which runs tasks on a pool of threads.',
+      definition: 'The `java.util.concurrent` package gives you ready-made tools for threads. The most common one is the `ExecutorService`, which runs tasks on a pool of threads (a group of reusable threads).',
       points: [
         'Use an `ExecutorService` instead of creating threads by hand.',
         'Call `submit()` to give it a task. It returns a `Future` for the result.',

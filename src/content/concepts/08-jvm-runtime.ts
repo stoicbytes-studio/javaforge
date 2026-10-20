@@ -19,7 +19,7 @@ export const jvmRuntimeConcepts: Record<string, LessonConcepts> = {
         runnable: true,
         explain: '`count` is a local variable, so it lives on the stack. `new Point(3)` creates one object on the heap, and both `p` and `q` point to it. Changing `q.x` also changes `p.x`.',
       },
-      tip: 'A local variable holds the reference, not the object. The object itself always lives on the heap.',
+      tip: 'A local variable holds the reference, not the object. The object itself lives on the heap.',
     },
     textbook: {
       definition:
@@ -270,7 +270,7 @@ export const jvmRuntimeConcepts: Record<string, LessonConcepts> = {
         runnable: true,
         explain: 'The word `Start` prints first, because `Config` is not needed yet. The first use of `Config.name` makes the JVM initialize the class, so the `static` block runs once. The second use does not run it again.',
       },
-      tip: 'The `static` block of a class runs once, when the class is first used. It does not run when the program starts.',
+      tip: 'The `static` block of a class runs once, when the class is first used. Except for your `main` class, it does not run when the program starts.',
     },
     textbook: {
       definition:
@@ -518,7 +518,7 @@ export const jvmRuntimeConcepts: Record<string, LessonConcepts> = {
         code: 'public class Main {\n  public static void main(String[] args) {\n    long total = 0;\n    for (int i = 0; i < 1_000_000; i++) {\n      int[] data = new int[100];\n      data[0] = i;\n      total += data[0];\n    }\n    System.out.println("Total: " + total);\n  }\n}',
         output: 'Total: 499999500000',
         runnable: true,
-        explain: 'The loop creates one million arrays, about 400 MB in all. Each array becomes unreachable after its loop round, so the GC reclaims it. The program runs without running out of memory, and you wrote no cleanup code.',
+        explain: 'The loop creates one million arrays, about 400 MB in all. Each array becomes unreachable after its loop round, so its memory can be reclaimed. The program runs without running out of memory, and you wrote no cleanup code.',
       },
       tip: 'Do not rely on `finalize()` or `System.gc()` to free resources. Use try-with-resources to close files and connections.',
     },

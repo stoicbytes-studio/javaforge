@@ -277,7 +277,7 @@ export const qualitySpringTestingConcepts: Record<string, LessonConcepts> = {
       points: [
         'Use plain JUnit tests with no Spring for simple logic. They are the fastest.',
         'Use `@WebMvcTest` to test controllers, and `MockMvc` to send fake requests.',
-        'Use `@MockitoBean` to replace a dependency, such as a service, with a mock.',
+        'Use `@MockitoBean` to replace a dependency, such as a service, with a mock. It needs Spring Boot 3.4 or newer; older versions use `@MockBean`.',
         'Use `@SpringBootTest` for a full test. It starts the whole app, so it is slower.',
         'Spring reuses a started context between tests that have the same setup. This saves time.',
       ],

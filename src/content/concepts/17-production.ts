@@ -235,7 +235,7 @@ export const productionConcepts: Record<string, LessonConcepts> = {
         'A circuit breaker has three states: closed (normal), open (calls blocked) and half-open (testing).',
         'When too many calls fail, the breaker opens. Calls then fail fast, or use a fallback answer.',
         'A **timeout** stops you from waiting forever for a slow service.',
-        'A **retry** tries again after a failure. Only retry safe calls, and limit the attempts.',
+        'A **retry** tries again after a failure. Only retry calls that are safe to repeat, and limit the attempts.',
         'A **bulkhead** limits how many calls run at once, so one slow service cannot use up all your threads.',
         'Libraries such as Resilience4j give you these tools.',
       ],
@@ -461,9 +461,9 @@ export const productionConcepts: Record<string, LessonConcepts> = {
       definition: '**Microservices** split one big application into small services. Each service does one job, owns its own data and talks to the others over the network.',
       points: [
         'Each service can be built, deployed and scaled on its own.',
-        'A service never reads another service\'s database. It asks that service through an API or a message.',
+        'A service should not read another service\'s database. It asks that service through an API or a message.',
         'A network call can fail or be slow, so every call needs a plan for failure.',
-        'There is no single database transaction across services. A **saga** uses a chain of steps, each with an undo step.',
+        'There is usually no single database transaction across services. A **saga** uses a chain of steps, each with an undo step.',
         'Start with a simple design. Many apps do not need microservices.',
       ],
       example: {
@@ -473,7 +473,7 @@ export const productionConcepts: Record<string, LessonConcepts> = {
         runnable: true,
         explain: 'An order needs two services: stock and payment. Stock is reserved first. The payment fails, so the code runs the undo step. This undo step is how a saga repairs the data without one big transaction.',
       },
-      tip: 'Every step that changes data in a saga needs a matching undo step.',
+      tip: 'Plan an undo step for each step that changes data, before you build the saga.',
     },
     textbook: {
       definition:

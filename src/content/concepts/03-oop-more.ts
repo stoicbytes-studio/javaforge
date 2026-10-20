@@ -10,7 +10,7 @@ export const oopMoreConcepts: Record<string, LessonConcepts> = {
         'No modifier (default): code in the same package can use it.',
         '`protected`: the same package and subclasses can use it.',
         '`public`: any code can use it.',
-        'Make fields `private` and give access with `public` getter and setter methods.',
+        'Usually make fields `private`, and add `public` getter and setter methods only when needed.',
       ],
       example: {
         title: 'A private balance',
@@ -517,9 +517,9 @@ export const oopMoreConcepts: Record<string, LessonConcepts> = {
     quick: {
       definition: 'An **enum** is a special class that holds a fixed set of named constants, like days of the week or sizes. Use it when a value can only be one of a few choices.',
       points: [
-        'Declare it with `enum` and list the constants in capital letters.',
+        'Declare it with `enum` and list the constants. By habit, they are in capital letters.',
         'Use `Size.SMALL` to pick a constant. You cannot create new constants with `new`.',
-        '`values()` returns all constants in order.',
+        '`values()` returns all constants in the order you declared them.',
         'Enums work in a `switch` and can have fields, constructors and methods.',
         'Compare enums with `==`.',
       ],

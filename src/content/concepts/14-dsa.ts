@@ -7,7 +7,7 @@ export const dsaConcepts: Record<string, LessonConcepts> = {
       definition: '**Complexity** tells you how the work of an algorithm grows when the input gets bigger. We write it with **Big-O** notation, such as `O(n)` or `O(n^2)`.',
       points: [
         'The letter `n` is the size of the input, for example the number of items in a list.',
-        '`O(1)` means the work stays the same, however big `n` is.',
+        '`O(1)` means the work does not grow, however big `n` is.',
         '`O(n)` means the work grows in step with `n`. One loop is usually `O(n)`.',
         '`O(n^2)` means the work grows with the square of `n`. A loop inside a loop is usually `O(n^2)`.',
         'Big-O ignores small details. `3n + 5` is still just `O(n)`.',
@@ -500,9 +500,9 @@ export const dsaConcepts: Record<string, LessonConcepts> = {
         code: 'import java.util.Arrays;\n\npublic class Main {\n  public static void main(String[] args) {\n    int[] numbers = {5, 2, 9, 1};\n    Arrays.sort(numbers);\n    System.out.println(Arrays.toString(numbers));\n    System.out.println("Index of 5: " + Arrays.binarySearch(numbers, 5));\n    System.out.println("Index of 7: " + Arrays.binarySearch(numbers, 7));\n  }\n}',
         output: '[1, 2, 5, 9]\nIndex of 5: 2\nIndex of 7: -4',
         runnable: true,
-        explain: 'First we sort the array. Then `binarySearch` finds `5` at index `2`. The number `7` is not in the array, so we get a negative number: `-4`.',
+        explain: 'First we sort the array. Then `binarySearch` finds `5` at index `2`. The number `7` is not in the array, so we get a negative number: `-4`. It means `7` would fit at index `3` (`-3 - 1`).',
       },
-      tip: 'Never use binary search on unsorted data. The answer will be wrong.',
+      tip: 'Never use binary search on unsorted data. The answer can be wrong.',
     },
     textbook: {
       definition:
@@ -753,7 +753,7 @@ export const dsaConcepts: Record<string, LessonConcepts> = {
         '**Two pointers**: walk through sorted data from both ends, or with two positions.',
         '**Sliding window**: keep a range of items and move it along the data.',
         '**Hash map**: remember what you have seen, so you do not search for it again.',
-        '**Divide and conquer**: split a problem into smaller parts and solve each part.',
+        '**Divide and conquer**: split a problem into smaller parts, solve each part, then combine the answers.',
         'First look at the problem and its limits. Then pick the pattern that fits.',
       ],
       example: {
@@ -995,7 +995,7 @@ export const dsaConcepts: Record<string, LessonConcepts> = {
       definition: '**Recursion** means a method calls itself to solve a smaller version of the same problem. **Dynamic programming** saves the answers it has already found, so it never solves the same part twice.',
       points: [
         'Every recursive method needs a **base case**. It is the simple case that stops the calls.',
-        'Each recursive call must move closer to the base case. If not, you get a `StackOverflowError`.',
+        'Each recursive call must move closer to the base case. If not, the calls never stop and you usually get a `StackOverflowError`.',
         'Plain recursion can repeat the same work many times, as in Fibonacci numbers.',
         '**Memoisation** stores each result in an array or map the first time you compute it.',
         'Next time, you look up the stored answer instead of computing it again.',
@@ -1007,7 +1007,7 @@ export const dsaConcepts: Record<string, LessonConcepts> = {
         runnable: true,
         explain: 'The base case returns `n` for 0 and 1. For other values, `fib` adds the two previous numbers. The `memo` array saves each result, so `fib(50)` is fast.',
       },
-      tip: 'Without the memo, `fib(50)` would make billions of calls. Saving results is what makes it fast.',
+      tip: 'Without the memo, `fib(50)` would make tens of billions of calls. Saving results is what makes it fast.',
     },
     textbook: {
       definition:

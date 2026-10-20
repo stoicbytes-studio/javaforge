@@ -9,7 +9,7 @@ export const fundamentalsConcepts: Record<string, LessonConcepts> = {
         'Write your code in a file named `Main.java`.',
         'Compile it with `javac Main.java`. This creates a file named `Main.class`.',
         'Run it with `java Main`. The JVM starts at the `main` method.',
-        'The file name must match the name of the `public` class.',
+        'If a class is `public`, the file name must match the class name.',
       ],
       example: {
         title: 'Your first program',
@@ -489,11 +489,11 @@ export const fundamentalsConcepts: Record<string, LessonConcepts> = {
     quick: {
       definition: 'Type conversion changes a value from one type to another, for example from `int` to `double`. Java does it for you when it is safe, and you ask for it with a cast when it is not.',
       points: [
-        'Going to a bigger type is safe. Java does it for you, like `int` to `double`.',
+        'Going to a bigger type, like `int` to `double`, needs no cast. Java does it for you.',
         'Going to a smaller type can lose data. You must write a **cast**, like `(int) price`.',
         'Casting a decimal to `int` cuts off the decimal part. It does not round.',
         'In math with mixed types, the smaller type becomes the bigger one first.',
-        'Without the cast, a narrowing assignment will not compile.',
+        'Without the cast, `int whole = price;` will not compile.',
       ],
       example: {
         title: 'Widening and casting',
@@ -979,7 +979,7 @@ export const fundamentalsConcepts: Record<string, LessonConcepts> = {
         'Use `return` to send a value back to the caller.',
         'Use `void` when the method does not return anything.',
         'Call a method by its name with values in parentheses, like `add(3, 4)`.',
-        'Java passes copies of the arguments, so changing a parameter does not change the caller\'s variable.',
+        'Java passes a copy of each argument. Changing a parameter does not change the caller\'s variable, but an object\'s contents can change.',
       ],
       example: {
         title: 'Your first methods',

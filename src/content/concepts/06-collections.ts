@@ -281,7 +281,7 @@ export const collectionsConcepts: Record<string, LessonConcepts> = {
   // -------------------------------------------------------------------------
   'c-hashmap': {
     quick: {
-      definition: 'A `HashMap` stores data as key-value pairs. You give it a key, and it finds the matching value very quickly.',
+      definition: 'A `HashMap` stores data as key-value pairs. You give it a key, and it finds the matching value quickly.',
       points: [
         'Each key appears only once. Putting the same key again replaces the old value.',
         'Use `put(key, value)` to add and `get(key)` to read.',
@@ -520,13 +520,13 @@ export const collectionsConcepts: Record<string, LessonConcepts> = {
   // -------------------------------------------------------------------------
   'c-sorted': {
     quick: {
-      definition: 'A `TreeSet` or `TreeMap` keeps its items sorted all the time. You do not have to sort them yourself.',
+      definition: 'A `TreeSet` keeps its items sorted all the time, and a `TreeMap` does the same for its keys. You do not have to sort them yourself.',
       points: [
         'Items are sorted by natural order, such as numbers from small to large and text from A to Z.',
         'You can pass a `Comparator` to choose your own order.',
-        '`first()` and `last()` give the smallest and the largest item.',
-        '`higher(x)` and `floor(x)` find the nearest item above or below a value.',
-        'Adding and finding items is a little slower than in a hash-based set.',
+        'In a `TreeSet`, `first()` and `last()` give the smallest and the largest item.',
+        '`higher(x)` finds the next item above `x`. `floor(x)` finds the biggest item that is `x` or less.',
+        'Adding and finding items takes a bit longer than in a `HashSet`, but it is still fast.',
       ],
       example: {
         title: 'A sorted set of scores',
@@ -766,10 +766,10 @@ export const collectionsConcepts: Record<string, LessonConcepts> = {
       definition: 'Iteration means going through the items of a collection one by one. The for-each loop is the easiest way to do it.',
       points: [
         'Write `for (String name : names)` to visit every item.',
-        'Every collection except `Map` can be used in a for-each loop.',
+        'Lists, sets and queues work in a for-each loop. A `Map` does not.',
         'An `Iterator` has `hasNext()` and `next()` to walk through the items.',
         'Use `iterator.remove()` to delete an item safely while you loop.',
-        'Calling `list.remove()` inside a for-each loop throws a `ConcurrentModificationException`.',
+        'Calling `list.remove()` inside a for-each loop usually throws a `ConcurrentModificationException`.',
       ],
       example: {
         title: 'Loop and remove',
@@ -999,7 +999,7 @@ export const collectionsConcepts: Record<string, LessonConcepts> = {
         'For a queue, use `offer` to add, `poll` to remove from the front, and `peek` to look at the front.',
         'For a stack, use `push` to add, `pop` to remove the top, and `peek` to look at the top.',
         '`ArrayDeque` works well as both a queue and a stack.',
-        'A `PriorityQueue` gives out the smallest item first, not the oldest.',
+        'A `PriorityQueue` gives out the smallest item first (by its order), not the oldest.',
         '`poll` returns `null` on an empty queue, but `pop` throws an exception on an empty stack.',
       ],
       example: {

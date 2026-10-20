@@ -10,7 +10,7 @@ export const immutabilityBuildConcepts: Record<string, LessonConcepts> = {
         'Make every field `private` and `final`.',
         'Do not write setter methods.',
         'If a field holds a mutable object, such as a list, copy it before you store or return it.',
-        '`String` and `Integer` are immutable. So are records, whose fields are final.',
+        '`String` and `Integer` are immutable. A record has final fields, and it is fully immutable only if those fields are too.',
       ],
       example: {
         title: 'An immutable Point',
@@ -335,7 +335,7 @@ export const immutabilityBuildConcepts: Record<string, LessonConcepts> = {
         'You list the libraries you need as dependencies. The tool downloads them for you.',
         'Run `mvn test` to compile and test, or `mvn package` to build a `.jar` file.',
         'Gradle does the same with `gradle test` and `gradle build`.',
-        'Both tools follow the same standard folders, such as `src/main/java`.',
+        'By default, both tools expect the same standard folders, such as `src/main/java`.',
       ],
       example: {
         title: 'A Maven dependency',

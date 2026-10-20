@@ -4,7 +4,7 @@ import type { LessonConcepts } from '@/types/curriculum';
 export const asyncParallelConcepts: Record<string, LessonConcepts> = {
   'cc-forkjoin-parallel': {
     quick: {
-      definition: 'Fork/Join and parallel streams split a big job into smaller parts. The parts run on several CPU cores, and the results are combined.',
+      definition: 'Fork/Join and parallel streams split a big job into smaller parts. The parts can run on several CPU cores, and the results are combined.',
       points: [
         'Fork/Join splits a task into smaller tasks (fork) and then merges their results (join).',
         'The idea behind it is divide and conquer. It works well for big calculations on arrays and collections.',

@@ -4,7 +4,7 @@ import type { LessonConcepts } from '@/types/curriculum';
 export const testingConcepts: Record<string, LessonConcepts> = {
   'ts-junit': {
     quick: {
-      definition: '**JUnit** is the most popular tool for writing unit tests in Java. A unit test is a small method that checks that one piece of your code gives the result you expect.',
+      definition: '**JUnit** is a popular tool for writing unit tests in Java. A unit test is a small method that checks that one piece of your code gives the result you expect.',
       points: [
         'Mark a method with `@Test` to make it a test.',
         'Use assertions such as `assertEquals(expected, actual)` to check results.',
@@ -231,7 +231,7 @@ export const testingConcepts: Record<string, LessonConcepts> = {
   },
   'ts-mocking': {
     quick: {
-      definition: 'A **mock** (or test double) is a fake object that stands in for a real dependency during a test. It lets you test your class without a real database or web service.',
+      definition: 'A **test double** is a fake object that stands in for a real dependency during a test. It lets you test your class without a real database or web service.',
       points: [
         'Use a fake when the real dependency is slow, hard to set up or unpredictable.',
         'A **stub** returns fixed answers. A **mock** also checks how it was called.',
@@ -244,9 +244,9 @@ export const testingConcepts: Record<string, LessonConcepts> = {
         code: 'public class Main {\n  interface PriceService {\n    double priceOf(String item);\n  }\n\n  static class Cart {\n    private final PriceService prices;\n\n    Cart(PriceService prices) {\n      this.prices = prices;\n    }\n\n    double total(String... items) {\n      double sum = 0;\n      for (String item : items) {\n        sum += prices.priceOf(item);\n      }\n      return sum;\n    }\n  }\n\n  public static void main(String[] args) {\n    PriceService fake = item -> 2.50;\n    Cart cart = new Cart(fake);\n    System.out.println("Total: " + cart.total("apple", "pear"));\n  }\n}',
         output: 'Total: 5.0',
         runnable: true,
-        explain: 'The `Cart` asks a `PriceService` for each price. In the test we pass a fake that always answers `2.50`. So two items cost `5.0`, and no real price server is needed.',
+        explain: 'The `Cart` asks a `PriceService` for each price. In `main` we pass a fake that always answers `2.50`. So two items cost `5.0`, and no real price server is needed.',
       },
-      tip: 'Only fake things you do not own or cannot control. Do not fake the class you are testing.',
+      tip: 'Fake slow or outside things, such as databases and web services. Do not fake the class you are testing.',
     },
     textbook: {
       definition:

@@ -7,11 +7,11 @@ export const functionalConcepts: Record<string, LessonConcepts> = {
     quick: {
       definition: 'A **lambda** is a short piece of code that you can pass around like a value. It is a quick way to write a small function without a name.',
       points: [
-        'The form is `(parameters) -> result`, for example `x -> x * x`.',
+        'The form is `(parameters) -> body`, for example `x -> x * x`. The body can also be a block in `{ }`.',
         'A lambda works where Java expects a functional interface, which has just one abstract method.',
         '`Function`, `Predicate` and `Runnable` are common functional interfaces.',
         'A lambda can read local variables only if they are never changed after being set.',
-        'A method reference like `String::length` is a shorter lambda.',
+        'A method reference like `String::length` is a shorter way to write some lambdas.',
       ],
       example: {
         title: 'Lambdas in action',
@@ -241,11 +241,11 @@ export const functionalConcepts: Record<string, LessonConcepts> = {
   // -------------------------------------------------------------------------
   'fn-streams': {
     quick: {
-      definition: 'A **stream** lets you process a list of items step by step, such as filtering, changing and adding them up. It does not change the original list.',
+      definition: 'A **stream** lets you process items from a list step by step, such as filtering, changing and adding them up. It does not change the original list.',
       points: [
         'Start with `list.stream()`.',
         'Middle steps like `filter` and `map` return a new stream.',
-        'A final step like `toList()`, `sum()` or `count()` produces the result.',
+        'A final step like `toList()` (Java 16 or newer), `sum()` or `count()` produces the result.',
         'Nothing runs until the final step is called.',
         'A stream can be used only once.',
       ],
@@ -489,7 +489,7 @@ export const functionalConcepts: Record<string, LessonConcepts> = {
     quick: {
       definition: 'An `Optional` is a box that holds one value or nothing. It makes it clear that a result might be missing, so you do not have to return `null`.',
       points: [
-        'Create one with `Optional.of(value)` or `Optional.empty()`.',
+        'Create one with `Optional.of(value)` (the value must not be `null`) or `Optional.empty()`.',
         'Use `orElse(other)` to get a default value when the box is empty.',
         'Use `map` to change the value inside, and `ifPresent` to act on it.',
         'Use `ifPresentOrElse` (Java 9) to handle both cases, and `isEmpty()` (Java 11) to check for nothing.',

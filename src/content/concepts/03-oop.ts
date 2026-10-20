@@ -20,7 +20,7 @@ export const oopConcepts: Record<string, LessonConcepts> = {
         runnable: true,
         explain: '`Car` is the blueprint with two fields, a constructor and one method. `new Car("Toyota", 2020)` builds an object and the constructor fills in its fields. `myCar.honk()` calls the method on that object.',
       },
-      tip: 'A class name starts with a capital letter, like `Car`. An object variable starts with a small letter, like `myCar`.',
+      tip: 'By habit, a class name starts with a capital letter, like `Car`. A variable starts with a small letter, like `myCar`.',
     },
     textbook: {
       definition:
@@ -298,7 +298,7 @@ export const oopConcepts: Record<string, LessonConcepts> = {
       definition: '**Inheritance** lets a class reuse the fields and methods of another class. The new class is called the subclass and the old one is the superclass.',
       points: [
         'Use the `extends` keyword to inherit from a class.',
-        'The subclass gets the non-private fields and methods of the superclass.',
+        'The subclass gets the `public` and `protected` members of the superclass. It also gets package-private ones from the same package.',
         'The subclass can add its own new fields and methods.',
         'A class can extend only one other class.',
         'Use `super` to call the superclass constructor or one of its methods.',
@@ -1115,13 +1115,13 @@ export const oopConcepts: Record<string, LessonConcepts> = {
   // -------------------------------------------------------------------------
   'o-interfaces': {
     quick: {
-      definition: 'An **interface** is a list of methods that a class promises to provide. It says what a class can do, but not how it does it.',
+      definition: 'An **interface** is a list of methods that a class promises to provide. It mostly says what a class can do, not how it does it.',
       points: [
         'Use `interface` to declare it and `implements` to use it in a class.',
-        'A class that implements an interface must write a body for each of its abstract methods.',
+        'A class that implements an interface must write a body for each of its abstract methods, unless the class is `abstract`.',
         'A class can implement many interfaces.',
         'You cannot create an object from an interface with `new`. You can use it as a variable type.',
-        'Interface methods are `public` by default.',
+        'Interface methods without a body are `public` by default.',
       ],
       example: {
         title: 'Different shapes, one interface',
@@ -1574,7 +1574,7 @@ export const oopConcepts: Record<string, LessonConcepts> = {
   // -------------------------------------------------------------------------
   'o-solid': {
     quick: {
-      definition: '**SOLID** is a set of five design rules for writing code that is easy to read, change and test. Each letter stands for one rule.',
+      definition: '**SOLID** is a set of five design principles for writing code that is easy to read, change and test. Each letter stands for one rule.',
       points: [
         '**S** Single Responsibility: a class should have one job.',
         '**O** Open/Closed: add new behavior by adding code, not by editing old code.',
