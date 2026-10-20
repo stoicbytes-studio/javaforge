@@ -5,30 +5,30 @@ export const fundamentalsConcepts: Record<string, LessonConcepts> = {
   'f-first-program': {
     textbook: {
       definition:
-        'A Java **program** is a set of one or more classes, written as **compilation units** (source files), that the Java compiler translates into **class files** containing JVM bytecode. Execution begins when the Java launcher starts a **Java Virtual Machine**, which loads the initial class, **links** and **initialises** it, and then invokes its `main` method. The JVM executes the bytecode by interpretation and by just-in-time compilation to native machine code.',
+        'A Java **program** is one or more classes. You write them in source files, called **compilation units**. The Java compiler turns them into **class files** that hold JVM bytecode. To run the program, the Java launcher starts a **Java Virtual Machine**. The JVM loads the first class, **links** it and **initialises** it, and then calls its `main` method. It runs the bytecode in two ways: by interpreting it, and by just-in-time compiling it to native machine code.',
       terms: [
-        { term: 'Compilation unit', meaning: 'The source code in one `.java` file: an optional package declaration, import declarations and one or more top-level type declarations.' },
-        { term: 'Class file', meaning: 'The binary format, defined by the JVM Specification, that holds one compiled class or interface: its bytecode, constant pool, fields and methods.' },
-        { term: 'Bytecode', meaning: 'The instruction set of the Java Virtual Machine; platform-neutral instructions that every conforming JVM can execute.' },
-        { term: 'Java Virtual Machine (JVM)', meaning: 'An abstract computing machine, specified by the JVM Specification, that loads, verifies and executes class files on a particular operating system and processor.' },
-        { term: 'Linking and initialisation', meaning: 'Linking verifies a loaded class and prepares its static fields; initialisation then runs its static initialisers, just before the class is first used.' },
+        { term: 'Compilation unit', meaning: 'The source code in one `.java` file. It can start with a package line and import lines, and then declares one or more top-level types.' },
+        { term: 'Class file', meaning: 'The binary file format, set out in the JVM Specification, for one compiled class or interface. It holds the bytecode, the constant pool, the fields and the methods.' },
+        { term: 'Bytecode', meaning: 'The instructions the Java Virtual Machine understands. They do not depend on any one platform, so every correct JVM can run them.' },
+        { term: 'Java Virtual Machine (JVM)', meaning: 'A computer defined in software by the JVM Specification. It loads class files, checks them and runs them on one particular operating system and processor.' },
+        { term: 'Linking and initialisation', meaning: 'Linking checks a loaded class and sets up its static fields. Initialisation then runs its static initialisers, just before the class is first used.' },
       ],
       source: 'JLS §7.3 and §12.1; JVMS chapters 4 and 5',
     },
     interviewDefinition:
-      'A Java program is compiled ahead of time by `javac` into platform-neutral **bytecode** (`.class` files), then executed by a **Java Virtual Machine**, which loads, verifies and runs that bytecode — first by interpreting it, then by JIT-compiling hot code to native machine code. That split between compile time and run time is what gives Java "write once, run anywhere" plus near-native speed.',
+      'First, `javac` compiles a Java program into **bytecode** (`.class` files) that works on any platform. Then a **Java Virtual Machine** loads that bytecode, checks it and runs it. It starts by interpreting the code, then JIT-compiles the busy parts (hot code) into native machine code. This split between compile time and run time gives Java "write once, run anywhere" and close to native speed.',
     interviewFollowUps: [
       {
         question: 'Is Java compiled or interpreted?',
-        answer: 'Both. `javac` compiles source to bytecode ahead of time; the JVM then interprets that bytecode and JIT-compiles frequently executed methods to native code at run time.',
+        answer: 'Both. `javac` compiles source code to bytecode before the program runs. At run time, the JVM interprets that bytecode and JIT-compiles the most-used methods to native code.',
       },
       {
         question: 'Why must `main` be `public static void main(String[] args)`?',
-        answer: 'The launcher calls it from outside the class (public) before any object exists (static), ignores any return value (void) and passes command-line arguments as a String array. Since Java 25 (JEP 512), simpler instance `void main()` entry points are also allowed.',
+        answer: 'The launcher calls it from outside the class, so it is public. No object exists yet, so it is static. The launcher ignores any return value, so it is void. Command-line arguments arrive as a String array. Since Java 25 (JEP 512), a simpler instance `void main()` is also allowed.',
       },
       {
         question: 'What happens if the class name does not match the file name?',
-        answer: 'A **public** top-level class must live in a file with the same name, or `javac` reports an error. Non-public classes may live in any file name.',
+        answer: 'A **public** top-level class must be in a file with the same name, or `javac` reports an error. Classes that are not public can be in a file with any name.',
       },
     ],
     mnemonic: {
