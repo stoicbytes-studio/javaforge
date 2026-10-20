@@ -552,7 +552,7 @@ export const oopConcepts: Record<string, LessonConcepts> = {
   'o-inheritance-types': {
     textbook: {
       definition:
-        '**Types of inheritance** name the shapes that subtype relationships among classes and interfaces can take. They are **single** (one direct parent), **multilevel** (a chain of parents), **hierarchical** (several subclasses of one parent), **multiple** (more than one direct parent) and **hybrid** (a mix of these). In Java, a class has exactly one direct superclass but may implement any number of **superinterfaces**. An interface may extend several interfaces. So Java supports multiple inheritance of type, and of behaviour through default methods. It does not support multiple inheritance of **state**.',
+        '**Types of inheritance** name the shapes that subtype relationships among classes and interfaces can take. They are **single** (one direct parent), **multilevel** (a chain of parents) and **hierarchical** (several subclasses of one parent). The others are **multiple** (more than one direct parent) and **hybrid** (a mix of these). In Java, a class has exactly one direct superclass but may implement any number of **superinterfaces**. An interface may extend several interfaces. So Java supports multiple inheritance of type, and of behaviour through default methods. It does not support multiple inheritance of **state**.',
       terms: [
         { term: 'Direct superclass', meaning: 'The class named in a class\'s extends clause, or Object when there is no extends clause. Every class except Object has exactly one.' },
         { term: 'Superinterface', meaning: 'An interface named in a class\'s implements clause or an interface\'s extends clause. Any interface that those interfaces themselves extend also counts.' },
@@ -1293,7 +1293,7 @@ export const oopConcepts: Record<string, LessonConcepts> = {
       definition:
         'The **general contract** of `Object.equals` requires the method to implement an **equivalence relation** on non-null references. It must be reflexive, symmetric and transitive. It must be **consistent** across calls while the compared state is unchanged. It must return false for a null argument. The contract of `Object.hashCode` requires the value to be consistent within one execution. It also requires objects that are equal according to `equals` to produce the same **hash code**. Unequal objects may share one. `toString` should return a short, informative text representation. Hash-based collections depend on both contracts.',
       terms: [
-        { term: 'Equivalence relation', meaning: 'A relation that is reflexive (x relates to x), symmetric (x to y implies y to x) and transitive (x to y and y to z imply x to z).' },
+        { term: 'Equivalence relation', meaning: 'A relation that is reflexive, symmetric and transitive. Reflexive: x relates to x. Symmetric: x to y implies y to x. Transitive: x to y and y to z imply x to z.' },
         { term: 'Hash code', meaning: 'An int computed from an object\'s state. Hash tables use it to choose a bucket. Equal objects must have equal hash codes.' },
         { term: 'Consistency', meaning: 'Calling equals or hashCode again returns the same result, as long as no information used in the comparison is changed.' },
         { term: 'Value equality', meaning: 'Comparing objects by their state (logical equality), not by identity with `==`. Records generate equals and hashCode from all their components.' },
