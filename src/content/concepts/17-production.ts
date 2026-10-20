@@ -17,7 +17,7 @@ export const productionConcepts: Record<string, LessonConcepts> = {
       source: 'Google, Site Reliability Engineering (2016), chapter 4; OpenTelemetry specification; W3C Trace Context',
     },
     interviewDefinition:
-      '**Observability** is the ability to explain a system\'s internal state from its outputs. It must work well enough to answer questions you did not expect. It rests on three linked signals. **Metrics** are cheap aggregated numbers for dashboards and alerts, chosen with RED and USE. **Logs** are structured events with context. **Traces** are span trees that follow one request across services. A shared trace id joins them. Health probes tell the platform how to treat an instance. **SLOs** with error budgets turn the signals into reliability targets and symptom-based alerts.',
+      '**Observability** is the ability to explain a system\'s internal state from its outputs, well enough to answer questions you did not expect. It rests on three linked signals. **Metrics** are cheap aggregated numbers for dashboards and alerts, chosen with RED and USE. **Logs** are structured events with context. **Traces** are span trees that follow one request across services. A shared trace id joins them. Health probes tell the platform how to treat an instance. **SLOs** with error budgets turn the signals into reliability targets and symptom-based alerts.',
     interviewFollowUps: [
       {
         question: 'What is the difference between monitoring and observability?',
@@ -225,7 +225,7 @@ export const productionConcepts: Record<string, LessonConcepts> = {
       source: 'Michael Nygard, Release It! (2nd edition), stability patterns; Resilience4j documentation',
     },
     interviewDefinition:
-      'Resilience is designing so that partial failure stays partial. Every remote call gets a **timeout**, ideally derived from a propagated deadline. Transient failures of **idempotent** operations (repeating them gives the same result) are **retried**. Retries use capped exponential backoff and jitter, under a retry budget. A **circuit breaker** fails fast while a dependency is unhealthy and probes it in a half-open state. **Bulkheads** and **rate limiters** limit the capacity any one dependency or client can use. **Fallbacks** degrade gracefully. Idempotency keys make it safe to retry non-idempotent operations.',
+      'Resilience is designing so that partial failure stays partial. Every remote call gets a **timeout**, ideally derived from a propagated deadline. Transient failures of **idempotent** operations (repeating them has the same effect as doing them once) are **retried**. Retries use capped exponential backoff and jitter, under a retry budget. A **circuit breaker** fails fast while a dependency is unhealthy and probes it in a half-open state. **Bulkheads** and **rate limiters** limit the capacity any one dependency or client can use. **Fallbacks** degrade gracefully. Idempotency keys make it safe to retry non-idempotent operations.',
     interviewFollowUps: [
       {
         question: 'Why add jitter to exponential backoff?',
@@ -347,7 +347,7 @@ export const productionConcepts: Record<string, LessonConcepts> = {
         explanation: [
           '**Clients** send requests to the **Request handler** inside **Your service**, which needs to call both B and C.',
           'Calls to B go through **Bulkhead B**, which allows at most 10 at a time with a 2-second timeout. **Service B** has become slow and takes 30 seconds to reply, so this bulkhead is full.',
-          'When it is full, the dashed arrow shows new calls being **Rejected fast**, with a fallback for B only. They do not wait and hold threads.',
+          'When it is full, the dashed arrow shows new calls being **Rejected fast**, with a fallback for B only. They do not wait or hold threads.',
           'Calls to **Service C**, which is healthy, go through **Bulkhead C**, which still has free capacity.',
           'Takeaway: like sealed compartments in a ship, separate limits per dependency stop one slow service from sinking everything.',
         ],
@@ -423,7 +423,7 @@ export const productionConcepts: Record<string, LessonConcepts> = {
   'prod-microservices': {
     textbook: {
       definition:
-        'The **microservice architecture** is an architectural style. It structures an application as a set of small, **independently deployable services**. Each service runs in its own process and is built around a **business capability**. Services communicate through lightweight mechanisms, such as HTTP APIs or asynchronous messaging. Each service owns its data (**database per service**), and a single team manages it. Because state is distributed, **eventual consistency** mechanisms such as **sagas** keep services consistent, not distributed ACID transactions. It contrasts with the **monolithic architecture**, where the application is built and deployed as a single unit.',
+        'The **microservice architecture** is an architectural style. It structures an application as a set of small, **independently deployable services**. Each service runs in its own process and is built around a **business capability**. Services communicate through lightweight mechanisms, such as HTTP APIs or asynchronous messaging. Each service owns its data (**database per service**) and is run by a single team. Because state is distributed, services stay consistent through **eventual consistency** mechanisms such as **sagas**, not distributed ACID transactions. It contrasts with the **monolithic architecture**, where the application is built and deployed as a single unit.',
       terms: [
         { term: 'Business capability', meaning: 'Something a business does to create value, such as order management or billing. It is used as the unit for service boundaries.' },
         { term: 'Bounded context', meaning: 'A domain-driven design term. It is the boundary inside which a particular domain model and its language apply consistently.' },
@@ -438,7 +438,7 @@ export const productionConcepts: Record<string, LessonConcepts> = {
     interviewFollowUps: [
       {
         question: 'How do you decide service boundaries?',
-        answer: 'Follow business capabilities and DDD bounded contexts, which are places where the language and data change meaning. Also align them with team ownership (Conway\'s law). A good boundary lets most changes stay inside one service. If every feature touches three services, the boundary is wrong.',
+        answer: 'Follow business capabilities and DDD bounded contexts. Draw boundaries where the language and data change meaning. Also align them with team ownership (Conway\'s law). A good boundary lets most changes stay inside one service. If every feature touches three services, the boundary is wrong.',
       },
       {
         question: 'Why not just use a distributed transaction (two-phase commit)?',

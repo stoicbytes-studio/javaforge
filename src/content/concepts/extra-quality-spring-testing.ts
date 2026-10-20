@@ -275,7 +275,7 @@ export const qualitySpringTestingConcepts: Record<string, LessonConcepts> = {
       },
       {
         question: 'Why is my Spring test suite slow, and how do you fix it?',
-        answer: 'Usually there are too many application contexts. Each different configuration is a separate cache entry: profiles, properties, @MockitoBean sets, @DynamicPropertySource. @DirtiesContext forces rebuilds. To fix it, move logic tests to plain unit tests and use slices. Put integration tests behind one shared base configuration.',
+        answer: 'Usually there are too many application contexts. Each different configuration (profiles, properties, @MockitoBean sets, @DynamicPropertySource) is a separate cache entry. @DirtiesContext forces rebuilds. To fix it, move logic tests to plain unit tests and use slices. Put integration tests behind one shared base configuration.',
       },
       {
         question: 'What replaced @MockBean?',

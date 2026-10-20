@@ -8,7 +8,7 @@ export const dsaConcepts: Record<string, LessonConcepts> = {
         'The **computational complexity** of an algorithm is a function of the **input size** n. It gives the amount of a resource the algorithm needs, usually running time or memory. **Asymptotic analysis** describes this function by its order of growth as n tends to infinity. It drops constant factors and lower-order terms. A function f(n) is **O(g(n))** if f(n) ≤ c·g(n) for all n ≥ n₀, for some positive constants c and n₀. **Ω** gives the matching lower bound, and **Θ** a bound that is both. The analysis may be stated for the worst case, for the average case, or as an **amortised** bound over a sequence of operations.',
       terms: [
         { term: 'Input size', meaning: 'The measure n of how large an instance is. Examples are the number of elements in an array, or the number of vertices and edges in a graph.' },
-        { term: 'Order of growth', meaning: 'The biggest term of a cost function. It decides how cost grows for large n, once constants and smaller terms are ignored.' },
+        { term: 'Order of growth', meaning: 'The dominant (fastest-growing) term of a cost function. It decides how cost grows for large n, once constants and smaller terms are ignored.' },
         { term: 'Big-O notation', meaning: 'An asymptotic upper bound: f(n) is O(g(n)) when f grows no faster than a constant multiple of g for all sufficiently large n.' },
         { term: 'Amortised cost', meaning: 'The total cost of any sequence of operations divided by the number of operations. It is a worst-case guarantee on the average cost per operation.' },
         { term: 'Auxiliary space', meaning: 'The extra memory an algorithm uses beyond its input, including the call stack used by recursion.' },

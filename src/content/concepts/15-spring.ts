@@ -365,7 +365,7 @@ export const springConcepts: Record<string, LessonConcepts> = {
         id: 'sp-rest-mvc-flow',
         kind: 'flow',
         title: 'A request through Spring MVC',
-        caption: 'Filters run before the DispatcherServlet. Arguments are converted and checked before your method runs. Any exception, including a validation failure, becomes one consistent problem response.',
+        caption: 'Filters run before the DispatcherServlet. Arguments are converted and validated before your method runs. Any exception, including a validation failure, becomes one consistent problem response.',
         explanation: [
           'The **Client** sends `POST /api/books`. The request first passes the servlet **Filter chain**, where security and logging run before Spring MVC sees it.',
           'The **DispatcherServlet** is the front controller. It asks the **HandlerMapping** which controller method matches this path and HTTP method.',

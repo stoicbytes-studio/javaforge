@@ -275,7 +275,7 @@ export const designConcepts: Record<string, LessonConcepts> = {
   'd-patterns': {
     textbook: {
       definition:
-        'A **design pattern** is a named, documented description of a general, reusable solution to a common problem in object-oriented design, within a particular **context**. Gamma, Helm, Johnson and Vlissides set the standard form. In it, each pattern has four essential parts: a **pattern name**, the **problem** it solves, the **solution** and the **consequences**. The solution is an abstract arrangement of classes and objects that work together. The consequences are its trade-offs. A pattern is not finished code or a library; it is a template you adapt to each situation. The catalogue groups patterns by purpose as **creational**, **structural** or **behavioural**.',
+        'A **design pattern** is a named, documented description of a general, reusable solution to a recurring problem in object-oriented design, within a particular **context**. Gamma, Helm, Johnson and Vlissides set the standard form. In it, each pattern has four essential parts: a **pattern name**, the **problem** it solves, the **solution** and the **consequences**. The solution is an abstract arrangement of classes and objects that work together. The consequences are its trade-offs. A pattern is not finished code or a library; it is a template you adapt to each situation. The catalogue groups patterns by purpose as **creational**, **structural** or **behavioural**.',
       terms: [
         { term: 'Context', meaning: 'The repeating situation, with its forces and limits, in which the design problem comes up and the pattern applies.' },
         { term: 'Consequences', meaning: 'The results and trade-offs of using a pattern, such as flexibility gained, extra indirection, or costs in performance and complexity.' },
@@ -286,7 +286,7 @@ export const designConcepts: Record<string, LessonConcepts> = {
       source: 'Gamma, Helm, Johnson and Vlissides, Design Patterns: Elements of Reusable Object-Oriented Software (1994), chapter 1',
     },
     interviewDefinition:
-      'A **design pattern** is a named, reusable solution to a common design problem in a given context. The Gang of Four catalogue (1994) lists 23. It groups them as **creational** (how objects are created), **structural** (how objects are composed) and **behavioural** (how objects share responsibility and communicate). In modern Java many shrink to language features. Strategy and Command become lambdas. Singleton becomes an enum or a DI-managed bean. Iterator is `Iterable`. Visitor is often replaced by sealed types with pattern-matching `switch`. The lasting value is a shared vocabulary and recognising intent.',
+      'A **design pattern** is a named, reusable solution to a recurring design problem in a given context. The Gang of Four catalogue (1994) lists 23. It groups them as **creational** (how objects are created), **structural** (how objects are composed) and **behavioural** (how objects share responsibility and communicate). In modern Java many shrink to language features. Strategy and Command become lambdas. Singleton becomes an enum or a DI-managed bean. Iterator is `Iterable`. Visitor is often replaced by sealed types with pattern-matching `switch`. The lasting value is a shared vocabulary and recognising intent.',
     interviewFollowUps: [
       {
         question: 'Decorator, Proxy and Adapter all wrap an object. How do they differ?',

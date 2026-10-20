@@ -5,30 +5,30 @@ export const platformConcepts: Record<string, LessonConcepts> = {
   'p-jdk-jre-jvm': {
     textbook: {
       definition:
-        'The **Java Virtual Machine (JVM)** is an abstract computing machine, defined by the JVM Specification, that loads, verifies and executes class files and manages memory automatically. The **Java Runtime Environment (JRE)** is an implementation of the JVM together with the Java SE class libraries: the minimum needed to run Java applications. The **Java Development Kit (JDK)** is a superset of the runtime that adds development tools such as the compiler `javac`, the archiver `jar`, the documentation generator `javadoc` and the linker `jlink`. **OpenJDK** is the open-source reference implementation of the Java SE Platform from which most JDKs are built.',
+        'The **Java Virtual Machine (JVM)** is an abstract computing machine defined by the JVM Specification. It loads class files, verifies them and runs them, and it manages memory automatically. The **Java Runtime Environment (JRE)** is a JVM implementation together with the Java SE class libraries. It is the minimum needed to run Java applications. The **Java Development Kit (JDK)** contains everything in the runtime and adds development tools. These include the compiler `javac`, the archiver `jar`, the documentation generator `javadoc` and the linker `jlink`. **OpenJDK** is the open-source reference implementation of the Java SE Platform. Most JDKs are built from it.',
       terms: [
-        { term: 'Java SE Platform', meaning: 'The standard edition of the Java platform, defined by the Java Language Specification, the JVM Specification and the Java SE API specification.' },
-        { term: 'Class library', meaning: 'The standard packages and modules, such as `java.lang` and `java.util` in the `java.base` module, available to every Java program.' },
-        { term: 'HotSpot', meaning: 'The JVM implementation in OpenJDK, combining a bytecode interpreter, the tiered just-in-time compilers C1 and C2, and several garbage collectors.' },
-        { term: 'Runtime image', meaning: 'A directory containing a JVM and a set of modules; since Java 9, `jlink` can build a custom one that holds only the modules an application needs.' },
-        { term: 'TCK', meaning: 'The Technology Compatibility Kit, the test suite an implementation must pass to be certified as compatible with the Java SE specifications.' },
+        { term: 'Java SE Platform', meaning: 'The standard edition of the Java platform. It is defined by the Java Language Specification, the JVM Specification and the Java SE API specification.' },
+        { term: 'Class library', meaning: 'The standard packages and modules that every Java program can use, such as `java.lang` and `java.util` in the `java.base` module.' },
+        { term: 'HotSpot', meaning: 'The JVM implementation in OpenJDK. It combines a bytecode interpreter, the tiered just-in-time compilers C1 and C2, and several garbage collectors.' },
+        { term: 'Runtime image', meaning: 'A directory that holds a JVM and a set of modules. Since Java 9, `jlink` can build a custom one that holds only the modules an application needs.' },
+        { term: 'TCK', meaning: 'The Technology Compatibility Kit. It is the test suite an implementation must pass to be certified as compatible with the Java SE specifications.' },
       ],
       source: 'JVMS §1.2 and chapter 2; JEP 220; JEP 282',
     },
     interviewDefinition:
-      'The **JVM** is the specification-defined engine that loads, verifies and executes bytecode; the **JRE** is a JVM plus the Java SE class library — enough to run programs; the **JDK** adds development tools such as `javac`, `jar`, `jlink`, `jshell` and diagnostics. All are defined by specifications (JLS, JVMS, Java SE API). **OpenJDK** is the reference implementation with the HotSpot JVM, and vendors such as Eclipse Temurin, Amazon Corretto or Azul Zulu ship certified builds of it. Oracle has not shipped a separate JRE since Java 11; `jlink` builds custom runtimes instead.',
+      'The **JVM** is the engine, defined by a specification, that loads, verifies and runs bytecode. The **JRE** is a JVM plus the Java SE class library, which is enough to run programs. The **JDK** adds development tools such as `javac`, `jar`, `jlink`, `jshell` and diagnostics. Specifications define all of them (JLS, JVMS, Java SE API). **OpenJDK** is the reference implementation, with the HotSpot JVM. Vendors such as Eclipse Temurin, Amazon Corretto or Azul Zulu ship certified builds of it. Oracle has not shipped a separate JRE since Java 11; `jlink` builds custom runtimes instead.',
     interviewFollowUps: [
       {
         question: 'Is OpenJDK the same as Oracle JDK?',
-        answer: 'Since Java 11 they are built from essentially the same OpenJDK source and are functionally interchangeable. The differences are the licence, the support offering and the update schedule, not the language or APIs.',
+        answer: 'Since Java 11, both are built from essentially the same OpenJDK source, and they work the same way. They differ in the licence, the support offering and the update schedule, not in the language or APIs.',
       },
       {
         question: 'Why is HotSpot called HotSpot?',
-        answer: 'It profiles running code to find the "hot spots" — the frequently executed methods and loops — and spends JIT-compilation effort only there, using tiered compilation: interpreter, then the fast C1 compiler, then the optimising C2 compiler.',
+        answer: 'It profiles running code to find the "hot spots": the methods and loops that run most often. It spends JIT-compilation effort only there. It uses tiered compilation: first the interpreter, then the fast C1 compiler, then the optimising C2 compiler.',
       },
       {
         question: 'What does it mean that a build is "Java SE compatible"?',
-        answer: 'It passed the Java SE Technology Compatibility Kit (TCK, also called the JCK), a large test suite that checks conformance to the specifications. That is what lets the same bytecode behave the same on Temurin, Corretto or Oracle JDK.',
+        answer: 'It passed the Java SE Technology Compatibility Kit (TCK, also called the JCK). This is a large test suite that checks the build conforms to the specifications. That is what lets the same bytecode behave the same on Temurin, Corretto or Oracle JDK.',
       },
     ],
     mnemonic: {
@@ -69,7 +69,7 @@ export const platformConcepts: Record<string, LessonConcepts> = {
         title: 'JDK ⊃ JRE ⊃ JVM',
         caption: 'Each layer contains the one below. Production needs only the runtime layers; the top row of tools is for building and diagnosing.',
         explanation: [
-          'Read from the bottom up. The **JVM** row is the engine: the **Class loader** loads and verifies classes, the **Execution engine** interprets and JIT-compiles them, and the **Garbage collector** frees unused memory.',
+          'Read from the bottom up. The **JVM** row is the engine. The **Class loader** loads and verifies classes, the **Execution engine** interprets and JIT-compiles them, and the **Garbage collector** frees unused memory.',
           'The middle row adds the class library: **java.base** with `java.lang`, `java.util` and `java.io`, the **Other SE modules** such as `java.sql`, and the **java launcher** that starts the JVM.',
           'Together those two rows form the **JRE (runtime)**: everything needed to run a program, but nothing for compiling it. The arrow shows the launcher creating the JVM.',
           'The top row adds developer tools: **javac, jar, javadoc** for building, **jlink, jdeps** for packaging and analysis, and **jshell, jcmd, jfr** for experimenting and diagnosing.',
@@ -102,11 +102,11 @@ export const platformConcepts: Record<string, LessonConcepts> = {
         id: 'p1-build-to-run',
         kind: 'flow',
         title: 'From JDK on the build machine to a slim runtime in production',
-        caption: 'The full JDK stays on the build machine. jdeps finds the modules the jar needs, jlink assembles a trimmed runtime, and only that runtime plus the jar ships.',
+        caption: 'The full JDK stays on the build machine. jdeps finds the modules the jar needs, and jlink assembles a trimmed runtime. Only that runtime plus the jar ships.',
         explanation: [
           'The top row is the **Build (full JDK)** stage. **App sources** are compiled and packaged by **javac + jar** on the CI machine, producing **app.jar** full of bytecode.',
           '**jdeps** then analyses app.jar and lists exactly which JDK modules it uses, such as `java.base` and `java.sql`.',
-          'That list is passed with `--add-modules` to **jlink**, which assembles a **Custom runtime** containing the JVM plus only the needed modules, often just a few dozen megabytes.',
+          'That list is passed with `--add-modules` to **jlink**. jlink assembles a **Custom runtime** that holds the JVM plus only the needed modules, often just a few dozen megabytes.',
           'The bottom row is **Production (runtime only)**. The runtime goes into a **Container image**, and the dashed arrow shows app.jar being copied in beside it.',
           'The container finally runs **java -jar app.jar**. Takeaway: the compiler and other tools stay on the build machine, so production ships a smaller, safer image.',
         ],
@@ -141,13 +141,13 @@ export const platformConcepts: Record<string, LessonConcepts> = {
         id: 'p1-spec-impl',
         kind: 'architecture',
         title: 'Specifications, implementations and vendor builds',
-        caption: 'Specifications define Java; OpenJDK implements them; vendors build and support binaries from it. Alternative JVMs reuse the OpenJDK class library. Every build sold as Java SE must pass the TCK.',
+        caption: 'Specifications define Java, and OpenJDK implements them. Vendors build and support binaries from OpenJDK. Alternative JVMs reuse the OpenJDK class library. Every build sold as Java SE must pass the TCK.',
         explanation: [
           'At the top, the **Java SE specifications** (the JLS, the JVMS and the API specification) define what Java is. The arrow tested by leads to the **TCK (JCK)**, the compatibility test suite.',
           'The arrow implemented by leads to **OpenJDK**, the open-source reference implementation that contains the HotSpot JVM.',
           'Alternative JVMs such as **Eclipse OpenJ9** reuse the OpenJDK class library, as the class library arrow shows. **GraalVM** is also based on OpenJDK and adds the Graal JIT and Native Image.',
           'The bottom row shows vendor builds made from OpenJDK source: **Eclipse Temurin**, **Amazon Corretto**, **Azul Zulu** and **Oracle JDK**. They differ in licence, support and platforms.',
-          'Takeaway: the specifications define Java and the TCK enforces them, so bytecode behaves the same whichever certified build you choose.',
+          'Takeaway: the specifications define Java and the TCK enforces them. So bytecode behaves the same whichever certified build you choose.',
         ],
         cols: 4,
         rows: 3,
@@ -233,30 +233,30 @@ export const platformConcepts: Record<string, LessonConcepts> = {
   'p-bytecode': {
     textbook: {
       definition:
-        '**Bytecode** is the instruction set of the Java Virtual Machine: a sequence of instructions, each consisting of a one-byte **opcode** followed by zero or more operands, that operate on an **operand stack** and an array of local variables within a method\'s frame. Bytecode is stored in the `Code` attribute of each method in a **class file**, a platform-independent binary format that also contains a **constant pool** of literals and symbolic references. Before execution, the JVM **verifies** the bytecode to ensure type safety and structural correctness, then interprets it or compiles it to native machine code.',
+        '**Bytecode** is the instruction set of the Java Virtual Machine. It is a sequence of instructions. Each one is a one-byte **opcode** followed by zero or more operands. The instructions work on an **operand stack** and an array of local variables in a method\'s frame. Bytecode is stored in the `Code` attribute of each method in a **class file**. A class file is a binary format that does not depend on the platform. It also holds a **constant pool** of literals and symbolic references. Before running the bytecode, the JVM **verifies** it to make sure it is type-safe and correctly structured. Then the JVM interprets it or compiles it to native machine code.',
       terms: [
-        { term: 'Opcode', meaning: 'A one-byte operation code identifying a JVM instruction, such as `iadd` or `invokevirtual`; one byte allows at most 256 distinct opcodes.' },
-        { term: 'Operand stack', meaning: 'A last-in, first-out stack in each frame from which instructions pop their inputs and onto which they push their results.' },
-        { term: 'Constant pool', meaning: 'A per-class table of constants, including numeric and string literals and symbolic references to classes, fields and methods, referred to by index.' },
-        { term: 'Class file', meaning: 'The binary format defined in chapter 4 of the JVM Specification, beginning with the magic number `0xCAFEBABE`, that holds one compiled class or interface.' },
-        { term: 'Verification', meaning: 'The check, performed during linking, that bytecode obeys the JVM\'s static and structural constraints, such as type-correct use of the operand stack and locals.' },
+        { term: 'Opcode', meaning: 'A one-byte operation code that identifies a JVM instruction, such as `iadd` or `invokevirtual`. One byte allows at most 256 different opcodes.' },
+        { term: 'Operand stack', meaning: 'A last-in, first-out stack in each frame. Instructions pop their inputs from it and push their results onto it.' },
+        { term: 'Constant pool', meaning: 'A table of constants for each class, referred to by index. It includes numeric and string literals, and symbolic references to classes, fields and methods.' },
+        { term: 'Class file', meaning: 'The binary format defined in chapter 4 of the JVM Specification. It begins with the magic number `0xCAFEBABE` and holds one compiled class or interface.' },
+        { term: 'Verification', meaning: 'The check, done during linking, that bytecode obeys the JVM\'s static and structural rules. One example is type-correct use of the operand stack and locals.' },
       ],
       source: 'JVMS chapters 2, 4 and 6',
     },
     interviewDefinition:
-      '**Bytecode** is the JVM\'s instruction set: compact one-byte opcodes for a **stack machine**, stored per method in the `Code` attribute of a `.class` file. A class file starts with the magic number `0xCAFEBABE` and a version (major − 44 = Java release), followed by a **constant pool** of literals and symbolic references, access flags, this/super class, interfaces, fields, methods and attributes. Because bytecode refers to everything by symbolic name rather than address and is **verified** before it runs, the same file executes safely on any compliant JVM.',
+      '**Bytecode** is the JVM\'s instruction set. It uses compact one-byte opcodes for a **stack machine**, and is stored per method in the `Code` attribute of a `.class` file. A class file starts with the magic number `0xCAFEBABE` and a version (major − 44 = Java release). Then come a **constant pool** of literals and symbolic references, access flags, this/super class, interfaces, fields, methods and attributes. Bytecode refers to everything by symbolic name, not by address. It is also **verified** before it runs. So the same file runs safely on any compliant JVM.',
     interviewFollowUps: [
       {
         question: 'Why is the JVM stack-based rather than register-based?',
-        answer: 'Stack code is compact, simple for compilers to emit, and makes no assumptions about how many registers the real CPU has. The JIT maps the operand stack onto real registers anyway. (Android\'s Dalvik/ART chose a register-based DEX format for different trade-offs.)',
+        answer: 'Stack code is compact and simple for compilers to emit. It also makes no assumptions about how many registers the real CPU has. The JIT maps the operand stack onto real registers anyway. (Android\'s Dalvik/ART chose a register-based DEX format for different trade-offs.)',
       },
       {
         question: 'Name the invoke instructions and when each is used.',
-        answer: '`invokestatic` for static methods, `invokevirtual` for class instance methods, `invokeinterface` for interface methods, `invokespecial` for constructors, private methods and `super` calls, and `invokedynamic` for call sites linked at run time (lambdas, string concatenation, records\' methods, pattern switches).',
+        answer: '`invokestatic` is for static methods. `invokevirtual` is for class instance methods. `invokeinterface` is for interface methods. `invokespecial` is for constructors, private methods and `super` calls. `invokedynamic` is for call sites linked at run time (lambdas, string concatenation, records\' methods, pattern switches).',
       },
       {
         question: 'How is a lambda compiled?',
-        answer: 'Its body becomes a private synthetic method (e.g. `lambda$main$0`). The lambda expression itself is an `invokedynamic` call site bootstrapped by `LambdaMetafactory`, which creates an implementation of the functional interface on first execution — no anonymous `.class` file on disk.',
+        answer: 'Its body becomes a private synthetic method (e.g. `lambda$main$0`). The lambda expression itself is an `invokedynamic` call site, bootstrapped by `LambdaMetafactory`. On first execution, that factory creates an implementation of the functional interface. There is no anonymous `.class` file on disk.',
       },
     ],
     mnemonic: {
@@ -302,9 +302,9 @@ export const platformConcepts: Record<string, LessonConcepts> = {
         id: 'p2-classfile-layout',
         kind: 'concept',
         title: 'Inside a .class file (JVMS §4.1)',
-        caption: 'The structure is read top to bottom. Most other parts point into the constant pool by index rather than repeating names and literals.',
+        caption: 'The structure is read top to bottom. Most other parts point into the constant pool by index, instead of repeating names and literals.',
         explanation: [
-          'A class file is read top to bottom. It opens with **Magic**, the four bytes `0xCAFEBABE`, followed by **Version**, the minor and major numbers that say which Java release can load it.',
+          'A class file is read top to bottom. It opens with **Magic**, the four bytes `0xCAFEBABE`. Next is **Version**, the minor and major numbers that say which Java release can load it.',
           'Next comes the **Constant pool**, usually the largest table: string and number literals plus symbolic references to classes, fields and methods.',
           '**Access flags** say whether the type is public, final, an interface and so on. **this / super class** name the class and its parent; the #index arrow shows they point into the constant pool.',
           '**Interfaces** lists the directly implemented interfaces, and **Fields** lists each field with its name, type descriptor and flags, again using pool indexes.',
@@ -332,7 +332,7 @@ export const platformConcepts: Record<string, LessonConcepts> = {
         title: 'return a + b on the operand stack (a = 2, b = 3)',
         caption: 'Top row: the instructions javap -c shows. Bottom row: the operand stack after each one. Values are pushed, the instruction pops its inputs and pushes its result.',
         explanation: [
-          'The top row shows the instructions that `javap -c` prints for `return a + b`; the bottom row shows the operand stack after each one, with a = 2 and b = 3.',
+          'The top row shows the instructions that `javap -c` prints for `return a + b`. The bottom row shows the operand stack after each one, with a = 2 and b = 3.',
           '**iload_0** pushes local variable 0, the value of a, so the stack becomes **[ 2 ]**.',
           '**iload_1** pushes local variable 1, the value of b, giving **[ 2, 3 ]**. Nothing has been added yet; both values are simply waiting.',
           '**iadd** pops the two ints, adds them and pushes the sum, leaving **[ 5 ]** on the stack.',
@@ -367,11 +367,11 @@ export const platformConcepts: Record<string, LessonConcepts> = {
         caption: 'Bytecode is parsed, verified and linked lazily, then interpreted while being profiled. Hot methods move up to C1 and C2 compiled code, which lives in the code cache.',
         explanation: [
           'In the **Load and link** stage, **Main.class** is read by the **Class loader**, which parses the class file into the JVM\'s internal structures.',
-          'The **Verifier** type-checks the bytecode with the help of the StackMapTable, so malformed or unsafe code is rejected before it ever runs.',
+          'The **Verifier** type-checks the bytecode with the help of the StackMapTable. So malformed or unsafe code is rejected before it ever runs.',
           'The **Linker** resolves constant-pool references lazily, the first time each instruction uses them, rather than all at start-up.',
           'In the **Execute** stage, the **Interpreter** runs the bytecode while counting how often each method runs. A warm method is handed to the **C1 JIT** for a quick compile with profiling.',
-          'If it stays hot, the **C2 JIT** recompiles it with heavy optimisation using the collected profile, and the native code is kept in the **Code cache** for reuse.',
-          'Takeaway: Java starts by interpreting and then compiles only the code that matters, which is why programs warm up.',
+          'If it stays hot, the **C2 JIT** recompiles it with heavy optimisation, using the collected profile. The native code is kept in the **Code cache** for reuse.',
+          'Takeaway: Java starts by interpreting, then compiles only the code that matters. That is why programs warm up.',
         ],
         cols: 4,
         rows: 2,
@@ -474,30 +474,30 @@ export const platformConcepts: Record<string, LessonConcepts> = {
   'p-packages-classpath': {
     textbook: {
       definition:
-        'A **package** is a named collection of related classes and interfaces that forms a **namespace** and a unit of access control. Each top-level type has a **fully qualified name** consisting of its package name and its simple name, such as `java.util.List`. An **import declaration** allows a type to be referred to by its simple name within one compilation unit and has no effect at run time. The **class path** is the ordered list of directories and JAR files that the application class loader searches for class files; since Java 9, the **module path** locates modules in a similar way.',
+        'A **package** is a named group of related classes and interfaces. It forms a **namespace** and a unit of access control. Each top-level type has a **fully qualified name**: its package name plus its simple name, such as `java.util.List`. An **import declaration** lets you refer to a type by its simple name within one compilation unit. It has no effect at run time. The **class path** is the ordered list of directories and JAR files that the application class loader searches for class files. Since Java 9, the **module path** locates modules in a similar way.',
       terms: [
-        { term: 'Namespace', meaning: 'A scope within which each name must be unique; packages let two classes share a simple name, such as `java.util.List` and `java.awt.List`.' },
-        { term: 'Fully qualified name', meaning: 'The package name, a dot and the simple type name, which together uniquely identify a top-level type, for example `com.shop.Invoice`.' },
-        { term: 'Package-private access', meaning: 'The default access level when no access modifier is written; such members are accessible only to code in the same package.' },
-        { term: 'Class loader', meaning: 'An object that locates the binary representation of a class by its name and defines the class in the JVM, normally delegating to a parent loader first.' },
-        { term: 'Module', meaning: 'A named, self-describing group of packages declared in `module-info.java`, stating which modules it requires and which packages it exports.' },
+        { term: 'Namespace', meaning: 'A scope in which each name must be unique. Packages let two classes share a simple name, such as `java.util.List` and `java.awt.List`.' },
+        { term: 'Fully qualified name', meaning: 'The package name, a dot and the simple type name. Together they uniquely identify a top-level type, for example `com.shop.Invoice`.' },
+        { term: 'Package-private access', meaning: 'The default access level when no access modifier is written. Only code in the same package can access such members.' },
+        { term: 'Class loader', meaning: 'An object that finds the binary form of a class by its name and defines the class in the JVM. It normally delegates to (asks) a parent loader first.' },
+        { term: 'Module', meaning: 'A named, self-describing group of packages declared in `module-info.java`. It states which modules it requires and which packages it exports.' },
       ],
       source: 'JLS chapter 7 (§7.1, §7.5); JVMS §5.3; Javadoc for java.lang.ClassLoader',
     },
     interviewDefinition:
-      'A **package** is a namespace (`com.shop.billing`) that also forms an access boundary for package-private members; `import` is only a compile-time shorthand and loads nothing. At run time **class loaders** find classes lazily, on first use, delegating parent-first (bootstrap → platform → application) before searching the **classpath** of directories and JARs. The **module system** (Java 9) adds `module-info.java` with `requires` and `exports`, giving reliable configuration — missing modules fail at startup — and strong encapsulation of packages that are not exported.',
+      'A **package** is a namespace (`com.shop.billing`). It also forms an access boundary for package-private members. `import` is only a compile-time shorthand and loads nothing. At run time, **class loaders** find classes lazily, on first use. They delegate parent-first (bootstrap → platform → application) before searching the **classpath** of directories and JARs. The **module system** (Java 9) adds `module-info.java` with `requires` and `exports`. This gives reliable configuration, because missing modules fail at startup. It also gives strong encapsulation of packages that are not exported.',
     interviewFollowUps: [
       {
         question: 'Does `import java.util.*;` import `java.util.function.Function`?',
-        answer: 'No. Packages are not hierarchical: `java.util.function` is a completely separate package that merely shares a name prefix. Wildcard imports cover the types of one package only, and package-private access does not extend to "subpackages" either.',
+        answer: 'No. Packages are not hierarchical: `java.util.function` is a completely separate package that only shares a name prefix. Wildcard imports cover the types of one package only. Package-private access does not extend to "subpackages" either.',
       },
       {
         question: 'What happens when two JARs on the classpath contain the same class?',
-        answer: 'The first one in classpath order wins and the other is silently ignored ("JAR hell"); mixing versions can produce `NoSuchMethodError` at run time. On the module path, two modules containing the same package is an error at startup.',
+        answer: 'The first one in classpath order wins, and the other is silently ignored ("JAR hell"). Mixing versions can produce `NoSuchMethodError` at run time. On the module path, two modules that contain the same package are an error at startup.',
       },
       {
         question: 'What is an automatic module?',
-        answer: 'A plain JAR placed on the module path. It gets a name from its `Automatic-Module-Name` manifest entry or its file name, exports all its packages and reads every other module, so modular code can `requires` it during migration.',
+        answer: 'A plain JAR placed on the module path. It gets a name from its `Automatic-Module-Name` manifest entry or its file name. It exports all its packages and reads every other module. So modular code can `requires` it during migration.',
       },
     ],
     mnemonic: {
@@ -569,7 +569,7 @@ export const platformConcepts: Record<string, LessonConcepts> = {
         id: 'p3-package-paths',
         kind: 'concept',
         title: 'One name, three places',
-        caption: 'The package name must match the source folder, becomes the folder inside the JAR, and is the only name bytecode ever uses. The import in OrderService is resolved by javac and then disappears.',
+        caption: 'The package name must match the source folder, and it becomes the folder inside the JAR. It is the only name bytecode ever uses. javac resolves the import in OrderService, and then the import disappears.',
         explanation: [
           'Start at the top left with **Invoice.java**, which declares `package com.shop.billing;` and sits in the matching folder src/com/shop/billing/.',
           '**javac** checks that the package matches the folder and compiles it. The arrow labelled same folder layout shows **Invoice.class** placed under com/shop/billing/ inside app.jar.',
@@ -599,11 +599,11 @@ export const platformConcepts: Record<string, LessonConcepts> = {
         id: 'p3-module-kinds',
         kind: 'architecture',
         title: 'Named, automatic and unnamed modules',
-        caption: 'Named modules read only what they require; automatic modules bridge plain JARs onto the module path; everything on the classpath lands in the unnamed module, which named modules cannot require.',
+        caption: 'Named modules read only what they require. Automatic modules bridge plain JARs onto the module path. Everything on the classpath lands in the unnamed module, which named modules cannot require.',
         explanation: [
-          'The **Module path** group on the left holds two kinds. A **Named module** has a module-info.java and **Reads its requires**: only the modules it lists, exporting only the packages it names.',
+          'The **Module path** group on the left holds two kinds. A **Named module** has a module-info.java and **Reads its requires**. It reads only the modules it lists, and exports only the packages it names.',
           'An **Automatic module** is a plain JAR placed on the module path. It **Reads all modules** and exports every package, so it works as a bridge during migration.',
-          'The arrow requires by name shows that a named module can depend on an automatic module, and the can read arrow shows that an automatic module can also see classpath code.',
+          'The arrow requires by name shows that a named module can depend on an automatic module. The can read arrow shows that an automatic module can also see classpath code.',
           'In the **Classpath** group, everything loaded from the classpath lands in the **Unnamed module**. It also reads all modules, but no named module can require it.',
           'At the bottom, **java.base and other JDK modules** serve all of them, and every module reads java.base. Takeaway: named modules see only what they declare.',
         ],
@@ -701,30 +701,30 @@ export const platformConcepts: Record<string, LessonConcepts> = {
   'p-java-releases': {
     textbook: {
       definition:
-        'A **Java SE release** is a version of the Java SE Platform specification together with its implementation in OpenJDK. Since Java 10, **feature releases** are published every six months under **time-based version numbers**, and each is followed by quarterly **update releases** containing security and bug fixes. Selected feature releases are designated **long-term support (LTS)** releases, for which vendors provide updates for several years. Features that are not yet permanent may be delivered as **preview features**, **incubator modules** or **experimental** virtual-machine features before becoming final parts of the platform.',
+        'A **Java SE release** is a version of the Java SE Platform specification together with its implementation in OpenJDK. Since Java 10, **feature releases** come out every six months under **time-based version numbers**. Each one is followed by quarterly **update releases** with security and bug fixes. Some feature releases are named **long-term support (LTS)** releases, and vendors provide updates for them for several years. Features that are not yet permanent may first arrive as **preview features**, **incubator modules** or **experimental** virtual-machine features. Later they become final parts of the platform.',
       terms: [
-        { term: 'Feature release', meaning: 'A release that may add language, VM and API features; it increments the FEATURE number of the version, for example from 24 to 25.' },
-        { term: 'Update release', meaning: 'A release, such as 21.0.5, that only fixes security vulnerabilities and bugs in an existing feature release and adds no new features.' },
-        { term: 'Long-term support (LTS)', meaning: 'A designation, made by Oracle and followed by other vendors, that a feature release will receive updates for several years; currently every second year.' },
-        { term: 'Preview feature', meaning: 'A fully specified and implemented but not yet permanent language, VM or API feature, usable only with `--enable-preview` (JEP 12).' },
-        { term: 'Incubator module', meaning: 'A module in the `jdk.incubator` namespace that delivers a non-final API to gather developer feedback (JEP 11).' },
+        { term: 'Feature release', meaning: 'A release that may add language, VM and API features. It increases the FEATURE number of the version, for example from 24 to 25.' },
+        { term: 'Update release', meaning: 'A release, such as 21.0.5, that only fixes security vulnerabilities and bugs in an existing feature release. It adds no new features.' },
+        { term: 'Long-term support (LTS)', meaning: 'A label, given by Oracle and followed by other vendors, meaning that a feature release will receive updates for several years. Currently this is every second year.' },
+        { term: 'Preview feature', meaning: 'A language, VM or API feature that is fully specified and implemented but not yet permanent. You can use it only with `--enable-preview` (JEP 12).' },
+        { term: 'Incubator module', meaning: 'A module in the `jdk.incubator` namespace that delivers an API that is not yet final, to gather developer feedback (JEP 11).' },
       ],
       source: 'JEP 322; JEP 12; JEP 11',
     },
     interviewDefinition:
-      'Since Java 10 the JDK ships a **feature release every six months**, in March and September, with time-based version numbers (JEP 322) and quarterly update releases for security fixes. Some releases are designated **long-term support** — 8, 11 and 17, then every two years: 21 and 25 — and vendors patch them for years. New features mature in stages: **incubator** APIs (JEP 11), **preview** features that need `--enable-preview` (JEP 12) and **experimental** VM features behind `-XX:+UnlockExperimentalVMOptions`, before becoming **final** and permanently covered by Java\'s compatibility promise.',
+      'Since Java 10, the JDK ships a **feature release every six months**, in March and September. It uses time-based version numbers (JEP 322), and quarterly update releases bring security fixes. Some releases are named **long-term support**: 8, 11 and 17, then every two years: 21 and 25. Vendors patch them for years. New features mature in stages. First come **incubator** APIs (JEP 11), **preview** features that need `--enable-preview` (JEP 12) and **experimental** VM features behind `-XX:+UnlockExperimentalVMOptions`. Then they become **final**, and Java\'s compatibility promise covers them permanently.',
     interviewFollowUps: [
       {
         question: 'Why does a class compiled with preview features fail on the next JDK?',
-        answer: 'javac marks it with minor version 65535 (0xFFFF). A JVM loads such a class only if its own release matches the major version exactly and it was started with `--enable-preview`, because the feature may change in the next release.',
+        answer: 'javac marks it with minor version 65535 (0xFFFF). A JVM loads such a class only if two things are true. Its own release must match the major version exactly, and it must have been started with `--enable-preview`. This is because the feature may change in the next release.',
       },
       {
         question: 'Incubator vs preview?',
-        answer: 'An incubator is a non-final **API** shipped in a `jdk.incubator.*` module, used via `--add-modules` (e.g. the Vector API). A preview is a fully specified language, VM or Java SE API feature gated by `--enable-preview` (e.g. structured concurrency, still a preview in 25).',
+        answer: 'An incubator is a non-final **API** shipped in a `jdk.incubator.*` module, and you use it via `--add-modules` (e.g. the Vector API). A preview is a fully specified language, VM or Java SE API feature that works only with `--enable-preview` (e.g. structured concurrency, still a preview in 25).',
       },
       {
         question: 'How would you plan an upgrade from Java 17 to 25?',
-        answer: 'Upgrade build plugins and bytecode libraries (ASM, Byte Buddy, Mockito) first; run `jdeps --jdk-internals` and `jdeprscan`; build and test on 25 in CI while still compiling with `--release 17`; then switch the runtime, check GC/JVM-flag changes and removed APIs, and finally raise `--release` to start using new features.',
+        answer: 'First, upgrade build plugins and bytecode libraries (ASM, Byte Buddy, Mockito). Run `jdeps --jdk-internals` and `jdeprscan`. Build and test on 25 in CI while still compiling with `--release 17`. Then switch the runtime, and check GC/JVM-flag changes and removed APIs. Finally, raise `--release` to start using new features.',
       },
     ],
     mnemonic: {
@@ -764,7 +764,7 @@ export const platformConcepts: Record<string, LessonConcepts> = {
         id: 'p4-lts-timeline',
         kind: 'concept',
         title: 'LTS releases and their headline features',
-        caption: 'LTS releases came every three to four years until 17; since then every two years. The next LTS on this cadence would be Java 29 (expected September 2027).',
+        caption: 'LTS releases came every three to four years until 17; since then, every two years. On this schedule, the next LTS would be Java 29 (expected September 2027).',
         explanation: [
           'The top row lists the LTS releases from left to right: **Java 8** in March 2014, **Java 11** in 2018, **Java 17** in 2021, **Java 21** in 2023 and **Java 25** in 2025.',
           'The arrow labels show the gap between them shrinking: 4 years, then 3, then 2 and 2. Since Java 17, a new LTS has arrived every two years.',
@@ -797,10 +797,10 @@ export const platformConcepts: Record<string, LessonConcepts> = {
         id: 'p4-feature-path',
         kind: 'flow',
         title: 'How a feature becomes final',
-        caption: 'Language and VM features usually pass through one or more previews; some APIs incubate first (HttpClient incubated in 9–10, final in 11). Experimental VM features become product features. Previews can also be withdrawn.',
+        caption: 'Language and VM features usually pass through one or more previews. Some APIs incubate first (HttpClient incubated in 9–10, final in 11). Experimental VM features become product features. Previews can also be withdrawn.',
         explanation: [
           'Every change starts as a **JEP** (JDK Enhancement Proposal), which moves from draft to candidate to targeted at a particular release.',
-          'Language and VM features usually go to **Preview** first: complete and specified, but usable only with `--enable-preview`, so developers can try them and give feedback.',
+          'Language and VM features usually go to **Preview** first. A preview is complete and specified, but usable only with `--enable-preview`, so developers can try it and give feedback.',
           'When feedback is done, the feature becomes **Final**: permanent and covered by the compatibility promise. A preview can instead be **Withdrawn** for redesign, as string templates were.',
           'New APIs may first go to an **Incubator** module in jdk.incubator.*, and become final once the API has settled, as HttpClient did in Java 11.',
           '**Experimental** VM features, such as ZGC in Java 11, hide behind an unlock flag and later become product features, as ZGC did in Java 15.',
@@ -829,13 +829,13 @@ export const platformConcepts: Record<string, LessonConcepts> = {
         id: 'p4-version-string',
         kind: 'concept',
         title: 'Reading a version string: 21.0.5+11',
-        caption: 'Time-based versioning (JEP 322): only the first number changes every six months; the update number climbs with each quarterly patch release.',
+        caption: 'Time-based versioning (JEP 322): only the first number changes every six months. The update number climbs with each quarterly patch release.',
         explanation: [
           'Read the string 21.0.5+11 from left to right. **21 · FEATURE** is the feature release number, bumped every six months.',
-          '**0 · INTERIM** is reserved for interim releases and stays zero in practice under the six-month cadence.',
+          '**0 · INTERIM** is reserved for interim releases. In practice it stays zero under the six-month cadence.',
           '**5 · UPDATE** counts the quarterly security and bug-fix updates, so this is the fifth update of Java 21.',
           '**+11 · BUILD** is the build number of that update, mostly of interest to vendors and testers.',
-          'The bottom note shows where you see it: **java -version → openjdk version "21.0.5"**, and in code `Runtime.version().feature()` returns 21. Takeaway: only the first number signals new features.',
+          'The bottom note shows where you see it: **java -version → openjdk version "21.0.5"**. In code, `Runtime.version().feature()` returns 21. Takeaway: only the first number signals new features.',
         ],
         cols: 4,
         rows: 2,
