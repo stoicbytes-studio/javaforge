@@ -580,7 +580,7 @@ export const jvmRuntimeConcepts: Record<string, LessonConcepts> = {
           'A young GC copies the few live objects into the **Survivor spaces**. There they age by one each time they survive another collection.',
           'After surviving N collections an object is promoted to the **Old generation**, which is collected far less often.',
           'An **Old collection** cleans the old generation. Examples are a G1 mixed collection or concurrent ZGC work. It costs more per object.',
-          'Takeaway: the cost of a young collection depends on what survives. So short-lived objects are cheap, and middle-aged ones are expensive.',
+          'Takeaway: the cost of a young collection is in proportion to what survives. So short-lived objects are cheap, and middle-aged ones are expensive.',
         ],
         cols: 4,
         rows: 2,

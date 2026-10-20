@@ -79,7 +79,7 @@ export const collectionsConcepts: Record<string, LessonConcepts> = {
         explanation: [
           'At the top sits **Iterable**, the interface that lets any collection be used in a for-each loop. **Collection** extends it and adds the basic operations: add, remove, size and contains.',
           '**Collection** branches into three sub-interfaces: **List** (indexed, duplicates allowed), **Set** (unique elements) and **Queue** (elements taken from the head). The arrow labelled extends shows that **Deque** is a Queue that also works at both ends.',
-          'The pills on the bottom row are the classes you actually create: **ArrayList** for lists, **HashSet** (or LinkedHashSet, TreeSet) for sets, **PriorityQueue** for priority order and **ArrayDeque** for stacks and FIFO queues.',
+          'The pills on the bottom row are the classes you actually create. Use **ArrayList** for lists and **HashSet** (or LinkedHashSet, TreeSet) for sets. Use **PriorityQueue** for priority order and **ArrayDeque** for stacks and FIFO queues.',
           'On the right, the **Map family (not a Collection)** group holds **Map**, which stores key-value pairs. **NavigableMap** extends it with sorted keys and range queries.',
           '**HashMap** is the default map implementation. **TreeMap**, a red-black tree, implements NavigableMap for when keys must stay sorted.',
           'Takeaway: declare variables with the interface type (List, Set, Map) and choose the implementation pill for its cost and ordering.',

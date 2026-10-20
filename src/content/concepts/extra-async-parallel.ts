@@ -8,7 +8,7 @@ export const asyncParallelConcepts: Record<string, LessonConcepts> = {
         'The **fork/join framework**, added in Java 7, is an `ExecutorService` implementation built for **divide-and-conquer** parallelism. A task splits itself into subtasks, again and again, until they are small enough to compute directly. It **forks** subtasks to run asynchronously, and **joins** their results. Tasks are instances of `ForkJoinTask`. A `ForkJoinPool` runs them, and its worker threads balance the load by **work stealing**. A **parallel stream** is a stream pipeline whose operations run on the common fork/join pool. It splits its source with a `Spliterator` and combines the partial results. It gives correct results only for non-interfering, stateless operations and associative reductions.',
       terms: [
         { term: 'Fork', meaning: 'Arranging for a subtask to run asynchronously. The subtask is pushed onto the current worker\'s deque, where it can be run or stolen.' },
-        { term: 'Join', meaning: 'Getting the result of a forked subtask when it completes. A joining worker runs other tasks, or helps with them, instead of sitting idle.' },
+        { term: 'Join', meaning: 'Getting the result of a forked subtask when it completes. A joining worker does not sit idle: it runs or helps with other tasks.' },
         { term: 'Work stealing', meaning: 'A scheduling scheme where each worker has its own deque. An idle worker takes the oldest task from another worker\'s deque.' },
         { term: 'Common pool', meaning: 'The single static `ForkJoinPool` for the whole JVM. Parallel streams use it, and so do asynchronous tasks that are not given an explicit executor.' },
         { term: 'Spliterator', meaning: 'An object that walks through the elements of a source and splits them into parts. It reports characteristics such as SIZED and ORDERED.' },
@@ -85,7 +85,7 @@ export const asyncParallelConcepts: Record<string, LessonConcepts> = {
           'The left half **[0, 500k)** is forked: it is pushed onto the worker\'s deque, where an idle worker may steal it. The same thread computes the right half **[500k, 1M)** in place.',
           'Each half splits again, giving four leaves: **[0, 250k)**, **[250k, 500k)**, **[500k, 750k)** and **[750k, 1M)**. They are below the threshold, so each one runs a plain loop.',
           'The partial sums flow into **join() + combine**. It adds them back up along the same tree to produce 500000500000.',
-          'Takeaway: the code fixes the split tree, not the scheduling. So the result is the same on every run, whichever worker runs each piece.',
+          'Takeaway: the split tree is set by the code, not by the scheduling. So the result is the same on every run, whichever worker runs each piece.',
         ],
         cols: 4,
         rows: 4,

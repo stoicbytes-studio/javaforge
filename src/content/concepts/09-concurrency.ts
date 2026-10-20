@@ -5,7 +5,7 @@ export const concurrencyConcepts: Record<string, LessonConcepts> = {
   'cc-threads': {
     textbook: {
       definition:
-        'A **thread** is a single sequential flow of control within a program. A Java program may have many threads running at the same time. Each thread has its own program counter and JVM stack, while all of them share the heap and the method area. On the Java platform, an instance of `java.lang.Thread` represents a thread, and the thread runs the `run` method of a **task**. There are two kinds of threads. **Platform threads** are each a thin wrapper around an operating-system thread. **Virtual threads** (Java 21) are scheduled by the JVM onto a small pool of **carrier threads**. An **executor service** separates submitting tasks from the threads that run them.',
+        'A **thread** is a single sequential flow of control within a program. A Java program may have many threads running concurrently. Each thread has its own program counter and JVM stack, while all of them share the heap and the method area. On the Java platform, an instance of `java.lang.Thread` represents a thread, and the thread runs the `run` method of a **task**. There are two kinds of threads. **Platform threads** are each a thin wrapper around an operating-system thread. **Virtual threads** (Java 21) are scheduled by the JVM onto a small pool of **carrier threads**. An **executor service** separates submitting tasks from the threads that run them.',
       terms: [
         { term: 'Task', meaning: 'A unit of work. It is written as a `Runnable` (no result) or a `Callable<V>` (returns a value and may throw a checked exception).' },
         { term: 'Platform thread', meaning: 'A `Thread` built as a thin wrapper around an operating-system thread. It uses that OS thread for its entire lifetime.' },
@@ -227,7 +227,7 @@ export const concurrencyConcepts: Record<string, LessonConcepts> = {
   'cc-synchronization': {
     textbook: {
       definition:
-        '**Synchronization** is the coordination of threads that run at the same time. It makes sure their accesses to shared mutable state are correctly ordered and do not interfere. The Java language provides it mainly through **monitors**. Every object has a monitor that at most one thread can hold at a time. `synchronized` methods and statements acquire and release it. The **Java Memory Model** defines the resulting visibility guarantees through the **happens-before** relation. An unlock of a monitor happens-before every later lock of that monitor. A write to a `volatile` field happens-before every later read of it. A program free of **data races** is sequentially consistent.',
+        '**Synchronization** is the coordination of threads that run concurrently. It makes sure their accesses to shared mutable state are correctly ordered and do not interfere. The Java language provides it mainly through **monitors**. Every object has a monitor that at most one thread can hold at a time. `synchronized` methods and statements acquire and release it. The **Java Memory Model** defines the resulting visibility guarantees through the **happens-before** relation. An unlock of a monitor happens-before every later lock of that monitor. A write to a `volatile` field happens-before every later read of it. A program free of **data races** is sequentially consistent.',
       terms: [
         { term: 'Monitor', meaning: 'The mutual-exclusion lock that every object has. It is reentrant: the thread that holds it may acquire it again.' },
         { term: 'Happens-before', meaning: 'A partial order on actions, defined by the JMM. If one action happens-before another, the first is visible to the second and ordered before it.' },
@@ -454,7 +454,7 @@ export const concurrencyConcepts: Record<string, LessonConcepts> = {
       source: 'Javadoc for the java.util.concurrent package (Memory Consistency Properties); JSR 166',
     },
     interviewDefinition:
-      '`java.util.concurrent` provides tested building blocks for coordination. **BlockingQueue** is for producer-consumer hand-off with back-pressure (producers wait when it is full). **CountDownLatch** waits once for N events. **CyclicBarrier** and **Phaser** are for threads that meet repeatedly. **Semaphore** caps concurrent access. Concurrent collections include **ConcurrentHashMap** (atomic `compute`/`merge`) and **CopyOnWriteArrayList** (snapshot iteration for read-mostly data). They replace error-prone `wait`/`notify` code. They also create happens-before edges for the data they pass.',
+      '`java.util.concurrent` provides tested building blocks for coordination. **BlockingQueue** is for producer-consumer hand-off with back-pressure (producers wait when it is full). **CountDownLatch** lets threads wait once for N events. **CyclicBarrier** and **Phaser** are for threads that meet repeatedly. **Semaphore** caps concurrent access. Concurrent collections include **ConcurrentHashMap** (atomic `compute`/`merge`) and **CopyOnWriteArrayList** (snapshot iteration for read-mostly data). They replace error-prone `wait`/`notify` code. They also create happens-before edges for the data they pass.',
     interviewFollowUps: [
       {
         question: 'How would you implement producer-consumer?',

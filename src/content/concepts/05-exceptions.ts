@@ -238,7 +238,7 @@ export const exceptionsConcepts: Record<string, LessonConcepts> = {
         { term: 'Resource', meaning: 'An object that must be closed after use, such as a stream or a database connection. In try-with-resources, its type must implement `AutoCloseable`.' },
         { term: 'AutoCloseable', meaning: 'The interface, added in Java 7, with a single method `close()`. This method releases the resources an object holds, and it may throw `Exception`.' },
         { term: 'Closeable', meaning: 'The `java.io` subinterface of `AutoCloseable`. Its `close()` throws only `IOException` and must be idempotent (calling it again has no extra effect).' },
-        { term: 'Suppressed exception', meaning: 'An exception attached to another with `Throwable.addSuppressed`. This happens because it was thrown while the primary exception was already propagating. You read it back with `getSuppressed()`.' },
+        { term: 'Suppressed exception', meaning: 'An exception attached to another with `Throwable.addSuppressed`. It is attached because it was thrown while the primary exception was already propagating. You read it back with `getSuppressed()`.' },
       ],
       source: 'JLS §14.20.3; Javadoc for java.lang.AutoCloseable and java.lang.Throwable',
     },
