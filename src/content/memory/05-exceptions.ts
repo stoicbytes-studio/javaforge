@@ -11,6 +11,27 @@ export const exceptionsMemory: Record<string, MemoryAid> = {
       'Checked exceptions must be caught or declared with `throws`; `RuntimeException` types need not be.',
       'A `finally` block runs whether the `try` ends normally or with an exception.',
     ],
+    types: [
+      {
+        title: 'Exception categories',
+        items: [
+          { name: 'Checked exceptions', simple: 'Expected problems outside your control, like a missing file. The compiler makes you catch or declare them.' },
+          { name: 'Unchecked (runtime) exceptions', simple: 'Usually bugs, like using null or a bad index. The compiler does not force you to handle them.' },
+          { name: 'Errors', simple: 'The building is on fire: out of memory or a stack that is too deep. Do not try to catch these.' },
+        ],
+      },
+      {
+        title: 'Ways to handle an exception',
+        items: [
+          { name: '`try` / `catch`', simple: 'Try the risky step; if it fails, the catch block deals with the problem right there.' },
+          { name: '`finally`', simple: 'Clean-up that always happens, like switching off the stove whether dinner worked or burned.' },
+          { name: 'Multi-catch', simple: 'One catch block for several unrelated problems: `catch (IOException | SQLException e)`.' },
+          { name: 'try-with-resources', simple: 'Borrowed things, such as open files, are handed back automatically when the block ends.' },
+          { name: 'Declare with `throws`', simple: 'Pass the problem up to your boss, who is better placed to deal with it.' },
+          { name: 'Wrap and rethrow', simple: 'Write a clearer report for your boss and staple the original report to it as the cause.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: '`throw` and `throws`',
       difference: '`throw` actually throws an exception right now, while `throws` in a method signature only warns callers which checked exceptions might come out.',
@@ -47,6 +68,27 @@ export const exceptionsMemory: Record<string, MemoryAid> = {
       'They close automatically in reverse order, before any `catch` or `finally` of that statement runs.',
       'If `close()` also throws, that error is added as suppressed, so the first error is not lost.',
     ],
+    types: [
+      {
+        title: 'Ways to release resources',
+        items: [
+          { name: 'try-with-resources', simple: 'The librarian at the door takes back every book you borrowed, however you leave. The normal way.' },
+          { name: 'Existing variable (Java 9)', simple: 'Hand over a book you already had: `try (connection) { ... }` closes it at the end.' },
+          { name: 'Manual `try` / `finally`', simple: 'Promising yourself to return the books. It works, but is easy to get wrong and can hide the first error.' },
+          { name: '`Cleaner`', simple: 'A cleaner who might tidy up some time after you leave. Only a safety net, never the plan.' },
+          { name: '`finalize()`', simple: 'An old, unreliable cleaner who may never come. Deprecated for removal, so do not use it.' },
+        ],
+      },
+      {
+        title: 'Ways exceptions get lost',
+        items: [
+          { name: '`return` in `finally`', simple: 'Leaving the meeting early and throwing away the problem report someone just handed you.' },
+          { name: '`throw` in `finally`', simple: 'A new complaint replaces the original one, so nobody hears about the first problem.' },
+          { name: 'Failing `close()` in a manual finally', simple: 'Dropping the books on the way out, so nobody learns why you were running.' },
+          { name: 'Empty `catch`', simple: 'Shredding the problem report without reading it. The failure simply vanishes.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: 'closing in `finally` by hand',
       difference: 'A hand-written `finally` close is long and can hide the first error, while try-with-resources closes in order and keeps both errors.',
@@ -82,6 +124,27 @@ export const exceptionsMemory: Record<string, MemoryAid> = {
       'Validate arguments at the start of a method and throw a standard exception if they are wrong.',
       'At a layer boundary, wrap low-level exceptions in meaningful ones and pass the original as the cause.',
       'Make a custom exception only when callers must react to it differently, and log each error once.',
+    ],
+    types: [
+      {
+        title: 'Custom exception design choices',
+        items: [
+          { name: 'Unchecked custom exception', simple: 'For problems the caller usually cannot fix on the spot. The default for your own exceptions.' },
+          { name: 'Checked custom exception', simple: 'For outcomes the caller should handle, like "insufficient funds"; the compiler reminds them to do it.' },
+          { name: 'Carry structured context', simple: 'Put useful facts in fields, like the missing amount, so nobody has to pick apart the message text.' },
+          { name: 'Cause constructor', simple: 'Let the new exception hold the original one, like stapling the lab results to a referral letter.' },
+          { name: 'Reuse standard exceptions', simple: 'IllegalArgumentException and friends are like standard road signs: everyone already knows what they mean.' },
+        ],
+      },
+      {
+        title: 'Ways to pass an exception on',
+        items: [
+          { name: 'Let it propagate', simple: 'Do nothing and let the problem travel up to someone who can handle it.' },
+          { name: 'Rethrow', simple: 'Do a quick local fix, such as undoing a payment, then pass the same problem on.' },
+          { name: 'Translate with cause', simple: 'Rewrite the problem in your layer\'s words and attach the original underneath.' },
+          { name: 'Wrap as `UncheckedIOException`', simple: 'Put a checked I/O problem in an unchecked envelope so it can pass through a lambda.' },
+        ],
+      },
     ],
     confusion: {
       mixedUpWith: '`IllegalArgumentException` and `IllegalStateException`',

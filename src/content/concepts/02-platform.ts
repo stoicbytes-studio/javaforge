@@ -765,6 +765,13 @@ export const platformConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'LTS releases and their headline features',
         caption: 'LTS releases came every three to four years until 17; since then every two years. The next LTS on this cadence would be Java 29 (expected September 2027).',
+        explanation: [
+          'The top row lists the LTS releases from left to right: **Java 8** in March 2014, **Java 11** in 2018, **Java 17** in 2021, **Java 21** in 2023 and **Java 25** in 2025.',
+          'The arrow labels show the gap between them shrinking: 4 years, then 3, then 2 and 2. Since Java 17, a new LTS has arrived every two years.',
+          'Under each release is its headline feature. Java 8 brought **Lambdas, streams**; Java 11 the standard **HttpClient**; Java 17 **Records, sealed** classes and text blocks.',
+          'Java 21 brought **Virtual threads** and pattern matching for switch; Java 25 brought compact source files with an instance **void main()**, scoped values and module imports.',
+          'Takeaway: most companies run LTS releases, so knowing what each one introduced tells you which features you can use at work.',
+        ],
         cols: 5,
         rows: 2,
         nodes: [
@@ -791,6 +798,14 @@ export const platformConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'How a feature becomes final',
         caption: 'Language and VM features usually pass through one or more previews; some APIs incubate first (HttpClient incubated in 9–10, final in 11). Experimental VM features become product features. Previews can also be withdrawn.',
+        explanation: [
+          'Every change starts as a **JEP** (JDK Enhancement Proposal), which moves from draft to candidate to targeted at a particular release.',
+          'Language and VM features usually go to **Preview** first: complete and specified, but usable only with `--enable-preview`, so developers can try them and give feedback.',
+          'When feedback is done, the feature becomes **Final**: permanent and covered by the compatibility promise. A preview can instead be **Withdrawn** for redesign, as string templates were.',
+          'New APIs may first go to an **Incubator** module in jdk.incubator.*, and become final once the API has settled, as HttpClient did in Java 11.',
+          '**Experimental** VM features, such as ZGC in Java 11, hide behind an unlock flag and later become product features, as ZGC did in Java 15.',
+          'Takeaway: only final features are safe for long-lived production code; the other stages exist to gather feedback.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -815,6 +830,13 @@ export const platformConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Reading a version string: 21.0.5+11',
         caption: 'Time-based versioning (JEP 322): only the first number changes every six months; the update number climbs with each quarterly patch release.',
+        explanation: [
+          'Read the string 21.0.5+11 from left to right. **21 · FEATURE** is the feature release number, bumped every six months.',
+          '**0 · INTERIM** is reserved for interim releases and stays zero in practice under the six-month cadence.',
+          '**5 · UPDATE** counts the quarterly security and bug-fix updates, so this is the fifth update of Java 21.',
+          '**+11 · BUILD** is the build number of that update, mostly of interest to vendors and testers.',
+          'The bottom note shows where you see it: **java -version → openjdk version "21.0.5"**, and in code `Runtime.version().feature()` returns 21. Takeaway: only the first number signals new features.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [

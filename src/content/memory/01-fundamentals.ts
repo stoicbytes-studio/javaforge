@@ -62,6 +62,29 @@ export const fundamentalsMemory: Record<string, MemoryAid> = {
       'Whole-number types wrap silently on overflow: `Integer.MAX_VALUE + 1` becomes `Integer.MIN_VALUE`.',
       'Dividing two `int` values drops the remainder, so `7 / 2` is `3`, while `7 / 2.0` is `3.5`.',
     ],
+    types: [
+      {
+        title: 'The primitive types',
+        items: [
+          { name: '`byte`', simple: 'The smallest number box, from -128 to 127, used for raw file and network data.' },
+          { name: '`int`', simple: 'The everyday box for whole numbers up to about 2 billion, like counting the people in a city.' },
+          { name: '`long`', simple: 'A much bigger box for huge whole numbers, like the milliseconds since 1970.' },
+          { name: '`double`', simple: 'The usual box for decimals like a price or a temperature, but not perfectly exact.' },
+          { name: '`char`', simple: 'One single letter or symbol, like the letter A printed on a keyboard key.' },
+          { name: '`boolean`', simple: 'A light switch: only `true` or `false`, nothing in between.' },
+        ],
+      },
+      {
+        title: 'Kinds of operators',
+        items: [
+          { name: 'Arithmetic `+ - * / %`', simple: 'Calculator buttons: add, subtract, multiply, divide, and `%` gives the remainder left over.' },
+          { name: 'Comparison `== != < >`', simple: 'Questions with a yes or no answer, like "is my score bigger than yours?"' },
+          { name: 'Logical `&& || !`', simple: 'Join yes-or-no answers: "I have a ticket AND the gate is open".' },
+          { name: 'Assignment `= +=`', simple: 'Put a value into a box; `+=` adds to what is already inside, like topping up a jar.' },
+          { name: 'Ternary `? :`', simple: 'A quick either-or choice in one line: raining ? umbrella : sunglasses.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: '`=` and `==`',
       difference: 'A single `=` stores a value in a variable. A double `==` asks whether two values are equal and gives `true` or `false`.',
@@ -97,6 +120,19 @@ export const fundamentalsMemory: Record<string, MemoryAid> = {
       'Widening, such as `int` to `long` or `double`, happens automatically because the value always fits.',
       'Narrowing needs a cast and can change the value: `(int) 3.9` is `3` and `(byte) 200` is `-56`.',
       'Text is not converted by a cast; use `Integer.parseInt("42")` to turn a `String` into an `int`.',
+    ],
+    types: [
+      {
+        title: 'Kinds of conversion',
+        items: [
+          { name: 'Widening (automatic)', simple: 'Pouring a small cup into a big bucket: `int` into `double` happens on its own and nothing spills.' },
+          { name: 'Narrowing (cast)', simple: 'Pouring a bucket into a cup: you must write `(int)`, and extra water, like the decimals, may spill.' },
+          { name: 'Boxing', simple: 'Putting a number into a gift box: an `int` becomes an `Integer` object automatically.' },
+          { name: 'Unboxing', simple: 'Taking the number out of the box again; if there is no box (`null`), the program crashes.' },
+          { name: 'String conversion', simple: 'Gluing anything onto text with `+`: `"Age: " + 30` becomes the text "Age: 30".' },
+          { name: 'Parsing text', simple: 'Reading the digits on a label: `Integer.parseInt("42")` turns the text "42" into the number 42.' },
+        ],
+      },
     ],
     confusion: {
       mixedUpWith: 'casting and parsing',
@@ -135,6 +171,33 @@ export const fundamentalsMemory: Record<string, MemoryAid> = {
       'Use `for` when you know the count, `while` to wait for a condition, `do-while` to run at least once.',
       'Arrow labels `case X ->` never fall through; old `case X:` labels need `break` to stop.',
     ],
+    types: [
+      {
+        title: 'Kinds of loops',
+        items: [
+          { name: '`for`', simple: 'Counting laps on a track when you know you will run exactly five laps.' },
+          { name: 'Enhanced `for` (for-each)', simple: 'A postman visiting every house on a street, one after another, without counting.' },
+          { name: '`while`', simple: 'Waiting at the bus stop while the bus has not come; if it is already there, you do not wait at all.' },
+          { name: '`do-while`', simple: 'Tasting the soup first, then deciding whether to cook more; it always happens at least once.' },
+        ],
+      },
+      {
+        title: 'Kinds of branching',
+        items: [
+          { name: '`if` / `else`', simple: 'A fork in the road: one yes-or-no question decides which way you go.' },
+          { name: '`switch`', simple: 'A lift panel: press the button for your floor and go straight there.' },
+          { name: 'Ternary `? :`', simple: 'A quick either-or inside one line, like choosing an umbrella or a hat.' },
+        ],
+      },
+      {
+        title: 'Jump statements',
+        items: [
+          { name: '`break`', simple: 'Leaving the roundabout at once, even if you planned more laps.' },
+          { name: '`continue`', simple: 'Skipping the rest of this lap and starting the next one straight away.' },
+          { name: '`return`', simple: 'Leaving the whole method and handing back an answer, like finishing your shift.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: '`while` and `do-while`',
       difference: 'A `while` loop checks its condition first and may run zero times. A `do-while` runs its body once before checking.',
@@ -171,6 +234,25 @@ export const fundamentalsMemory: Record<string, MemoryAid> = {
       'The signature is the name plus the parameter types; overloads differ in parameter types, not return type.',
       'Java always passes copies of values; for objects the copy is a reference to the same object.',
     ],
+    types: [
+      {
+        title: 'Kinds of methods',
+        items: [
+          { name: 'Static method', simple: 'A shared tool on the wall of the class, like a calculator anyone can use; no object needed.' },
+          { name: 'Instance method', simple: 'A job one particular object does with its own data, like your phone showing its own battery level.' },
+          { name: 'Overloaded methods', simple: 'One name, different inputs: print a photo or print a page, and the shop picks the right machine.' },
+          { name: 'Varargs method', simple: 'Takes any number of items, like a shopping bag that holds one apple or twenty.' },
+          { name: 'Recursive method', simple: 'A method that calls itself on a smaller problem, like opening Russian dolls one inside another.' },
+        ],
+      },
+      {
+        title: 'Parameter-passing styles',
+        items: [
+          { name: 'Pass-by-value (Java)', simple: 'You hand over a photocopy; whatever the method scribbles on it, your original stays the same.' },
+          { name: 'Pass-by-reference (not Java)', simple: 'Handing over your original note itself; Java never does this, not even for objects.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: 'pass-by-reference',
       difference: 'Java never hands a method your variable itself. It hands over a copy of the value, even when that value is a reference.',
@@ -206,6 +288,25 @@ export const fundamentalsMemory: Record<string, MemoryAid> = {
       'An array has a fixed length chosen at creation, and every slot starts at `0`, `false` or `null`.',
       'Indexes run from 0 to `length - 1`; anything outside throws `ArrayIndexOutOfBoundsException`.',
       'Read keyboard input with `new Scanner(System.in)` and methods such as `nextInt()` and `nextLine()`.',
+    ],
+    types: [
+      {
+        title: 'Kinds of arrays',
+        items: [
+          { name: 'One-dimensional', simple: 'A single row of lockers, like `int[] scores = new int[5]`.' },
+          { name: 'Two-dimensional', simple: 'A grid of lockers in rows and columns, like the seats in a cinema.' },
+          { name: 'Jagged', simple: 'Rows of different lengths, like shelves where each shelf holds a different number of jars.' },
+          { name: 'Array of objects', simple: 'Lockers that hold address cards; they start empty (`null`) until you put objects in.' },
+        ],
+      },
+      {
+        title: 'Ways to read input',
+        items: [
+          { name: '`Scanner`', simple: 'A friendly clerk who reads words and numbers for you; easy, but slow for huge piles.' },
+          { name: '`BufferedReader`', simple: 'Scoops up a whole line of text at once from a big bucket; fast for large inputs.' },
+          { name: 'Command-line arguments', simple: 'Notes handed over when the program starts, in `args`, like instructions given before a trip.' },
+        ],
+      },
     ],
     confusion: {
       mixedUpWith: '`arr.length` and `text.length()`',

@@ -4,6 +4,18 @@ import type { LessonConcepts } from '@/types/curriculum';
 export const exceptionsConcepts: Record<string, LessonConcepts> = {
   // -------------------------------------------------------------------------
   'e-basics': {
+    textbook: {
+      definition:
+        'An **exception** is an event that disrupts the normal flow of execution, represented in Java by an object whose class is `java.lang.Throwable` or one of its subclasses. When an exception is **thrown**, explicitly by a `throw` statement or implicitly by the JVM, control transfers non-locally to the nearest dynamically enclosing **exception handler**, a `catch` clause whose parameter type the exception\'s class is assignable to, and the intervening method invocations complete abruptly. Exception classes are either **checked**, which the compiler requires to be caught or declared, or **unchecked**: `RuntimeException`, `Error` and their subclasses.',
+      terms: [
+        { term: 'Throwable', meaning: 'The superclass of all errors and exceptions; only its instances can be thrown, and each records a message, an optional cause and a stack trace.' },
+        { term: 'Checked exception', meaning: 'An exception class that is not `RuntimeException`, `Error` or a subclass of either; the compiler requires it to be caught or declared in a `throws` clause.' },
+        { term: 'Unchecked exception', meaning: '`RuntimeException`, `Error` and their subclasses, which the compiler does not require to be caught or declared.' },
+        { term: 'Exception handler', meaning: 'A `catch` clause of a `try` statement; it handles an exception when the exception\'s class is assignable to the clause\'s parameter type.' },
+        { term: 'Stack unwinding', meaning: 'The abrupt completion of every method invocation between the throw point and the handler, removing their frames from the call stack.' },
+      ],
+      source: 'JLS chapter 11 (§11.1 to §11.3); Javadoc for java.lang.Throwable',
+    },
     interviewDefinition:
       'An exception is an object of a `Throwable` subclass that is **thrown** to abandon normal flow; the JVM then **unwinds the call stack** until a matching `catch` handles it. `Error`s signal serious JVM-level failures. `Exception`s are either **checked** — the compiler requires them to be caught or declared with `throws` — or **unchecked** (`RuntimeException` subclasses), which usually indicate bugs. `finally` runs on every exit path, which makes it the classic place for clean-up.',
     interviewFollowUps: [
@@ -62,6 +74,14 @@ export const exceptionsConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'The Throwable hierarchy',
         caption: 'Everything throwable extends Throwable. Errors and RuntimeExceptions are unchecked; every other Exception subclass is checked and must be caught or declared.',
+        explanation: [
+          'Start at the top: **Throwable** is the root of everything that can be thrown. It holds the message, the optional cause and the stack trace.',
+          'Two arrows labelled extends come up to it. **Error** on the left represents serious JVM problems such as OutOfMemoryError; it sits in an **Unchecked** group, so no catch or throws is required.',
+          '**Exception** on the right is for conditions an application may reasonably handle. Its subclasses split into two families below it.',
+          '**RuntimeException**, which includes NullPointerException and IllegalArgumentException, is also **Unchecked**: it usually signals a bug, so the compiler leaves handling optional.',
+          '**Other Exceptions**, such as IOException and SQLException, form the **Checked** group: the compiler insists that you catch them or declare them with throws.',
+          'Takeaway: whether an exception is checked depends only on where its class sits in this tree, not on how serious it is.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -88,6 +108,13 @@ export const exceptionsConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Control flow through try / catch / finally',
         caption: 'finally runs on every path. After it, execution either continues after the statement (no exception, or one that was handled) or the exception keeps propagating to the caller.',
+        explanation: [
+          'Execution starts with **try block runs**, followed by the question **Exception thrown?** If the block finishes normally, the no arrow goes straight to **finally runs**.',
+          'If an exception is thrown, the yes arrow asks **Matching catch?** The catch clauses are checked in order, and the first one whose type fits the exception is chosen.',
+          'With a match, **catch block runs** and handles the problem, and control then still passes to **finally runs**.',
+          'Without a match, control goes directly to **finally runs** while the exception stays pending. Because finally runs on every path, it is the place for clean-up.',
+          'After finally, an exception that was handled or never thrown leads to **Continue after try**; one that is still pending leads to **Propagate to caller**, where the search repeats one frame up.',
+        ],
         cols: 3,
         rows: 4,
         nodes: [
@@ -115,6 +142,13 @@ export const exceptionsConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Stack unwinding',
         caption: 'parseInt throws; load and process have no matching catch, so their frames are popped one by one until main catches it. The stack trace lists the frames innermost first.',
+        explanation: [
+          'Read the **Call stack (main thread)** from the bottom up: **main()** called **process()**, which called **load()**, which called **Integer.parseInt()** with text that is not a number.',
+          '**Integer.parseInt()** throws NumberFormatException. When the exception object was created, its **Stack trace** was recorded, as the dashed recorded at new arrow shows: parseInt, load, process, main.',
+          '**load()** has no matching catch, so its frame is popped and the exception unwinds to **process()**, which has no catch either and is popped as well.',
+          '**main()** has a catch for NumberFormatException, so the last arrow is labelled caught here: unwinding stops and the handler runs.',
+          'Takeaway: an exception travels up the call chain until a matching catch is found, and the stack trace lists the frames innermost first.',
+        ],
         cols: 2,
         rows: 4,
         nodes: [
@@ -197,6 +231,17 @@ export const exceptionsConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'e-resources': {
+    textbook: {
+      definition:
+        'The **try-with-resources** statement is a form of the `try` statement that declares one or more **resources**, objects whose types implement `java.lang.AutoCloseable`, and guarantees that each initialized resource is closed when the statement completes, whether normally or abruptly. Resources are initialized from left to right and closed in the reverse order of initialization, before any `catch` or `finally` clause of the same statement executes. If the body and a `close` invocation both throw, the exception from `close` is added to the primary exception as a **suppressed exception**.',
+      terms: [
+        { term: 'Resource', meaning: 'An object that must be closed after use, such as a stream or a database connection; in try-with-resources its type must implement `AutoCloseable`.' },
+        { term: 'AutoCloseable', meaning: 'The interface, added in Java 7, whose single method `close()` releases the resources an object holds and may throw `Exception`.' },
+        { term: 'Closeable', meaning: 'The `java.io` subinterface of `AutoCloseable` whose `close()` throws only `IOException` and is required to be idempotent.' },
+        { term: 'Suppressed exception', meaning: 'An exception attached to another with `Throwable.addSuppressed` because it was thrown while that primary exception was already propagating; read back with `getSuppressed()`.' },
+      ],
+      source: 'JLS §14.20.3; Javadoc for java.lang.AutoCloseable and java.lang.Throwable',
+    },
     interviewDefinition:
       '**try-with-resources** (Java 7) declares `AutoCloseable` resources in the `try` header and guarantees their `close()` is called on every exit path, in **reverse declaration order**, before any `catch` or `finally` of the same statement runs. If both the body and `close()` throw, the close failure is attached to the primary exception as a **suppressed** exception instead of masking it — the bug hand-written close-in-finally code routinely had.',
     interviewFollowUps: [
@@ -255,6 +300,13 @@ export const exceptionsConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'The lifecycle of try (A a = ...; B b = ...)',
         caption: 'Follow the arrows: open in order, run the body, close in reverse, and only then hand the (primary) exception to catch, followed by finally.',
+        explanation: [
+          'In the **Header + body** group, **Open A** runs first and then **Open B**, in the order the resources are declared in the try header.',
+          '**Body runs** next. It may finish normally or throw, and if it throws, that exception becomes the primary one. The any exit arrow means every way out leads to closing.',
+          'In the **Automatic close** group, **close B** runs first and then **close A**: reverse order, so a resource built on another is closed before it. If close B fails, that failure is suppressed and close A still runs.',
+          'Only after every resource is closed does **catch** see the primary exception, followed by **finally**. That is why a catch block can never use the resources.',
+          'The flow ends at **Done**. Takeaway: open in order, close in reverse, and only then handle the exception.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -286,6 +338,13 @@ export const exceptionsConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Suppressed vs lost exceptions',
         caption: 'With try-with-resources the body failure stays primary and the close failure is attached to it. With a hand-written finally, the close failure replaces the original, which is gone for good.',
+        explanation: [
+          'Compare two columns that start the same way. In the **try-with-resources** column, the **Body throws** "work failed", and then **close() throws** "close failed" while the resource is being closed.',
+          'The addSuppressed arrow shows what the statement does: the close failure is attached to the body failure, so the **Caller gets** "work failed" plus one suppressed exception.',
+          'In the **Manual finally** column, the body throws the same "work failed", and then **close() in finally** throws "close failed" from a hand-written finally block.',
+          'The arrow labelled replaces original shows the problem: the new exception escapes the finally block, so the caller gets only "close failed" and the real cause is lost.',
+          'Takeaway: try-with-resources keeps the first and most important failure and still records the clean-up failure, which hand-written finally code usually loses.',
+        ],
         cols: 2,
         rows: 3,
         nodes: [
@@ -312,6 +371,13 @@ export const exceptionsConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'What can go in the parentheses',
         caption: 'Anything that implements AutoCloseable qualifies — JDK I/O, JDBC, streams, executors and your own classes.',
+        explanation: [
+          'At the top is **AutoCloseable**, the one interface the try-with-resources statement requires. Its `close()` may throw any Exception.',
+          '**Closeable** extends it for java.io: its close() throws only IOException and must be safe to call twice. **I/O classes** such as InputStream, Reader and Socket implement Closeable.',
+          '**JDBC types** (Connection, Statement, ResultSet) and **Stream, ExecutorService** implement AutoCloseable directly. ExecutorService gained this in Java 19, and closing it waits for submitted tasks.',
+          '**Your own classes** can take part too: the dashed or directly arrow shows that implementing close() from AutoCloseable or Closeable is all it takes.',
+          'Takeaway: if a type implements AutoCloseable, declare it in the try header and it will be closed on every path.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -379,6 +445,17 @@ export const exceptionsConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'e-design': {
+    textbook: {
+      definition:
+        '**Exception design** is the part of API design that specifies how a component reports failures to its callers: which conditions are signalled by exceptions, which exception types are thrown, whether they are checked or unchecked, and what information they carry. Sound designs **fail fast** by validating preconditions before changing any state, which preserves **failure atomicity**; reuse standard exception types where they fit; and perform **exception translation** at abstraction boundaries, throwing exceptions appropriate to the higher layer while retaining the original exception as the **cause**.',
+      terms: [
+        { term: 'Fail fast', meaning: 'Detecting an invalid argument or state at the earliest possible point and throwing immediately, before any work is done.' },
+        { term: 'Failure atomicity', meaning: 'The property that a failed method invocation leaves the object in the state it had before the invocation began.' },
+        { term: 'Exception translation', meaning: 'Catching a lower-level exception and throwing a different exception that is meaningful at the higher level of abstraction.' },
+        { term: 'Exception chaining', meaning: 'Recording the original exception as the cause of a new one, through a constructor or `initCause`, so that `getCause()` can retrieve it.' },
+      ],
+      source: 'Effective Java, 3rd edition, chapter 10 (Items 69-77); Javadoc for java.lang.Throwable',
+    },
     interviewDefinition:
       'Exception design treats failure as part of an API\'s contract. Validate inputs early and **fail fast** with standard exceptions (`IllegalArgumentException`, `IllegalStateException`, `Objects.requireNonNull`). At layer boundaries, **translate** low-level exceptions into ones meaningful to the caller while **chaining the cause**. Create custom exceptions only when callers must react differently or need structured context, prefer unchecked exceptions for failures that cannot be handled locally, and log each exception once.',
     interviewFollowUps: [
@@ -437,6 +514,13 @@ export const exceptionsConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'Translating exceptions across layers',
         caption: 'Each layer converts the failure into its own vocabulary while keeping the cause. Only the edge of the system logs it and turns it into a response.',
+        explanation: [
+          'Read from right to left. In the **Infrastructure** group, the **JDBC driver** fails and throws an SQLException, a low-level error full of database detail.',
+          'The **Repository** catches it and throws its own RepositoryException. The arrow says wrapped, cause kept: the SQLException is passed as the cause, so nothing is lost.',
+          'The **Service** adds business context, such as which order it was handling, and lets the exception propagate instead of logging it again.',
+          'At the edge of **Your code**, the **Controller advice** handles it once: it maps the failure to HTTP 503 and sends a **Client response** as problem details JSON.',
+          'The same handler writes **Log: one entry** with the full cause chain. Takeaway: translate at each layer, keep the cause, and log only where the exception is finally handled.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -464,6 +548,13 @@ export const exceptionsConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'A useful cause chain',
         caption: 'Each link answers a different question. Following getCause() to the end reaches the root cause; the outer links explain what the system was trying to do.',
+        explanation: [
+          'The top row is one chain of exceptions. The outermost **ServiceException** says "pricing basket 8812", and its dashed note answers **What was attempted?**',
+          'Calling getCause() on it returns the **RepositoryException** with "loading tariff EU-STD". Its note answers **Which layer failed?**: the data access layer.',
+          'Calling getCause() again reaches **SocketTimeoutException**, the root cause. Its note answers **What actually broke?**: a network call timed out.',
+          'Each link adds information the others lack, so following the chain to the end gives both the business context and the technical cause.',
+          'Takeaway: always pass the original exception as the cause when you wrap it, otherwise the chain stops early and the root cause disappears.',
+        ],
         cols: 3,
         rows: 2,
         nodes: [
@@ -487,6 +578,13 @@ export const exceptionsConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Which failure signal should I use?',
         caption: 'Work down the questions. Reuse standard exceptions for caller mistakes and wrong-state calls; reserve custom exceptions for outcomes callers must distinguish.',
+        explanation: [
+          'Start with **Bad argument?** If the caller passed invalid data, the yes arrow leads to **IllegalArgument Exception**, or to `Objects.requireNonNull` for a null.',
+          'If not, ask **Wrong state?** Calling a method on an object that is already closed, for example, leads to **IllegalState Exception**.',
+          'Next ask **Expected absence?** A search that finds nothing is not exceptional, so **Return Optional** or an empty result instead of throwing.',
+          'Otherwise ask **Caller can recover?** If the direct caller can do something useful, such as asking for another card, the yes, locally arrow leads to a **Checked custom exception**.',
+          'If nobody nearby can recover, use an **Unchecked exception**, custom or translated. Takeaway: reuse standard exceptions first and create custom ones only for outcomes callers must tell apart.',
+        ],
         cols: 2,
         rows: 5,
         nodes: [

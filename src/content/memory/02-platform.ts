@@ -11,6 +11,34 @@ export const platformMemory: Record<string, MemoryAid> = {
       'The JRE is the JVM plus the standard class library: enough to run programs, but not compile them.',
       'The JDK adds tools such as `javac`, `jar`, `jshell` and `jlink`; developers install a JDK.',
     ],
+    types: [
+      {
+        title: 'JDK distributions',
+        items: [
+          { name: 'Eclipse Temurin', simple: 'A free, community-made JDK, like a store-brand cereal made from the same recipe as the famous one.' },
+          { name: 'Amazon Corretto', simple: 'Amazon\'s free JDK, patched by Amazon and used all across its cloud.' },
+          { name: 'Azul Zulu', simple: 'Free JDK builds from Azul, with paid help on offer, even for very old Java versions.' },
+          { name: 'Oracle JDK', simple: 'Oracle\'s own build of the same code; check its licence terms before using it at work.' },
+        ],
+      },
+      {
+        title: 'JVM implementations',
+        items: [
+          { name: 'HotSpot', simple: 'The standard engine inside almost every JDK; it speeds up the code you run most often.' },
+          { name: 'Eclipse OpenJ9', simple: 'A different engine, tuned to use less memory and to start quickly.' },
+          { name: 'GraalVM', simple: 'A JDK that can also turn your app into a ready-to-run program that starts instantly without a JVM.' },
+        ],
+      },
+      {
+        title: 'Java platform editions',
+        items: [
+          { name: 'Java SE', simple: 'The standard kit everyone learns: the language, the JVM and the core library.' },
+          { name: 'Jakarta EE', simple: 'Extra parts for big business servers, like web pages and databases, built on top of Java SE.' },
+          { name: 'Java ME', simple: 'A slimmed-down Java for small devices, like the games on old button phones.' },
+          { name: 'Java Card', simple: 'A tiny Java that runs inside bank cards and SIM cards.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: 'OpenJDK and the many JDK downloads',
       difference: 'OpenJDK is the shared open-source code. Builds such as Eclipse Temurin, Amazon Corretto and Oracle JDK are made from it and run the same bytecode.',

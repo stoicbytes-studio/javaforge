@@ -549,7 +549,7 @@ export const oopMoreConcepts: Record<string, LessonConcepts> = {
           '**enum Size** at the top is a final class that extends java.lang.Enum. Each static final arrow points to one of its constants.',
           '**SMALL**, **MEDIUM** and **LARGE** form the group of the only Size objects that can ever exist; each carries its ordinal, a label and a price.',
           'The variable **Size order** holds a reference to MEDIUM. The same object arrow means it points at that very constant, not at a copy.',
-          '**Size.valueOf("M")** stands for a lookup by name. A lookup never creates an object; it returns an existing constant, here MEDIUM, so comparing with == is safe.',
+          '**Size.valueOf("MEDIUM")** looks a constant up by its exact name (not by its "M" label, which would throw IllegalArgumentException). It never creates an object; it returns the existing MEDIUM, so comparing with == is safe.',
           '**new Size()** is a compile error: enum constructors are private and the language forbids instantiating an enum.',
           'Takeaway: an enum is a class with exactly N instances, which makes identity comparison and enum singletons safe.',
         ],
@@ -561,7 +561,7 @@ export const oopMoreConcepts: Record<string, LessonConcepts> = {
           { id: 'm', label: 'MEDIUM', detail: 'ordinal 1, "M", 300', col: 1, row: 1, tone: 'accent' },
           { id: 'l', label: 'LARGE', detail: 'ordinal 2, "L", 350', col: 2, row: 1, tone: 'accent' },
           { id: 'v1', label: 'Size order', detail: 'variable', col: 0, row: 2, shape: 'pill', tone: 'neutral' },
-          { id: 'v2', label: 'Size.valueOf("M")', detail: 'lookup by name', col: 1, row: 2, shape: 'pill', tone: 'neutral' },
+          { id: 'v2', label: 'Size.valueOf("MEDIUM")', detail: 'lookup by constant name', col: 1, row: 2, shape: 'pill', tone: 'neutral' },
           { id: 'nw', label: 'new Size()', detail: 'compile error', col: 2, row: 2, shape: 'pill', tone: 'danger' },
         ],
         edges: [
