@@ -3,6 +3,24 @@ import type { LessonConcepts } from '@/types/curriculum';
 /** Concept pages for the extra OOP lessons (access modifiers, nested classes, enums), keyed by lesson id. */
 export const oopMoreConcepts: Record<string, LessonConcepts> = {
   'o-access-modifiers': {
+    quick: {
+      definition: '**Access modifiers** control who can see and use a class, field or method. They help you hide details and protect your data.',
+      points: [
+        '`private`: only code inside the same class can use it.',
+        'No modifier (default): code in the same package can use it.',
+        '`protected`: the same package and subclasses can use it.',
+        '`public`: any code can use it.',
+        'Make fields `private` and give access with `public` getter and setter methods.',
+      ],
+      example: {
+        title: 'A private balance',
+        code: 'public class Main {\n  public static void main(String[] args) {\n    BankAccount account = new BankAccount();\n    account.deposit(50);\n    account.deposit(-20);\n    System.out.println(account.getBalance());\n  }\n}\n\nclass BankAccount {\n  private int balance = 0;\n\n  public void deposit(int amount) {\n    if (amount > 0) {\n      balance += amount;\n    }\n  }\n\n  public int getBalance() {\n    return balance;\n  }\n}',
+        output: '50',
+        runnable: true,
+        explain: '`balance` is `private`, so `Main` cannot change it directly. It must call `deposit`, which refuses a negative amount. That keeps the balance safe.',
+      },
+      tip: 'Writing `account.balance = 100;` in `Main` would not compile, because `balance` is private.',
+    },
     textbook: {
       definition:
         '**Access modifiers** are keywords that implement **access control**. Access control decides which code may refer by name to a declared member, constructor or type. Java defines four levels. `private` is accessible only within the body of the top-level class that encloses the declaration. **Package access** is the default when no modifier is given; it is accessible within the same package. `protected` gives package access plus subclasses in other packages, subject to a qualifying-type restriction. `public` is accessible wherever its enclosing type is, subject to module exports. **Non-access modifiers** such as `static`, `final` and `abstract` describe properties of a declaration, not its accessibility.',
@@ -244,6 +262,23 @@ export const oopMoreConcepts: Record<string, LessonConcepts> = {
   },
 
   'o-nested-classes': {
+    quick: {
+      definition: 'A **nested class** is a class written inside another class. Use it when the small class only makes sense together with the outer class.',
+      points: [
+        'A `static` nested class does not need an outer object. You create it with `new Outer.Nested()`.',
+        'An inner class (not `static`) belongs to an outer object and can use its fields.',
+        'A local class is declared inside a method. An anonymous class has no name.',
+        'Nested classes can reach the `private` members of the outer class.',
+      ],
+      example: {
+        title: 'Static nested and inner classes',
+        code: 'public class Main {\n  public static void main(String[] args) {\n    Library.Book book = new Library.Book("Java Basics");\n    System.out.println(book.title);\n\n    Library library = new Library("City Library");\n    Library.Card card = library.new Card();\n    card.show();\n  }\n}\n\nclass Library {\n  String name;\n  Library(String name) { this.name = name; }\n\n  static class Book {\n    String title;\n    Book(String title) { this.title = title; }\n  }\n\n  class Card {\n    void show() { System.out.println("Card for " + name); }\n  }\n}',
+        output: 'Java Basics\nCard for City Library',
+        runnable: true,
+        explain: '`Book` is `static`, so you can create it without a `Library` object. `Card` is an inner class, so it needs a `Library` object first. It reads that library\'s `name`.',
+      },
+      tip: 'Prefer `static` nested classes unless the class really needs the outer object.',
+    },
     textbook: {
       definition:
         'A **nested class** is any class declared inside the body of another class or interface. A class that is not nested is a **top-level class**. Nested classes are either static member classes or **inner classes**. Static member classes have no enclosing instance. Inner classes are non-static member classes, local classes declared in a block, and **anonymous classes**. An anonymous class is declared and instantiated by a single class instance creation expression. An inner class declared in an instance context has an **immediately enclosing instance**. It may use local variables of enclosing blocks only if they are final or **effectively final**.',
@@ -479,6 +514,24 @@ export const oopMoreConcepts: Record<string, LessonConcepts> = {
   },
 
   'o-enums': {
+    quick: {
+      definition: 'An **enum** is a special class that holds a fixed set of named constants, like days of the week or sizes. Use it when a value can only be one of a few choices.',
+      points: [
+        'Declare it with `enum` and list the constants in capital letters.',
+        'Use `Size.SMALL` to pick a constant. You cannot create new constants with `new`.',
+        '`values()` returns all constants in order.',
+        'Enums work in a `switch` and can have fields, constructors and methods.',
+        'Compare enums with `==`.',
+      ],
+      example: {
+        title: 'An enum with a field',
+        code: 'public class Main {\n  public static void main(String[] args) {\n    for (Size size : Size.values()) {\n      System.out.println(size + " = " + size.getMl() + " ml");\n    }\n\n    Size choice = Size.MEDIUM;\n    switch (choice) {\n      case SMALL -> System.out.println("Small drink");\n      case MEDIUM -> System.out.println("Medium drink");\n      case LARGE -> System.out.println("Large drink");\n    }\n  }\n}\n\nenum Size {\n  SMALL(250), MEDIUM(350), LARGE(500);\n\n  private final int ml;\n\n  Size(int ml) {\n    this.ml = ml;\n  }\n\n  int getMl() {\n    return ml;\n  }\n}',
+        output: 'SMALL = 250 ml\nMEDIUM = 350 ml\nLARGE = 500 ml\nMedium drink',
+        runnable: true,
+        explain: '`Size` has three constants, and each one carries a number of millilitres. `values()` lets you loop over them all. The `switch` picks the branch that matches `choice`.',
+      },
+      tip: 'An enum is safer than plain `int` or `String` constants, because the compiler rejects values that are not in the list.',
+    },
     textbook: {
       definition:
         'An **enum class** is a special kind of class that defines a fixed set of named instances, its **enum constants**. Each constant is a public static final field. During class initialisation, it is set to the only instance of the class (or of an anonymous subclass) for that name. No other instances can be created by `new`, cloning, reflection or deserialisation. Every enum class implicitly extends `java.lang.Enum` and has only private constructors. It provides the implicit static methods `values()` and `valueOf(String)`. Each constant has a **name** and an **ordinal**, which is its zero-based position in the declaration.',

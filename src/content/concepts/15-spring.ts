@@ -4,6 +4,24 @@ import type { LessonConcepts } from '@/types/curriculum';
 export const springConcepts: Record<string, LessonConcepts> = {
   // -------------------------------------------------------------------------
   'sp-ioc-boot': {
+    quick: {
+      definition: '**Dependency injection** means an object gets the other objects it needs from outside, instead of creating them itself. In Spring, a container called the `ApplicationContext` does this for you.',
+      points: [
+        'A **bean** is an object that Spring creates and manages for you.',
+        'Mark a class with `@Component` (or `@Service`) so Spring finds it and makes a bean.',
+        'Spring passes the beans a class needs into its constructor. This is called constructor injection.',
+        'Spring Boot starts the container with `@SpringBootApplication` and sets up common things automatically.',
+        'The example below does by hand what Spring does for you.',
+      ],
+      example: {
+        title: 'Passing a dependency in',
+        code: 'interface MessageSender {\n  void send(String text);\n}\n\nclass EmailSender implements MessageSender {\n  public void send(String text) {\n    System.out.println("Email: " + text);\n  }\n}\n\nclass WelcomeService {\n  private final MessageSender sender;\n\n  WelcomeService(MessageSender sender) {\n    this.sender = sender;\n  }\n\n  void welcome(String name) {\n    sender.send("Welcome, " + name + "!");\n  }\n}\n\npublic class Main {\n  public static void main(String[] args) {\n    MessageSender sender = new EmailSender();\n    WelcomeService service = new WelcomeService(sender);\n    service.welcome("Mia");\n  }\n}',
+        output: 'Email: Welcome, Mia!',
+        runnable: true,
+        explain: '`WelcomeService` never creates its sender. It receives one through the constructor. In Spring, the container would build `EmailSender` and pass it in for you.',
+      },
+      tip: 'Prefer constructor injection. It makes dependencies clear and lets you create the class in a plain unit test.',
+    },
     textbook: {
       definition:
         '**Inversion of control** (IoC) is a design principle. An external **container** creates and configures objects and manages their lifecycle, instead of the objects doing it themselves. **Dependency injection** is the form of IoC in which the container supplies an object\'s collaborators. It passes them in through constructor arguments, setter methods or fields. In the Spring Framework the container is the `ApplicationContext`. It builds **beans** from bean definitions, resolves their dependencies and manages their scope and lifecycle. **Spring Boot** extends this with starter dependencies, conditional **auto-configuration** and externalised configuration.',
@@ -260,6 +278,23 @@ export const springConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'sp-rest': {
+    quick: {
+      definition: 'A **REST controller** is a Spring class that answers web requests with data, usually JSON. Each method handles one kind of request, such as a `GET` to read data or a `POST` to create it.',
+      points: [
+        'Mark the class with `@RestController`. Return values are written to the response body.',
+        'Use `@GetMapping`, `@PostMapping`, `@PutMapping` and `@DeleteMapping` to map HTTP methods to Java methods.',
+        'Use `@PathVariable` to read a value from the URL, such as the `7` in `/api/books/7`.',
+        'Use `@RequestBody` to turn the JSON sent by the client into a Java object.',
+        'Return a status code that fits, for example `201 Created` after a `POST`.',
+      ],
+      example: {
+        title: 'A small books API',
+        code: '@RestController\n@RequestMapping("/api/books")\npublic class BookController {\n\n  @GetMapping("/{id}")\n  public Book getOne(@PathVariable long id) {\n    return new Book(id, "Effective Java");\n  }\n\n  @PostMapping\n  @ResponseStatus(HttpStatus.CREATED)\n  public Book create(@RequestBody Book book) {\n    return book;\n  }\n}\n\nrecord Book(long id, String title) {}',
+        runnable: false,
+        explain: 'A `GET` request to `/api/books/7` runs `getOne` and returns the JSON `{"id":7,"title":"Effective Java"}`. A `POST` to `/api/books` reads the JSON body into a `Book` and answers with status 201. This needs Spring Boot, so it cannot run alone.',
+      },
+      tip: 'Keep controllers thin. Put the real work in a service class and let the controller only handle the web part.',
+    },
     textbook: {
       definition:
         '**Representational State Transfer** (REST) is an architectural style for distributed hypermedia systems. It is defined by a set of constraints: client-server separation, **statelessness**, cacheability, a **uniform interface**, a layered system and optional code on demand. In a REST API over HTTP, a URI identifies each **resource**. Clients work with a resource by transferring **representations** of its state. They use standard methods, and HTTP semantics define whether each method is safe and idempotent. In Spring MVC, a **`@RestController`** is a component whose handler methods are mapped to requests. Their return values are serialised directly into the response body.',
@@ -497,6 +532,23 @@ export const springConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'sp-data-tx': {
+    quick: {
+      definition: 'A **transaction** groups several database changes into one unit, so either all of them are kept or none are. In Spring you start one by adding `@Transactional` to a method.',
+      points: [
+        'Spring wraps the method: it starts a transaction before and commits after it.',
+        'If the method throws a `RuntimeException`, Spring rolls back every change made inside it.',
+        'A checked exception does not roll back by default. Use `rollbackFor` if you need that.',
+        'Changes you make to loaded entities are saved automatically when the transaction commits.',
+        'Call a `@Transactional` method from another bean. A call from the same class skips the wrapper and has no effect.',
+      ],
+      example: {
+        title: 'Move money safely',
+        code: '@Service\npublic class TransferService {\n  private final AccountRepository accounts;\n\n  public TransferService(AccountRepository accounts) {\n    this.accounts = accounts;\n  }\n\n  @Transactional\n  public void transfer(long fromId, long toId, BigDecimal amount) {\n    Account from = accounts.findById(fromId).orElseThrow();\n    Account to = accounts.findById(toId).orElseThrow();\n    from.withdraw(amount);\n    to.deposit(amount);\n  }\n}',
+        runnable: false,
+        explain: 'Both accounts change inside one transaction. If `deposit` throws an exception, the `withdraw` is undone too, so no money disappears. This needs Spring Data JPA and a database, so it cannot run alone.',
+      },
+      tip: 'Put `@Transactional` on service methods, not on controllers. A service method is the natural unit of work.',
+    },
     textbook: {
       definition:
         'A **transaction** is a unit of work on a resource, such as a database, that has the **ACID** properties. It is atomic, leaves data consistent, is isolated from concurrent transactions and is durable once committed. **Jakarta Persistence** (JPA) is the standard Java API for object-relational mapping. It maps **entities** to tables. A **persistence context** manages the entities and keeps their state in sync with the database. Spring\'s **declarative transaction management** adds transaction boundaries to methods annotated with `@Transactional`. It does this through AOP proxies. They hand the work to a `PlatformTransactionManager`, following the method\'s propagation, isolation and rollback rules.',
@@ -717,6 +769,23 @@ export const springConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'sp-security': {
+    quick: {
+      definition: '**Spring Security** protects your web app. It checks who the caller is (authentication) and what that caller may do (authorization) before a request reaches your controller.',
+      points: [
+        '**Authentication** answers "who are you?". **Authorization** answers "what may you do?".',
+        'Every request passes through a chain of security filters before it reaches your code.',
+        'You describe the rules in a `SecurityFilterChain` bean.',
+        'Never store plain passwords. Hash them with an encoder such as `BCryptPasswordEncoder`.',
+        'Spring Security denies access by default once you add it. You open up only what you choose.',
+      ],
+      example: {
+        title: 'Public, admin and login rules',
+        code: '@Configuration\n@EnableWebSecurity\npublic class SecurityConfig {\n\n  @Bean\n  SecurityFilterChain filterChain(HttpSecurity http) throws Exception {\n    http\n      .authorizeHttpRequests(auth -> auth\n        .requestMatchers("/public/**").permitAll()\n        .requestMatchers("/admin/**").hasRole("ADMIN")\n        .anyRequest().authenticated())\n      .httpBasic(Customizer.withDefaults());\n    return http.build();\n  }\n\n  @Bean\n  PasswordEncoder passwordEncoder() {\n    return new BCryptPasswordEncoder();\n  }\n}',
+        runnable: false,
+        explain: 'Anyone can open `/public/**`. Only users with the `ADMIN` role can open `/admin/**`. Every other URL needs a logged-in user. The password encoder hashes passwords before they are stored. This needs Spring Security, so it cannot run alone.',
+      },
+      tip: 'Order matters. Put specific rules first and `anyRequest()` last, because the first matching rule wins.',
+    },
     textbook: {
       definition:
         '**Application security** here means two separate controls. **Authentication** is the process of checking the identity a principal claims. **Authorization** is the decision whether an authenticated principal may perform a requested operation on a resource. **Spring Security** is a framework that implements both for Java applications. In a servlet application it works as a chain of filters. `FilterChainProxy` selects the chain for each request. The filters set up an `Authentication` in the **SecurityContext**. They enforce access rules on URLs and, optionally, on methods. Spring Security also protects against common attacks, such as CSRF and unsafe password storage.',

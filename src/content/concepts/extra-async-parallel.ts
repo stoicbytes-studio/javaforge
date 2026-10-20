@@ -3,6 +3,24 @@ import type { LessonConcepts } from '@/types/curriculum';
 /** Concept pages for the extra concurrency lessons (fork/join + parallel streams, CompletableFuture). */
 export const asyncParallelConcepts: Record<string, LessonConcepts> = {
   'cc-forkjoin-parallel': {
+    quick: {
+      definition: 'Fork/Join and parallel streams split a big job into smaller parts. The parts run on several CPU cores, and the results are combined.',
+      points: [
+        'Fork/Join splits a task into smaller tasks (fork) and then merges their results (join).',
+        'The idea behind it is divide and conquer. It works well for big calculations on arrays and collections.',
+        'The easiest way to use it is a parallel stream. Call `.parallel()` on a stream.',
+        'Parallel streams run on the common `ForkJoinPool`.',
+        'Parallel is not always faster. Small jobs are usually quicker without it.',
+      ],
+      example: {
+        title: 'Sum numbers with a parallel stream',
+        code: 'import java.util.stream.IntStream;\n\npublic class Main {\n  public static void main(String[] args) {\n    int sequential = IntStream.rangeClosed(1, 100).sum();\n    int parallel = IntStream.rangeClosed(1, 100).parallel().sum();\n    System.out.println("Sequential: " + sequential);\n    System.out.println("Parallel: " + parallel);\n  }\n}',
+        output: 'Sequential: 5050\nParallel: 5050',
+        runnable: true,
+        explain: '`IntStream.rangeClosed(1, 100)` makes the numbers 1 to 100. The second stream adds `.parallel()`, so Java may split the work over several threads. The sum is the same either way.',
+      },
+      tip: 'Only use parallel streams when the work per item is heavy and the operations do not change shared data.',
+    },
     textbook: {
       definition:
         'The **fork/join framework**, added in Java 7, is an `ExecutorService` implementation built for **divide-and-conquer** parallelism. A task splits itself into subtasks, again and again, until they are small enough to compute directly. It **forks** subtasks to run asynchronously, and **joins** their results. Tasks are instances of `ForkJoinTask`. A `ForkJoinPool` runs them, and its worker threads balance the load by **work stealing**. A **parallel stream** is a stream pipeline whose operations run on the common fork/join pool. It splits its source with a `Spliterator` and combines the partial results. It gives correct results only for non-interfering, stateless operations and associative reductions.',
@@ -281,6 +299,24 @@ export const asyncParallelConcepts: Record<string, LessonConcepts> = {
     ],
   },
   'cc-completablefuture': {
+    quick: {
+      definition: 'A `CompletableFuture` stands for a result that will be ready later. You can chain steps on it that run when the result arrives.',
+      points: [
+        'Use `supplyAsync()` to start a task on another thread. It gives you a `CompletableFuture`.',
+        'Use `thenApply()` to change the result when it is ready.',
+        'Use `thenCombine()` to join the results of two futures.',
+        'Use `join()` to wait for the final value.',
+        'Use `exceptionally()` to handle an error in the chain.',
+      ],
+      example: {
+        title: 'Chain steps on a future',
+        code: 'import java.util.concurrent.CompletableFuture;\n\npublic class Main {\n  public static void main(String[] args) {\n    CompletableFuture<String> hello =\n        CompletableFuture.supplyAsync(() -> "Hello")\n            .thenApply(text -> text + ", Java");\n    CompletableFuture<String> mark =\n        CompletableFuture.supplyAsync(() -> "!");\n\n    String message = hello.thenCombine(mark, (a, b) -> a + b).join();\n    System.out.println(message);\n  }\n}',
+        output: 'Hello, Java!',
+        runnable: true,
+        explain: 'Two tasks run on other threads: one makes `Hello`, the other makes `!`. `thenApply` adds `, Java` to the first. `thenCombine` joins both results, and `join()` waits for the final text.',
+      },
+      tip: 'Without `join()` or `get()`, `main` may end before the async work is done.',
+    },
     textbook: {
       definition:
         '`CompletableFuture<T>` is a class in `java.util.concurrent`, added in Java 8. It implements both the `Future` and **CompletionStage** interfaces. It represents the result of an asynchronous computation that may be **explicitly completed**, by setting its value or an exception. It supports dependent functions and actions that are triggered when it completes. Each **dependent stage** runs its action when the stage or stages it depends on complete. It also returns a new stage itself, so computations form a dependency graph. If an upstream computation fails, dependent stages **complete exceptionally**, typically with a `CompletionException`. Asynchronous methods without an explicit executor use a **default executor**, normally the common pool.',

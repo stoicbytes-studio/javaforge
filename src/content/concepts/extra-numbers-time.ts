@@ -3,6 +3,24 @@ import type { LessonConcepts } from '@/types/curriculum';
 /** Concept pages for the extra "types" lessons on numbers and java.time, keyed by lesson id. */
 export const numbersTimeConcepts: Record<string, LessonConcepts> = {
   't-numbers-math': {
+    quick: {
+      definition: 'Java has number types for whole numbers and decimals. The `Math` class gives you ready-made tools like `max`, `pow` and `sqrt`.',
+      points: [
+        '`int` holds whole numbers. `double` holds decimals.',
+        'Dividing two `int` values drops the decimal part, so `7 / 2` is `3`.',
+        '`Math.round` rounds to the nearest whole number. `Math.abs` removes a minus sign.',
+        'Decimals like `0.1` cannot be stored exactly in binary, so small errors can appear.',
+        'Use `BigDecimal` when you need exact decimals, such as money.',
+      ],
+      example: {
+        title: 'Math helpers',
+        code: 'public class Main {\n  public static void main(String[] args) {\n    System.out.println(Math.max(3, 9));\n    System.out.println(Math.pow(2, 10));\n    System.out.println(Math.sqrt(49));\n    System.out.println(Math.round(2.5));\n    System.out.println(Math.abs(-7));\n    System.out.println(7 / 2);\n    System.out.println(0.1 + 0.2);\n  }\n}',
+        output: '9\n1024.0\n7.0\n3\n7\n3\n0.30000000000000004',
+        runnable: true,
+        explain: '`Math.pow` and `Math.sqrt` return a `double`, so you see `.0`. Dividing the `int` values `7 / 2` gives `3`. The last line shows the small error that `double` can have.',
+      },
+      tip: 'Never compare decimals with `==`. Check whether they are close enough instead.',
+    },
     textbook: {
       definition:
         'Java\'s **primitive numeric types** consist of the integral types and the floating-point types. The integral types are `byte`, `short`, `int`, `long` and `char`. Their signed arithmetic uses **two\'s-complement** representation and wraps silently on overflow. The floating-point types are `float` and `double`. Their values and operations follow the **IEEE 754** binary formats. The class `java.math.BigDecimal` represents immutable, **arbitrary-precision** (as many digits as needed) signed decimal numbers. It stores an unscaled integer and a scale, and a `RoundingMode` controls rounding. `java.math.BigInteger` represents integers of unbounded size. `java.lang.Math` supplies elementary functions, and exact-arithmetic methods that throw `ArithmeticException` on overflow.',
@@ -249,6 +267,24 @@ export const numbersTimeConcepts: Record<string, LessonConcepts> = {
   },
 
   't-date-time': {
+    quick: {
+      definition: 'The `java.time` package lets you work with dates and times. For example, `LocalDate` stores a date, and these objects never change once created.',
+      points: [
+        '`LocalDate.of(2025, 1, 30)` makes a date. The month is 1 to 12.',
+        'Methods like `plusDays()` return a new date. The old one stays the same.',
+        'Use `ChronoUnit.DAYS.between(a, b)` to count days between two dates.',
+        'Use `LocalDateTime` for date plus time. Use `ZonedDateTime` when the time zone matters.',
+        'Avoid the old `Date` and `Calendar` classes in new code.',
+      ],
+      example: {
+        title: 'Dates with LocalDate',
+        code: 'import java.time.LocalDate;\nimport java.time.temporal.ChronoUnit;\n\npublic class Main {\n  public static void main(String[] args) {\n    LocalDate start = LocalDate.of(2025, 1, 30);\n    LocalDate later = start.plusDays(10);\n    System.out.println(start);\n    System.out.println(later);\n    System.out.println(later.getDayOfWeek());\n    System.out.println(ChronoUnit.DAYS.between(start, later));\n    System.out.println(later.isAfter(start));\n  }\n}',
+        output: '2025-01-30\n2025-02-09\nSUNDAY\n10\ntrue',
+        runnable: true,
+        explain: '`plusDays(10)` gives a new date, and `start` is not changed. Java handles the end of January for you. `ChronoUnit.DAYS.between` counts the days between the two dates.',
+      },
+      tip: 'A `LocalDate` has no time zone. Use `ZonedDateTime` or `Instant` for exact moments in time.',
+    },
     textbook: {
       definition:
         'The **java.time** API is the standard Java library for dates, times, instants and durations. It is specified by JSR 310, was introduced in Java 8, and is based on the ISO-8601 calendar system. Its main classes are **immutable** and thread-safe. It separates **machine time** from **human time**. Machine time is a position on the time-line, represented by `Instant`. Human time is represented by local date-time types, which carry no time zone. It is also represented by `ZonedDateTime` and `OffsetDateTime`, which bind a local date-time to a **time zone** or an **offset** from UTC. `Duration` and `Period` model amounts of time.',

@@ -4,6 +4,24 @@ import type { LessonConcepts } from '@/types/curriculum';
 export const oopConcepts: Record<string, LessonConcepts> = {
   // -------------------------------------------------------------------------
   'o-classes-objects': {
+    quick: {
+      definition: 'A **class** is a blueprint that describes what something has and can do. An **object** is one real thing built from that blueprint.',
+      points: [
+        'A class holds fields (data) and methods (actions).',
+        'Use the `new` keyword to create an object from a class.',
+        'A constructor is a special method that runs when you create an object. It has the same name as the class.',
+        'You can make many objects from one class. Each object keeps its own values.',
+        'Use the dot (`.`) to reach an object\'s fields and methods.',
+      ],
+      example: {
+        title: 'A Car class and a Car object',
+        code: 'public class Main {\n  public static void main(String[] args) {\n    Car myCar = new Car("Toyota", 2020);\n    myCar.honk();\n    System.out.println(myCar.brand + " " + myCar.year);\n  }\n}\n\nclass Car {\n  String brand;\n  int year;\n\n  Car(String brand, int year) {\n    this.brand = brand;\n    this.year = year;\n  }\n\n  void honk() {\n    System.out.println("Beep!");\n  }\n}',
+        output: 'Beep!\nToyota 2020',
+        runnable: true,
+        explain: '`Car` is the blueprint with two fields, a constructor and one method. `new Car("Toyota", 2020)` builds an object and the constructor fills in its fields. `myCar.honk()` calls the method on that object.',
+      },
+      tip: 'A class name starts with a capital letter, like `Car`. An object variable starts with a small letter, like `myCar`.',
+    },
     textbook: {
       definition:
         'A **class** is a reference type declaration. It specifies the **fields**, **methods**, **constructors** and initialisers shared by a family of objects. An **object** is a class instance. It is created at run time by a class instance creation expression (`new`) or by reflection. It takes up storage on the heap and has its own copy of every instance field. Code can work with it only through **references**. Static members belong to the class itself, not to any instance. **Encapsulation** limits direct access to an object\'s state. This lets the class\'s own methods keep its invariants (rules that must always hold) true.',
@@ -276,6 +294,24 @@ export const oopConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'o-inheritance': {
+    quick: {
+      definition: '**Inheritance** lets a class reuse the fields and methods of another class. The new class is called the subclass and the old one is the superclass.',
+      points: [
+        'Use the `extends` keyword to inherit from a class.',
+        'The subclass gets the non-private fields and methods of the superclass.',
+        'The subclass can add its own new fields and methods.',
+        'A class can extend only one other class.',
+        'Use `super` to call the superclass constructor or one of its methods.',
+      ],
+      example: {
+        title: 'A Dog inherits from Animal',
+        code: 'public class Main {\n  public static void main(String[] args) {\n    Dog dog = new Dog("Rex");\n    dog.eat();\n    dog.bark();\n  }\n}\n\nclass Animal {\n  String name;\n\n  Animal(String name) {\n    this.name = name;\n  }\n\n  void eat() {\n    System.out.println(name + " is eating");\n  }\n}\n\nclass Dog extends Animal {\n  Dog(String name) {\n    super(name);\n  }\n\n  void bark() {\n    System.out.println(name + " says Woof");\n  }\n}',
+        output: 'Rex is eating\nRex says Woof',
+        runnable: true,
+        explain: '`Dog extends Animal`, so a `Dog` can use `name` and `eat()` without writing them again. `super(name)` passes the name up to the `Animal` constructor. `bark()` exists only in `Dog`.',
+      },
+      tip: 'Use inheritance only for an "is-a" link. A `Dog` is an `Animal`, but a `Car` is not an `Engine`.',
+    },
     textbook: {
       definition:
         '**Inheritance** is the mechanism by which a class, the **subclass**, is declared as an extension of another class, its direct **superclass**. As a result, the subclass gets the superclass\'s members that are declared public or protected. It also gets package-access members when both classes are in the same package. Private members, constructors and initialisers are not inherited. A subclass may add members, **hide** inherited fields and static methods, and **override** inherited instance methods. Calls to overridden methods are resolved by **dynamic dispatch**, based on the run-time class of the receiver. Every class except `Object` has exactly one direct superclass.',
@@ -550,6 +586,24 @@ export const oopConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'o-inheritance-types': {
+    quick: {
+      definition: 'Classes can be linked in three common shapes, called single, multilevel and hierarchical. A Java class can have only one parent class.',
+      points: [
+        '**Single**: one class extends one class, like `Dog` extends `Animal`.',
+        '**Multilevel**: a chain of classes, like `Puppy` extends `Dog` extends `Animal`.',
+        '**Hierarchical**: several classes extend the same parent, like `Dog` and `Cat` extend `Animal`.',
+        'A class cannot extend two classes. To get several types, implement several interfaces.',
+        'Every class extends `Object` if you do not write `extends`.',
+      ],
+      example: {
+        title: 'A chain and a tree of classes',
+        code: 'public class Main {\n  public static void main(String[] args) {\n    Puppy puppy = new Puppy();\n    puppy.breathe();\n    puppy.bark();\n    puppy.play();\n\n    Cat cat = new Cat();\n    cat.breathe();\n    cat.meow();\n  }\n}\n\nclass Animal {\n  void breathe() { System.out.println("breathing"); }\n}\n\nclass Dog extends Animal {\n  void bark() { System.out.println("woof"); }\n}\n\nclass Puppy extends Dog {\n  void play() { System.out.println("playing"); }\n}\n\nclass Cat extends Animal {\n  void meow() { System.out.println("meow"); }\n}',
+        output: 'breathing\nwoof\nplaying\nbreathing\nmeow',
+        runnable: true,
+        explain: '`Puppy` extends `Dog`, which extends `Animal`, so it gets all three sets of methods (multilevel). `Dog` and `Cat` both extend `Animal` (hierarchical).',
+      },
+      tip: 'Deep chains are hard to read. Keep your class hierarchies short.',
+    },
     textbook: {
       definition:
         '**Types of inheritance** name the shapes that subtype relationships among classes and interfaces can take. There are five. **Single** (one direct parent), **multilevel** (a chain of parents) and **hierarchical** (several subclasses of one parent) are three of them. The other two are **multiple** (more than one direct parent) and **hybrid** (a mix of these). In Java, a class has exactly one direct superclass but may implement any number of **superinterfaces**. An interface may extend several interfaces. So Java supports multiple inheritance of type, and of behaviour through default methods. It does not support multiple inheritance of **state**.',
@@ -793,6 +847,24 @@ export const oopConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'o-polymorphism-types': {
+    quick: {
+      definition: '**Polymorphism** means "many forms". The same method name can do different things, either by overloading it or by overriding it.',
+      points: [
+        '**Overloading**: several methods in one class share a name but take different parameters.',
+        'Java picks the overloaded method at compile time, based on the arguments you pass.',
+        '**Overriding**: a subclass gives its own body to a method it inherited.',
+        'Java picks the overridden method at run time, based on the real object.',
+        'Add `@Override` above an overriding method. The compiler then checks your work.',
+      ],
+      example: {
+        title: 'Overloading and overriding',
+        code: 'public class Main {\n  public static void main(String[] args) {\n    Calculator calc = new Calculator();\n    System.out.println(calc.add(2, 3));\n    System.out.println(calc.add(2, 3, 4));\n\n    Animal animal = new Cat();\n    animal.speak();\n  }\n}\n\nclass Calculator {\n  int add(int a, int b) { return a + b; }\n  int add(int a, int b, int c) { return a + b + c; }\n}\n\nclass Animal {\n  void speak() { System.out.println("Some sound"); }\n}\n\nclass Cat extends Animal {\n  @Override\n  void speak() { System.out.println("Meow"); }\n}',
+        output: '5\n9\nMeow',
+        runnable: true,
+        explain: '`add` is overloaded: one version takes two numbers and one takes three. `Cat` overrides `speak()`. The variable has type `Animal`, but the object is a `Cat`, so it prints `Meow`.',
+      },
+      tip: 'Changing only the return type is not overloading. The parameter list must be different.',
+    },
     textbook: {
       definition:
         '**Polymorphism** is the ability of a single name, expression or operation to stand for, or act on, values of several types. Java provides three kinds. **Ad-hoc polymorphism** comes from method overloading. It is resolved at compile time from the declared types of the arguments. **Subtype (inclusion) polymorphism** means a value of a subtype may be used wherever its supertype is expected. It works together with method overriding and **dynamic dispatch** at run time. **Parametric polymorphism** comes from generic classes and methods. They are type-checked at compile time and implemented by **erasure**.',
@@ -1042,6 +1114,24 @@ export const oopConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'o-interfaces': {
+    quick: {
+      definition: 'An **interface** is a list of methods that a class promises to provide. It says what a class can do, but not how it does it.',
+      points: [
+        'Use `interface` to declare it and `implements` to use it in a class.',
+        'A class that implements an interface must write a body for each of its abstract methods.',
+        'A class can implement many interfaces.',
+        'You cannot create an object from an interface with `new`. You can use it as a variable type.',
+        'Interface methods are `public` by default.',
+      ],
+      example: {
+        title: 'Different shapes, one interface',
+        code: 'public class Main {\n  public static void main(String[] args) {\n    Drawable[] items = { new Circle(), new Square() };\n    for (Drawable item : items) {\n      item.draw();\n    }\n  }\n}\n\ninterface Drawable {\n  void draw();\n}\n\nclass Circle implements Drawable {\n  public void draw() {\n    System.out.println("Drawing a circle");\n  }\n}\n\nclass Square implements Drawable {\n  public void draw() {\n    System.out.println("Drawing a square");\n  }\n}',
+        output: 'Drawing a circle\nDrawing a square',
+        runnable: true,
+        explain: '`Drawable` promises a `draw()` method. `Circle` and `Square` both keep that promise in their own way. The loop treats them the same, because both are `Drawable`.',
+      },
+      tip: 'Methods you write for an interface must be marked `public`. Forgetting it is a common compile error.',
+    },
     textbook: {
       definition:
         'An **interface** is a reference type. Its members are constants, abstract method declarations, default and static methods and, since Java 9, private methods. It declares no instance fields and no constructors. A class that **implements** an interface must implement its abstract methods, or else be declared abstract. An **abstract class** is a class that cannot be instantiated. It may declare abstract methods alongside fields, constructors and concrete methods. A **sealed** class or interface limits its direct subtypes to an explicitly **permitted** set.',
@@ -1289,6 +1379,23 @@ export const oopConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'o-object-contracts': {
+    quick: {
+      definition: 'Every Java class inherits `equals`, `hashCode` and `toString` from `Object`. You override them so objects compare, hash and print in a way that makes sense.',
+      points: [
+        '`equals` decides if two objects count as the same. The default only checks if they are the very same object.',
+        '`hashCode` returns a number. Hash-based collections like `HashSet` use it.',
+        'If two objects are equal, they must return the same `hashCode`. Override both methods together.',
+        '`toString` gives a readable text for an object. `println` calls it for you.',
+      ],
+      example: {
+        title: 'Equal points in a HashSet',
+        code: 'import java.util.*;\n\npublic class Main {\n  public static void main(String[] args) {\n    Point a = new Point(1, 2);\n    Point b = new Point(1, 2);\n    System.out.println(a.equals(b));\n    Set<Point> points = new HashSet<>();\n    points.add(a);\n    points.add(b);\n    System.out.println(points.size());\n    System.out.println(a);\n  }\n}\n\nclass Point {\n  int x, y;\n  Point(int x, int y) { this.x = x; this.y = y; }\n\n  @Override\n  public boolean equals(Object o) {\n    return o instanceof Point p && x == p.x && y == p.y;\n  }\n  @Override\n  public int hashCode() { return Objects.hash(x, y); }\n  @Override\n  public String toString() { return "Point(" + x + ", " + y + ")"; }\n}',
+        output: 'true\n1\nPoint(1, 2)',
+        runnable: true,
+        explain: '`a` and `b` are two objects with the same x and y, so our `equals` says they are equal. The `HashSet` keeps only one of them. `println(a)` uses our `toString`.',
+      },
+      tip: 'If you override `equals`, always override `hashCode` too. Otherwise a `HashSet` or `HashMap` can behave wrongly.',
+    },
     textbook: {
       definition:
         'The **general contract** of `Object.equals` requires the method to implement an **equivalence relation** on non-null references. It must be reflexive, symmetric and transitive. It must be **consistent** across calls while the compared state is unchanged. It must return false for a null argument. The contract of `Object.hashCode` requires the value to be consistent within one execution. It also requires objects that are equal according to `equals` to produce the same **hash code**. Unequal objects may share one. `toString` should return a short, informative text representation. Hash-based collections depend on both contracts.',
@@ -1466,6 +1573,24 @@ export const oopConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'o-solid': {
+    quick: {
+      definition: '**SOLID** is a set of five design rules for writing code that is easy to read, change and test. Each letter stands for one rule.',
+      points: [
+        '**S** Single Responsibility: a class should have one job.',
+        '**O** Open/Closed: add new behavior by adding code, not by editing old code.',
+        '**L** Liskov Substitution: a subclass must work wherever its parent class is expected.',
+        '**I** Interface Segregation: prefer small interfaces to one big one.',
+        '**D** Dependency Inversion: depend on interfaces, not on concrete classes.',
+      ],
+      example: {
+        title: 'Depend on an interface',
+        code: 'public class Main {\n  public static void main(String[] args) {\n    new OrderService(new EmailNotifier()).placeOrder("book");\n    new OrderService(new SmsNotifier()).placeOrder("pen");\n  }\n}\n\ninterface Notifier {\n  void send(String message);\n}\n\nclass EmailNotifier implements Notifier {\n  public void send(String message) { System.out.println("Email: " + message); }\n}\n\nclass SmsNotifier implements Notifier {\n  public void send(String message) { System.out.println("SMS: " + message); }\n}\n\nclass OrderService {\n  private final Notifier notifier;\n\n  OrderService(Notifier notifier) { this.notifier = notifier; }\n\n  void placeOrder(String item) {\n    notifier.send("Order placed for " + item);\n  }\n}',
+        output: 'Email: Order placed for book\nSMS: Order placed for pen',
+        runnable: true,
+        explain: '`OrderService` only knows the `Notifier` interface, not a concrete class (Dependency Inversion). To add a new way to notify, you write a new class and leave `OrderService` unchanged (Open/Closed).',
+      },
+      tip: 'SOLID is a set of guidelines, not strict laws. Use them to keep code simple, not to add extra classes everywhere.',
+    },
     textbook: {
       definition:
         '**SOLID** is an acronym for five principles of object-oriented class design, collected by Robert C. Martin. The **Single Responsibility Principle** says a module should have one reason to change. The **Open/Closed Principle** says software entities should be open for extension but closed for modification. The **Liskov Substitution Principle** says objects of a subtype must be substitutable for objects of their supertype. The swap must not change the correctness of the program. The **Interface Segregation Principle** says clients should not be forced to depend on methods they do not use. The **Dependency Inversion Principle** says high-level modules should not depend on low-level modules. Instead, both should depend on abstractions.',

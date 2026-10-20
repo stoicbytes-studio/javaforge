@@ -3,6 +3,24 @@ import type { LessonConcepts } from '@/types/curriculum';
 /** Concept pages for module 8 (JVM Runtime), keyed by lesson id. */
 export const jvmRuntimeConcepts: Record<string, LessonConcepts> = {
   'r-memory-areas': {
+    quick: {
+      definition: 'The JVM splits memory into areas. The **stack** holds local variables for each method call, and the **heap** holds all objects.',
+      points: [
+        'Every thread has its own stack. Each method call adds a frame to it with the local variables.',
+        'When a method returns, its frame is removed and its locals are gone.',
+        'Objects created with `new` live on the heap. All threads share the heap.',
+        'A variable of a class type holds a reference (an address) to an object on the heap.',
+        'Two variables can refer to the same object.',
+      ],
+      example: {
+        title: 'Stack variables and heap objects',
+        code: 'public class Main {\n  static class Point {\n    int x;\n    Point(int x) { this.x = x; }\n  }\n\n  public static void main(String[] args) {\n    int count = 5;\n    Point p = new Point(3);\n    Point q = p;\n    q.x = 10;\n    System.out.println("count = " + count);\n    System.out.println("p.x = " + p.x);\n  }\n}',
+        output: 'count = 5\np.x = 10',
+        runnable: true,
+        explain: '`count` is a local variable, so it lives on the stack. `new Point(3)` creates one object on the heap, and both `p` and `q` point to it. Changing `q.x` also changes `p.x`.',
+      },
+      tip: 'A local variable holds the reference, not the object. The object itself always lives on the heap.',
+    },
     textbook: {
       definition:
         'The **run-time data areas** of the Java Virtual Machine are the memory regions the JVM uses while it runs a program. The JVM Specification defines them. Some are created for each thread when the thread starts, and destroyed when it ends: the **pc register**, the **Java Virtual Machine stack** of frames and the native method stack. Others are created when the JVM starts, and all threads share them. One is the **heap**. All class instances and arrays are allocated from it, and automatic storage management reclaims (frees) its storage. The other is the **method area**. It stores per-class structures, including the **run-time constant pool**.',
@@ -236,6 +254,24 @@ export const jvmRuntimeConcepts: Record<string, LessonConcepts> = {
   },
 
   'r-class-loading': {
+    quick: {
+      definition: 'Class loading is how the JVM finds a `.class` file and brings it into memory. Java loads a class only when the program first needs it.',
+      points: [
+        'A class loader reads the bytecode of a class and creates the class in memory.',
+        'The JVM then links the class and runs its `static` initializers.',
+        'This happens once per class, the first time you use it.',
+        'Loading is lazy. A class you never use is never initialized.',
+        'Classes from the JDK and classes from your own code are loaded by different class loaders.',
+      ],
+      example: {
+        title: 'A class loads on first use',
+        code: 'public class Main {\n  static class Config {\n    static String name = "JavaForge";\n    static {\n      System.out.println("Config is initialized");\n    }\n  }\n\n  public static void main(String[] args) {\n    System.out.println("Start");\n    System.out.println(Config.name);\n    System.out.println(Config.name);\n  }\n}',
+        output: 'Start\nConfig is initialized\nJavaForge\nJavaForge',
+        runnable: true,
+        explain: 'The word `Start` prints first, because `Config` is not needed yet. The first use of `Config.name` makes the JVM initialize the class, so the `static` block runs once. The second use does not run it again.',
+      },
+      tip: 'The `static` block of a class runs once, when the class is first used. It does not run when the program starts.',
+    },
     textbook: {
       definition:
         '**Class loading** is the process in which the Java Virtual Machine finds the binary form of a class or interface with a given name. It then creates a `Class` object from it. A **class loader** does this work. It is either the bootstrap loader or an instance of `java.lang.ClassLoader`, and by convention it uses **parent delegation**. **Linking** follows loading. Linking means verification, preparation and resolution of symbolic references. Then comes **initialisation**, which runs the class\'s static initialisers. At run time, a class is identified by its binary name together with its **defining loader**.',
@@ -468,6 +504,24 @@ export const jvmRuntimeConcepts: Record<string, LessonConcepts> = {
   },
 
   'r-gc': {
+    quick: {
+      definition: 'The **garbage collector** (GC) frees the memory of objects your program can no longer reach. You never free memory yourself in Java.',
+      points: [
+        'An object is garbage when no live variable can reach it any more.',
+        'The GC finds such objects on the heap and reclaims their memory automatically.',
+        'You can make an object unreachable by leaving its scope or by setting the variable to `null`.',
+        'You cannot know exactly when the GC runs. `System.gc()` is only a hint.',
+        'Memory leaks still happen if you keep references you no longer need, for example in a static list.',
+      ],
+      example: {
+        title: 'Short-lived objects are cleaned up',
+        code: 'public class Main {\n  public static void main(String[] args) {\n    long total = 0;\n    for (int i = 0; i < 1_000_000; i++) {\n      int[] data = new int[100];\n      data[0] = i;\n      total += data[0];\n    }\n    System.out.println("Total: " + total);\n  }\n}',
+        output: 'Total: 499999500000',
+        runnable: true,
+        explain: 'The loop creates one million arrays, about 400 MB in all. Each array becomes unreachable after its loop round, so the GC reclaims it. The program runs without running out of memory, and you wrote no cleanup code.',
+      },
+      tip: 'Do not rely on `finalize()` or `System.gc()` to free resources. Use try-with-resources to close files and connections.',
+    },
     textbook: {
       definition:
         '**Garbage collection** is the automatic reclaiming of heap storage used by objects that are no longer **reachable**. An object is reachable if any live thread can access it in any possible continuing computation. The JVM Specification requires an automatic storage management system to reclaim heap storage, but it does not prescribe the technique. HotSpot\'s collectors are **tracing collectors**. They decide which objects are live by following references from a set of **GC roots**. Most are also **generational**: they divide the heap by object age. Collectors differ in how they trade off throughput, pause time and memory footprint.',

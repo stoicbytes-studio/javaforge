@@ -3,6 +3,23 @@ import type { LessonConcepts } from '@/types/curriculum';
 /** Concept page for the extra module-8 lesson on JIT compiler internals. */
 export const jitConcepts: Record<string, LessonConcepts> = {
   'r-jit-compiler': {
+    quick: {
+      definition: 'The **JIT compiler** turns frequently used bytecode into fast machine code while the program runs. This is why Java gets faster after a short warm-up.',
+      points: [
+        'The JVM first runs your bytecode with an interpreter, which starts fast but runs slowly.',
+        'It counts how often each method and loop runs. Code that runs a lot is called hot.',
+        'The JIT compiler compiles hot code to native machine code for your CPU.',
+        'The result of your program stays the same. Only the speed changes.',
+        'The JVM can throw compiled code away and go back to the interpreter if its guesses turn out wrong.',
+      ],
+      example: {
+        title: 'Watching the JIT compile a method',
+        code: '// Run any program with this flag to print compile events\njava -XX:+PrintCompilation Main\n\n// Typical lines (your numbers will differ)\n//   105   42   3   Main::square (4 bytes)\n//   110   43   4   Main::square (4 bytes)',
+        runnable: false,
+        explain: 'The flag `-XX:+PrintCompilation` makes the JVM print a line each time it compiles a method. Here `Main::square` was called so often that it was compiled twice, first quickly and then with more optimization.',
+      },
+      tip: 'Timing a method once tells you little. Warm it up first, or use a benchmark tool such as JMH.',
+    },
     textbook: {
       definition:
         'A **just-in-time (JIT) compiler** is a part of the Java Virtual Machine\'s execution engine. It turns bytecode into native machine code while the program runs, not before. In HotSpot, methods start in the interpreter. Each method has invocation and loop counters. When either counter passes a set limit (threshold), the C1 and C2 compilers compile the method in the background, under **tiered compilation**. The optimising compiler uses **profile-guided** optimisations, such as inlining and **speculative optimisation**. It protects each assumption with a guard (a quick check). When an assumption stops being true, the compiled code is thrown away through **deoptimisation**. Compilation changes only performance, never the meaning (semantics) defined by the JLS.',

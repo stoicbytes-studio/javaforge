@@ -3,6 +3,24 @@ import type { LessonConcepts } from '@/types/curriculum';
 /** Concept pages for the extra I/O lessons: serialization, and NIO channels/buffers/sockets. */
 export const serializationNioConcepts: Record<string, LessonConcepts> = {
   'io-serialization': {
+    quick: {
+      definition: '**Serialization** turns an object into a stream of bytes so you can save it or send it. **Deserialization** turns those bytes back into an object.',
+      points: [
+        'A class must implement the `Serializable` interface to be serialized.',
+        'Use `ObjectOutputStream.writeObject` to write an object and `ObjectInputStream.readObject` to read it back.',
+        'Fields marked `transient` are skipped. After reading, they hold their default value, such as `null`.',
+        'Static fields are not part of an object, so they are not saved either.',
+        'Declare a `serialVersionUID` so old saved data keeps working when the class changes.',
+      ],
+      example: {
+        title: 'Save and load an object',
+        code: 'import java.io.*;\n\npublic class Main {\n  static class User implements Serializable {\n    String name;\n    transient String password;\n\n    User(String name, String password) {\n      this.name = name;\n      this.password = password;\n    }\n  }\n\n  public static void main(String[] args) throws Exception {\n    User user = new User("Ada", "secret");\n    ByteArrayOutputStream bytes = new ByteArrayOutputStream();\n    try (ObjectOutputStream out = new ObjectOutputStream(bytes)) {\n      out.writeObject(user);\n    }\n    try (ObjectInputStream in =\n        new ObjectInputStream(new ByteArrayInputStream(bytes.toByteArray()))) {\n      User copy = (User) in.readObject();\n      System.out.println(copy.name);\n      System.out.println(copy.password);\n    }\n  }\n}',
+        output: 'Ada\nnull',
+        runnable: true,
+        explain: 'The program writes a `User` into a byte array and reads it back as a new object. The `name` is kept. The `password` is `transient`, so it was never saved and comes back as `null`.',
+      },
+      tip: 'Never deserialize data from a source you do not trust. It can be a security risk.',
+    },
     textbook: {
       definition:
         '**Serialization** is the process of encoding the state of an object, and of the objects reachable from it, into a sequence of bytes. Later, **deserialization** can rebuild an equivalent **object graph** from those bytes. In Java, a class opts in by implementing the marker interface **`java.io.Serializable`**. `ObjectOutputStream` writes the values of its non-static, non-**transient** fields, and `ObjectInputStream` re-creates the objects. For an ordinary class, it calls only the no-argument constructor of the first non-serializable superclass, never the class\'s own constructors. A record is rebuilt through its canonical constructor. The **`serialVersionUID`** controls compatibility between class versions.',
@@ -249,6 +267,23 @@ export const serializationNioConcepts: Record<string, LessonConcepts> = {
     ],
   },
   'io-nio-sockets': {
+    quick: {
+      definition: '**NIO** is Java\'s way of doing input and output with buffers and channels. A buffer holds data in memory, and a channel (a file or a network socket) moves data in and out of it.',
+      points: [
+        'A `ByteBuffer` has a `position` (where the next byte goes) and a `limit` (where the data ends).',
+        'After you write into a buffer, call `flip()`. Now you can read what you wrote.',
+        'A `Socket` is one end of a network connection. TCP sockets send a reliable stream of bytes.',
+        'A `Selector` lets one thread watch many channels and react when one is ready.',
+      ],
+      example: {
+        title: 'Fill and read a buffer',
+        code: 'import java.nio.ByteBuffer;\n\npublic class Main {\n  public static void main(String[] args) {\n    ByteBuffer buffer = ByteBuffer.allocate(8);\n    buffer.put((byte) 10);\n    buffer.put((byte) 20);\n    buffer.put((byte) 30);\n    System.out.println("position=" + buffer.position());\n    buffer.flip();\n    System.out.println("limit=" + buffer.limit());\n    System.out.println(buffer.get());\n    System.out.println(buffer.remaining());\n  }\n}',
+        output: 'position=3\nlimit=3\n10\n2',
+        runnable: true,
+        explain: 'The buffer has room for 8 bytes, and we put 3 into it, so the position is 3. `flip()` sets the limit to 3 and the position back to 0, ready for reading. One `get()` reads `10`, and 2 bytes remain.',
+      },
+      tip: 'Forgetting `flip()` is the most common NIO mistake. You then read from the wrong place.',
+    },
     textbook: {
       definition:
         '**NIO** (New I/O, `java.nio`) is the Java API for input and output based on buffers and channels. A **buffer** is a linear, finite sequence of elements of one primitive type. Its capacity, limit and position describe its state. A **channel** is an open connection to an entity, such as a file or a **socket**. It can read into buffers and write from them. A selectable channel may be put in non-blocking mode and registered with a **`Selector`**. The Selector multiplexes readiness events (it combines them from many channels), so one thread can serve many channels. A socket is an endpoint of a two-way network connection. A TCP socket carries a reliable, ordered **byte stream** without message boundaries.',

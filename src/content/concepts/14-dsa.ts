@@ -3,6 +3,24 @@ import type { LessonConcepts } from '@/types/curriculum';
 /** Concept pages for module 14 (Data structures, algorithms and problem solving), keyed by lesson id. */
 export const dsaConcepts: Record<string, LessonConcepts> = {
   'a-complexity': {
+    quick: {
+      definition: '**Complexity** tells you how the work of an algorithm grows when the input gets bigger. We write it with **Big-O** notation, such as `O(n)` or `O(n^2)`.',
+      points: [
+        'The letter `n` is the size of the input, for example the number of items in a list.',
+        '`O(1)` means the work stays the same, however big `n` is.',
+        '`O(n)` means the work grows in step with `n`. One loop is usually `O(n)`.',
+        '`O(n^2)` means the work grows with the square of `n`. A loop inside a loop is usually `O(n^2)`.',
+        'Big-O ignores small details. `3n + 5` is still just `O(n)`.',
+      ],
+      example: {
+        title: 'Counting steps',
+        code: 'public class Main {\n  static int linear(int n) {\n    int steps = 0;\n    for (int i = 0; i < n; i++) {\n      steps++;\n    }\n    return steps;\n  }\n\n  static int quadratic(int n) {\n    int steps = 0;\n    for (int i = 0; i < n; i++) {\n      for (int j = 0; j < n; j++) {\n        steps++;\n      }\n    }\n    return steps;\n  }\n\n  public static void main(String[] args) {\n    System.out.println("n=10: " + linear(10) + " and " + quadratic(10));\n    System.out.println("n=100: " + linear(100) + " and " + quadratic(100));\n  }\n}',
+        output: 'n=10: 10 and 100\nn=100: 100 and 10000',
+        runnable: true,
+        explain: 'We count the steps instead of measuring time. When `n` grows 10 times, the single loop does 10 times more steps. The nested loops do 100 times more.',
+      },
+      tip: 'Big-O describes how the work grows, not how many seconds it takes. A faster computer does not change it.',
+    },
     textbook: {
       definition:
         'The **computational complexity** of an algorithm is a function of the **input size** n. It gives the amount of a resource the algorithm needs, usually running time or memory. **Asymptotic analysis** describes this function by its order of growth as n tends to infinity. It drops constant factors and lower-order terms. A function f(n) is **O(g(n))** if f(n) ≤ c·g(n) for all n ≥ n₀, for some positive constants c and n₀. **Ω** gives the matching lower bound, and **Θ** a bound that is both. The analysis may be stated for the worst case, for the average case, or as an **amortised** bound over a sequence of operations.',
@@ -215,6 +233,24 @@ export const dsaConcepts: Record<string, LessonConcepts> = {
   },
 
   'a-data-structures': {
+    quick: {
+      definition: 'A **data structure** is a way to store and organise data so you can use it well. Each kind is good at some jobs and slower at others.',
+      points: [
+        'An array or `ArrayList` keeps items in order. You can read any item by its index.',
+        'A `HashMap` stores key-value pairs. You find a value fast by its key.',
+        'A `HashSet` keeps unique items only. It is a fast way to ask "is this in the set?".',
+        'A stack works last in, first out. In Java, use `ArrayDeque` for it.',
+        'Pick the structure that makes your most common operation fast.',
+      ],
+      example: {
+        title: 'List, map and stack',
+        code: 'import java.util.ArrayDeque;\nimport java.util.ArrayList;\nimport java.util.HashMap;\nimport java.util.List;\nimport java.util.Map;\n\npublic class Main {\n  public static void main(String[] args) {\n    List<String> names = new ArrayList<>();\n    names.add("Ann");\n    names.add("Bob");\n    System.out.println("List: " + names);\n\n    Map<String, Integer> ages = new HashMap<>();\n    ages.put("Ann", 25);\n    ages.put("Bob", 30);\n    System.out.println("Bob is " + ages.get("Bob"));\n\n    ArrayDeque<Integer> stack = new ArrayDeque<>();\n    stack.push(1);\n    stack.push(2);\n    stack.push(3);\n    System.out.println("Pop: " + stack.pop());\n  }\n}',
+        output: 'List: [Ann, Bob]\nBob is 30\nPop: 3',
+        runnable: true,
+        explain: 'The list keeps `Ann` and `Bob` in the order you added them. The map finds Bob\'s age by his name. The stack gives back `3`, the last item you pushed.',
+      },
+      tip: 'When you look up items by a key again and again, a `HashMap` is usually better than searching a list.',
+    },
     textbook: {
       definition:
         'A **data structure** is a way of organising and storing data in memory, together with the operations defined on it. Its aim is to make those operations efficient. It is the concrete form of an **abstract data type** (ADT). An ADT specifies the operations and their behaviour without fixing how the data is stored. Data structures are either **linear** or **non-linear**. In a linear structure, the elements form a sequence (arrays, linked lists, stacks, queues). In a non-linear structure, they form hierarchies or networks (trees, heaps, graphs). Hash tables organise elements by key. Each representation trades time against space, and the same operation costs different amounts in different structures.',
@@ -450,6 +486,24 @@ export const dsaConcepts: Record<string, LessonConcepts> = {
   },
 
   'a-sorting-searching': {
+    quick: {
+      definition: '**Sorting** puts items in order, for example smallest to largest. **Searching** finds out where an item is, or whether it is there at all.',
+      points: [
+        'Use `Arrays.sort(array)` to sort an array. For objects, use `list.sort(...)` or `Collections.sort(list)`.',
+        '**Linear search** checks items one by one. It works on any data and takes `O(n)` time.',
+        '**Binary search** needs sorted data. It halves the search range each step and takes `O(log n)` time.',
+        '`Arrays.binarySearch` returns the index of the item. If the item is missing, it returns a negative number.',
+        'Good sorting algorithms, like the one in `Arrays.sort`, take about `O(n log n)` time.',
+      ],
+      example: {
+        title: 'Sort and binary search',
+        code: 'import java.util.Arrays;\n\npublic class Main {\n  public static void main(String[] args) {\n    int[] numbers = {5, 2, 9, 1};\n    Arrays.sort(numbers);\n    System.out.println(Arrays.toString(numbers));\n    System.out.println("Index of 5: " + Arrays.binarySearch(numbers, 5));\n    System.out.println("Index of 7: " + Arrays.binarySearch(numbers, 7));\n  }\n}',
+        output: '[1, 2, 5, 9]\nIndex of 5: 2\nIndex of 7: -4',
+        runnable: true,
+        explain: 'First we sort the array. Then `binarySearch` finds `5` at index `2`. The number `7` is not in the array, so we get a negative number: `-4`.',
+      },
+      tip: 'Never use binary search on unsorted data. The answer will be wrong.',
+    },
     textbook: {
       definition:
         '**Sorting** is the problem of rearranging a sequence of n elements into a permutation that is non-decreasing under a **total order** on their keys. **Searching** is the problem of finding whether, and where, an element with a given key occurs in a collection. Sorting algorithms are described by four things: their time complexity, their auxiliary space (**in-place** or not), **stability**, and whether they rely only on **comparisons**. If they rely only on comparisons, they need at least Ω(n log n) comparisons in the worst case. Searching costs O(n) for an unordered sequence. It costs O(log n) by **binary search** on a sorted sequence with random access.',
@@ -693,6 +747,24 @@ export const dsaConcepts: Record<string, LessonConcepts> = {
   },
 
   'a-patterns': {
+    quick: {
+      definition: 'An **algorithm pattern** is a common way of solving a whole group of similar problems. If you know the pattern, you do not start from zero each time.',
+      points: [
+        '**Two pointers**: walk through sorted data from both ends, or with two positions.',
+        '**Sliding window**: keep a range of items and move it along the data.',
+        '**Hash map**: remember what you have seen, so you do not search for it again.',
+        '**Divide and conquer**: split a problem into smaller parts and solve each part.',
+        'First look at the problem and its limits. Then pick the pattern that fits.',
+      ],
+      example: {
+        title: 'Two pointers on a sorted array',
+        code: 'public class Main {\n  public static void main(String[] args) {\n    int[] numbers = {1, 3, 4, 6, 9};\n    int target = 7;\n    int left = 0;\n    int right = numbers.length - 1;\n    while (left < right) {\n      int sum = numbers[left] + numbers[right];\n      if (sum == target) {\n        System.out.println("Pair: " + numbers[left] + " + " + numbers[right]);\n        break;\n      } else if (sum < target) {\n        left++;\n      } else {\n        right--;\n      }\n    }\n  }\n}',
+        output: 'Pair: 1 + 6',
+        runnable: true,
+        explain: 'We start with one pointer at each end. If the sum is too small, we move `left` up. If it is too big, we move `right` down. We find the pair in one pass, so the work is `O(n)`.',
+      },
+      tip: 'Two pointers on a sorted array only works because the data is sorted. Sort it first if it is not.',
+    },
     textbook: {
       definition:
         'An **algorithmic problem-solving pattern**, or **algorithm design technique**, is a general strategy for building algorithms. It applies to a whole class of problems that share a common structure. Classical techniques include **brute-force search**, **divide and conquer**, **greedy** choice, **dynamic programming** and **graph traversal**. Practical refinements, such as two pointers, sliding windows, prefix sums and heap-based selection, remove repeated work in a brute-force solution. Applying a pattern has three parts. First, recognise the problem\'s structure and constraints. Next, pick a technique whose preconditions hold. Then prove that it is correct and meets the required complexity.',
@@ -919,6 +991,24 @@ export const dsaConcepts: Record<string, LessonConcepts> = {
   },
 
   'a-recursion-dp': {
+    quick: {
+      definition: '**Recursion** means a method calls itself to solve a smaller version of the same problem. **Dynamic programming** saves the answers it has already found, so it never solves the same part twice.',
+      points: [
+        'Every recursive method needs a **base case**. It is the simple case that stops the calls.',
+        'Each recursive call must move closer to the base case. If not, you get a `StackOverflowError`.',
+        'Plain recursion can repeat the same work many times, as in Fibonacci numbers.',
+        '**Memoisation** stores each result in an array or map the first time you compute it.',
+        'Next time, you look up the stored answer instead of computing it again.',
+      ],
+      example: {
+        title: 'Fibonacci with memoisation',
+        code: 'public class Main {\n  static long[] memo = new long[51];\n\n  static long fib(int n) {\n    if (n <= 1) {\n      return n;\n    }\n    if (memo[n] != 0) {\n      return memo[n];\n    }\n    memo[n] = fib(n - 1) + fib(n - 2);\n    return memo[n];\n  }\n\n  public static void main(String[] args) {\n    System.out.println("fib(10) = " + fib(10));\n    System.out.println("fib(50) = " + fib(50));\n  }\n}',
+        output: 'fib(10) = 55\nfib(50) = 12586269025',
+        runnable: true,
+        explain: 'The base case returns `n` for 0 and 1. For other values, `fib` adds the two previous numbers. The `memo` array saves each result, so `fib(50)` is fast.',
+      },
+      tip: 'Without the memo, `fib(50)` would make billions of calls. Saving results is what makes it fast.',
+    },
     textbook: {
       definition:
         '**Recursion** is a way to define and compute a function in terms of itself, applied to smaller instances. It also needs one or more **base cases** that are answered directly. To terminate, every recursive call must move toward a base case. **Dynamic programming** is an algorithm design technique for optimisation and counting problems. These problems have **optimal substructure** and **overlapping subproblems**. It solves each distinct subproblem once and stores the result. Then it combines stored results according to a **recurrence**. It is implemented top-down by **memoisation**, or bottom-up by tabulation. Tabulation uses an order that respects the dependencies between subproblems.',

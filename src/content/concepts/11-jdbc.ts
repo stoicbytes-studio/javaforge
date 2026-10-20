@@ -3,6 +3,23 @@ import type { LessonConcepts } from '@/types/curriculum';
 /** Concept pages for module 11 (JDBC, SQL Integration and Transactions), keyed by lesson id. */
 export const jdbcConcepts: Record<string, LessonConcepts> = {
   'j-jdbc': {
+    quick: {
+      definition: '**JDBC** is the Java API for talking to a relational database. You open a connection, send SQL, and read the rows that come back in a `ResultSet`.',
+      points: [
+        'You need a JDBC driver for your database on the classpath.',
+        'Get a `Connection` from `DriverManager` or a `DataSource`.',
+        'Use a `PreparedStatement` and put `?` where the values go. Then set them with methods such as `setInt`.',
+        'Call `rs.next()` to move to the next row. Then read columns with `rs.getString("name")`.',
+        'Use try-with-resources to close the connection, statement and result set.',
+      ],
+      example: {
+        title: 'Query a database',
+        code: 'String url = "jdbc:postgresql://localhost:5432/shop";\nString sql = "SELECT name FROM product WHERE price < ?";\n\ntry (Connection con = DriverManager.getConnection(url, "user", "pass");\n     PreparedStatement ps = con.prepareStatement(sql)) {\n  ps.setInt(1, 20);\n  try (ResultSet rs = ps.executeQuery()) {\n    while (rs.next()) {\n      System.out.println(rs.getString("name"));\n    }\n  }\n}',
+        runnable: false,
+        explain: 'This needs a running database and a driver, so it cannot run alone. It sends a query for products under 20. The `?` is filled with `20`, and the loop prints each product name.',
+      },
+      tip: 'Never glue user input into SQL text. Use `?` placeholders to stay safe from SQL injection.',
+    },
     textbook: {
       definition:
         '**JDBC** (Java Database Connectivity) is the Java SE API in the packages `java.sql` and `javax.sql`. It gives Java programs call-level access to tabular data sources, mainly relational databases, through SQL statements. The API is made up mainly of interfaces, such as `Connection`, `PreparedStatement` and `ResultSet`. A vendor-specific **JDBC driver** supplies their implementations. An application gets a **connection** from a **`DataSource`** or the `DriverManager`, and runs statements within that connection. It processes query results through a **`ResultSet`**, a cursor over the returned rows. A **`PreparedStatement`** holds precompiled SQL. Its parameters are bound separately from the statement text.',
@@ -223,6 +240,23 @@ export const jdbcConcepts: Record<string, LessonConcepts> = {
     ],
   },
   'j-transactions': {
+    quick: {
+      definition: 'A **transaction** groups several database steps into one unit. Either all of them succeed, or none of them take effect.',
+      points: [
+        'By default, JDBC saves each statement at once. Turn this off with `con.setAutoCommit(false)`.',
+        'Call `commit()` to make all the changes permanent.',
+        'Call `rollback()` to undo all the changes since the last commit.',
+        'A classic example is a money transfer. Taking money out and putting it in must happen together.',
+        'A transaction belongs to one `Connection`.',
+      ],
+      example: {
+        title: 'Transfer money safely',
+        code: 'con.setAutoCommit(false);\ntry {\n  try (PreparedStatement ps = con.prepareStatement(\n      "UPDATE account SET balance = balance + ? WHERE id = ?")) {\n    ps.setInt(1, -100);\n    ps.setInt(2, 1);\n    ps.executeUpdate();\n    ps.setInt(1, 100);\n    ps.setInt(2, 2);\n    ps.executeUpdate();\n  }\n  con.commit();\n} catch (SQLException e) {\n  con.rollback();\n  throw e;\n}',
+        runnable: false,
+        explain: 'This needs a database, so it cannot run alone. It takes 100 from account 1 and adds 100 to account 2. If anything fails, `rollback()` undoes both steps.',
+      },
+      tip: 'Always call `rollback()` when something fails. Otherwise the connection may keep the half-done work.',
+    },
     textbook: {
       definition:
         'A **transaction** is a sequence of database operations run as a single logical unit of work. It satisfies the **ACID** properties: atomicity, consistency, isolation and durability. In JDBC, a transaction belongs to one `Connection`. When **auto-commit** mode is turned off, statements collect in the current transaction. They stay there until `commit()` makes their effects permanent or `rollback()` discards them. The **isolation level** is set with `setTransactionIsolation`. It specifies which effects of transactions running at the same time are visible. So it also sets which **read phenomena** (dirty, non-repeatable and phantom reads) may occur. Stronger levels allow fewer phenomena, at the cost of less concurrency.',

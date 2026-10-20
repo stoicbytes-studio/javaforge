@@ -3,6 +3,24 @@ import type { LessonConcepts } from '@/types/curriculum';
 /** Concept pages for the extra module-4 lessons: regular expressions, annotations and reflection. */
 export const regexReflectionConcepts: Record<string, LessonConcepts> = {
   't-regex': {
+    quick: {
+      definition: 'A **regular expression** (regex) is a pattern that describes text. You use it to search, check or replace parts of a String.',
+      points: [
+        '`\\d` matches a digit, `\\w` a letter or digit, and `.` any character.',
+        '`+` means one or more, `*` means zero or more, and `{4}` means exactly four.',
+        '`Pattern.compile` builds the pattern. `matcher(text)` applies it to some text.',
+        'Call `find()` to get the next match, and `group()` to read it.',
+        '`String.matches` checks if the whole String fits a pattern.',
+      ],
+      example: {
+        title: 'Finding numbers in text',
+        code: 'import java.util.regex.Matcher;\nimport java.util.regex.Pattern;\n\npublic class Main {\n  public static void main(String[] args) {\n    Pattern pattern = Pattern.compile("\\\\d+");\n    Matcher matcher = pattern.matcher("Room 12, floor 3, seat 450");\n    while (matcher.find()) {\n      System.out.println(matcher.group());\n    }\n    System.out.println("2025-10-20".matches("\\\\d{4}-\\\\d{2}-\\\\d{2}"));\n  }\n}',
+        output: '12\n3\n450\ntrue',
+        runnable: true,
+        explain: 'The pattern `\\d+` means one or more digits. Each `find()` jumps to the next number, and `group()` returns it. The last line checks that a date has the shape year-month-day.',
+      },
+      tip: 'In a Java String, write each backslash twice. The regex `\\d` becomes `"\\\\d"` in your code.',
+    },
     textbook: {
       definition:
         'A **regular expression** is a string that specifies a set of character sequences. It uses a formal pattern syntax built from literals, character classes, quantifiers, groups, anchors and alternation. In Java, the package `java.util.regex` provides `Pattern`, a **compiled representation** of a regular expression. It also provides `Matcher`, an engine that performs **match operations** on a `CharSequence` by interpreting a pattern. `Pattern` instances are immutable and safe for use by multiple concurrent threads. `Matcher` instances hold match state and are not. The implementation is a **backtracking** matcher, which also supports back-references and look-around assertions.',
@@ -281,6 +299,24 @@ export const regexReflectionConcepts: Record<string, LessonConcepts> = {
   },
 
   't-annotations-reflection': {
+    quick: {
+      definition: 'An **annotation** is a label you put on code, like `@Override`. **Reflection** lets a program look at its own classes and methods while it runs.',
+      points: [
+        'Write an annotation with `@` before a class, method or field.',
+        'Create your own with `@interface`.',
+        'Add `@Retention(RetentionPolicy.RUNTIME)` so the annotation is still there when the program runs.',
+        'Use `getDeclaredMethods()` to list the methods of a class.',
+        'Use `isAnnotationPresent` to check a label, and `invoke` to call a method.',
+      ],
+      example: {
+        title: 'Run methods that have a label',
+        code: 'import java.lang.annotation.*;\nimport java.lang.reflect.Method;\nimport java.util.*;\n\npublic class Main {\n  @Retention(RetentionPolicy.RUNTIME)\n  @Target(ElementType.METHOD)\n  @interface Run {}\n\n  static class Tests {\n    @Run public void first() { System.out.println("first ran"); }\n    public void helper() { System.out.println("helper ran"); }\n    @Run public void second() { System.out.println("second ran"); }\n  }\n\n  public static void main(String[] args) throws Exception {\n    Tests tests = new Tests();\n    Method[] methods = Tests.class.getDeclaredMethods();\n    Arrays.sort(methods, Comparator.comparing(Method::getName));\n    for (Method m : methods) {\n      if (m.isAnnotationPresent(Run.class)) {\n        m.invoke(tests);\n      }\n    }\n  }\n}',
+        output: 'first ran\nsecond ran',
+        runnable: true,
+        explain: '`@Run` is our own label, kept at run time. The loop looks at every method of `Tests` and calls only those with `@Run`. `helper` has no label, so it is skipped.',
+      },
+      tip: 'Without `RetentionPolicy.RUNTIME`, reflection cannot see your annotation.',
+    },
     textbook: {
       definition:
         'An **annotation** is a modifier that associates **metadata** (data about the code) with a program element. Examples of program elements are a declaration or a use of a type. It consists of the name of an annotation interface and zero or more element-value pairs. It has no direct effect on the operation of the code it annotates. Annotation interfaces are declared with `@interface`. The meta-annotations `@Retention` and `@Target` determine how long annotations are kept and where they may appear. **Reflection** is the ability of a running program to inspect classes, fields, methods and annotations. It can also access or invoke them dynamically, subject to access control. `java.lang.Class` and the package `java.lang.reflect` provide this ability.',

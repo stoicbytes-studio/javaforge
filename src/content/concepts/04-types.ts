@@ -4,6 +4,23 @@ import type { LessonConcepts } from '@/types/curriculum';
 export const typesConcepts: Record<string, LessonConcepts> = {
   // -------------------------------------------------------------------------
   't-strings': {
+    quick: {
+      definition: 'A **String** holds text, such as a name or a sentence. Strings come with many handy methods, and a String never changes after you create it.',
+      points: [
+        'Write text between double quotes: `"Java"`.',
+        'Use `length()` to count the characters. Counting starts at 0 for positions.',
+        'Methods like `toUpperCase()` and `substring()` give you a new String.',
+        'Compare the text of two Strings with `equals()`, not `==`.',
+      ],
+      example: {
+        title: 'Working with a String',
+        code: 'public class Main {\n  public static void main(String[] args) {\n    String name = "Java";\n    System.out.println(name.length());\n    System.out.println(name.toUpperCase());\n    System.out.println(name.charAt(0));\n    System.out.println(name.substring(1, 3));\n    String greeting = "Hi";\n    greeting.concat(" there");\n    System.out.println(greeting);\n  }\n}',
+        output: '4\nJAVA\nJ\nav\nHi',
+        runnable: true,
+        explain: '`length()` counts 4 characters. `charAt(0)` is the first letter, and `substring(1, 3)` takes the letters at positions 1 and 2. `concat` returns a new String, so `greeting` is still `Hi`.',
+      },
+      tip: 'Use `equals()` to compare Strings. The `==` operator checks if both names point to the same object.',
+    },
     textbook: {
       definition:
         'In Java, a **string** is an instance of the final class `java.lang.String`. It represents an **immutable** sequence of characters, encoded as **UTF-16 code units**. A string literal is a reference to a `String` instance. Literals and constant expressions with equal content are **interned**, so they refer to the same instance in a shared pool. A string\'s value cannot change after it is created. So operations that seem to change it return new instances. For mutable character sequences, Java provides `StringBuilder` and `StringBuffer`. Like `String`, they implement the **CharSequence** interface.',
@@ -224,6 +241,23 @@ export const typesConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   't-wrappers': {
+    quick: {
+      definition: 'A **wrapper class** puts a simple value, like an `int`, inside an object. Java has one for each primitive type, such as `Integer` for `int`, and lists need them.',
+      points: [
+        'The wrappers are `Integer`, `Double`, `Boolean`, `Character`, `Long` and more.',
+        'Java converts between `int` and `Integer` for you. This is called autoboxing and unboxing.',
+        'Wrapper classes have helpers, like `Integer.parseInt("42")` to turn text into a number.',
+        'A wrapper variable can be `null`, but an `int` cannot.',
+      ],
+      example: {
+        title: 'Boxing and parsing',
+        code: 'public class Main {\n  public static void main(String[] args) {\n    Integer count = 5;\n    int plain = count;\n    int number = Integer.parseInt("42");\n    String text = Integer.toString(number + 1);\n    System.out.println(plain + 1);\n    System.out.println(number);\n    System.out.println(text + "!");\n    System.out.println(Integer.MAX_VALUE);\n  }\n}',
+        output: '6\n42\n43!\n2147483647',
+        runnable: true,
+        explain: 'The first line puts `5` into an `Integer` object. The second line takes it out again as a plain `int`. `parseInt` turns the text `"42"` into a number, and `Integer.MAX_VALUE` is the largest `int`.',
+      },
+      tip: 'Unboxing a `null` wrapper throws a `NullPointerException`. Check for `null` first.',
+    },
     textbook: {
       definition:
         'A **wrapper class** is one of the eight final classes in `java.lang`: `Byte`, `Short`, `Integer`, `Long`, `Float`, `Double`, `Character` and `Boolean`. Each instance is an **immutable** object that holds a single value of the matching primitive type. The language converts between the two forms without you writing the conversion. **Boxing conversion** turns a primitive value into a wrapper instance. **Unboxing conversion** turns a wrapper into its primitive value, and throws `NullPointerException` for a null reference. The six numeric wrappers extend the abstract class `java.lang.Number`.',
@@ -440,6 +474,24 @@ export const typesConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   't-generics': {
+    quick: {
+      definition: '**Generics** let a class or method work with many types while staying type-safe. You write the type in angle brackets, like `List<String>`, and the compiler checks it.',
+      points: [
+        '`List<String>` is a list that only holds Strings.',
+        'You do not need a cast when you read from it. `names.get(0)` is already a `String`.',
+        'Use `<>` (the diamond) when you create the object. Java works out the type.',
+        'Type parameters, like `T`, are placeholders for a real type. You can use them in your own classes and methods.',
+        'You cannot use primitives as type arguments. Use `List<Integer>`, not `List<int>`.',
+      ],
+      example: {
+        title: 'A list of Strings',
+        code: 'import java.util.ArrayList;\nimport java.util.List;\n\npublic class Main {\n  static <T> T first(List<T> items) {\n    return items.get(0);\n  }\n\n  public static void main(String[] args) {\n    List<String> names = new ArrayList<>();\n    names.add("Ann");\n    names.add("Bob");\n    String n = names.get(0);\n    System.out.println(n);\n    List<Integer> nums = List.of(10, 20, 30);\n    System.out.println(first(nums));\n    System.out.println(first(names));\n  }\n}',
+        output: 'Ann\n10\nAnn',
+        runnable: true,
+        explain: '`List<String>` only accepts Strings, so `names.get(0)` needs no cast. The method `first` uses a placeholder `T`. It works for a list of Integers and a list of Strings.',
+      },
+      tip: 'Trying `names.add(5)` does not compile. The compiler catches the mistake before the program runs.',
+    },
     textbook: {
       definition:
         '**Generics** are a feature of the Java type system. With them, classes, interfaces, methods and constructors declare **type parameters**. At each use, **type arguments** replace them, giving **parameterized types** such as `List<String>`. The compiler uses the type arguments to check the types of values stored and read, and it inserts the needed casts. Parameterized types are **invariant**. **Wildcards** with upper or lower bounds allow limited covariance or contravariance. **Type erasure** removes generic type arguments, so they are not available at run time.',
@@ -657,6 +709,23 @@ export const typesConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   't-modern-types': {
+    quick: {
+      definition: 'Modern Java adds features that make code shorter and safer. Examples are `var`, records, sealed types and `switch` with patterns.',
+      points: [
+        'A **record** is a short way to write a class that only holds data. Java builds the constructor, getters and `toString` for you.',
+        '`var` lets the compiler work out the type of a local variable. It needs Java 10 or newer.',
+        'A `sealed` type lists exactly which classes may extend it.',
+        'A `switch` can match the type of a value, and the compiler checks you covered every case.',
+      ],
+      example: {
+        title: 'Records and switch patterns',
+        code: 'public class Main {\n  sealed interface Shape permits Circle, Square {}\n  record Circle(int radius) implements Shape {}\n  record Square(int side) implements Shape {}\n\n  static String describe(Shape shape) {\n    return switch (shape) {\n      case Circle c -> "Circle with radius " + c.radius();\n      case Square s -> "Square with side " + s.side();\n    };\n  }\n\n  public static void main(String[] args) {\n    var circle = new Circle(3);\n    System.out.println(circle);\n    System.out.println(describe(circle));\n    System.out.println(describe(new Square(4)));\n  }\n}',
+        output: 'Circle[radius=3]\nCircle with radius 3\nSquare with side 4',
+        runnable: true,
+        explain: '`Circle` and `Square` are records, so printing one shows its values. `Shape` is sealed, so only those two shapes exist. The `switch` handles both, and it needs no `default`.',
+      },
+      tip: 'Records are final and their fields cannot change. Use a normal class if you need to change values.',
+    },
     textbook: {
       definition:
         'Modern Java\'s type features consist of **local-variable type inference** and **pattern matching**. With `var`, the compiler infers a local variable\'s type from its initializer, and the type then stays fixed. A **pattern** tests whether a value has a certain shape. If it does, it extracts parts of the value into **pattern variables**. A type pattern tests the run-time type. A **record pattern** takes a record apart into its components. Patterns appear in `instanceof` expressions and `switch` labels. A pattern `switch` must be **exhaustive**.',

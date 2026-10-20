@@ -4,6 +4,23 @@ import type { LessonConcepts } from '@/types/curriculum';
 export const performanceConcepts: Record<string, LessonConcepts> = {
   // -------------------------------------------------------------------------
   'perf-diagnostics': {
+    quick: {
+      definition: '**Performance diagnosis** means finding out why a running program is slow or uses too much memory. You collect evidence from the live program instead of guessing.',
+      points: [
+        'First measure the problem: slow responses, high CPU or growing memory.',
+        'A **thread dump** shows what every thread is doing right now.',
+        'A **heap dump** is a copy of all the objects in memory. Use it to find memory leaks.',
+        '**Java Flight Recorder** (JFR) records events from the JVM with low overhead.',
+        'The `jcmd` tool sends these commands to a running JVM. You pass it the process id (pid).',
+      ],
+      example: {
+        title: 'Look at a running JVM',
+        code: '# list the running Java processes and their pids\njcmd\n\n# print a thread dump\njcmd 12345 Thread.print\n\n# save a heap dump to a file\njcmd 12345 GC.heap_dump heap.hprof\n\n# record 60 seconds with Java Flight Recorder\njcmd 12345 JFR.start duration=60s filename=recording.jfr',
+        runnable: false,
+        explain: 'These are shell commands, not Java code, and they need a running JVM. Replace `12345` with the pid that `jcmd` shows for your program.',
+      },
+      tip: 'Change one thing at a time and measure again. Do not guess where the problem is.',
+    },
     textbook: {
       definition:
         '**Performance diagnosis** is the systematic investigation of a running program to find why it misses its performance objectives. The measured problem may be too much latency, CPU use or memory growth. It starts by measuring the symptom with **metrics** and forming a hypothesis. Then it collects **observability** evidence that confirms or disproves the hypothesis. **Profiles** link resource use to code. **Thread dumps** capture the state of every thread at one instant. **Heap dumps** capture the object graph. Evidence also includes **event recordings**, such as Java Flight Recorder. In HotSpot, you gather this evidence with serviceability tools that attach to the live JVM.',
@@ -218,6 +235,23 @@ export const performanceConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'perf-jmh': {
+    quick: {
+      definition: '**JMH** (Java Microbenchmark Harness) is a tool for measuring how fast a small piece of Java code runs. It handles warm-up and repeated runs for you.',
+      points: [
+        'Mark each method you want to measure with `@Benchmark`.',
+        'The JVM needs time to warm up, so JMH runs warm-up rounds first. Only later rounds are measured.',
+        'Return the result of your code. This stops the JIT from removing work that seems useless.',
+        'JMH runs each test in a separate JVM (a fork), so one test does not disturb another.',
+        'Do not time code with `System.nanoTime()` in a loop. The results are often misleading.',
+      ],
+      example: {
+        title: 'A tiny JMH benchmark',
+        code: 'import java.util.concurrent.TimeUnit;\nimport org.openjdk.jmh.annotations.*;\n\n@State(Scope.Thread)\n@BenchmarkMode(Mode.AverageTime)\n@OutputTimeUnit(TimeUnit.NANOSECONDS)\n@Warmup(iterations = 3)\n@Measurement(iterations = 5)\n@Fork(1)\npublic class SumBenchmark {\n  int[] data = new int[1000];\n\n  @Benchmark\n  public int sumLoop() {\n    int sum = 0;\n    for (int value : data) {\n      sum += value;\n    }\n    return sum;\n  }\n}',
+        runnable: false,
+        explain: 'This needs the JMH library, and the numbers depend on your machine, so we cannot show a fixed output. `@Benchmark` marks the method to measure, and returning `sum` keeps the work from being removed.',
+      },
+      tip: 'A benchmark result is only true for your machine and your test. Run it more than once before you trust it.',
+    },
     textbook: {
       definition:
         'A **microbenchmark** is a program that measures the performance of a small, isolated unit of code under controlled conditions. The unit may be a single method or operation. On a runtime that optimises code adaptively, the results are valid only if two things hold. The measurement must reach a **steady state**. And optimisations that would not happen in the real program must not change the code under test. Examples are **dead-code elimination** and **constant folding**. **JMH**, the Java Microbenchmark Harness, is the OpenJDK framework for this. It generates the measurement harness and keeps warm-up separate from measurement iterations. It runs trials in **forked JVMs** and reports each score with a statistical confidence interval.',
@@ -422,6 +456,24 @@ export const performanceConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'perf-optimisation': {
+    quick: {
+      definition: '**Performance optimisation** means changing a program so it does the same job with less time or memory. The first step is always to measure, not to guess.',
+      points: [
+        'Find the slow part with a profiler. Work on that part first.',
+        'A better algorithm or data structure usually helps more than small tricks.',
+        'Do less work: do not repeat a costly calculation if you can save the result.',
+        'Fewer database calls, file reads and network calls often matter most.',
+        'Measure again after each change to check that it really helped.',
+      ],
+      example: {
+        title: 'Do less work',
+        code: 'public class Main {\n  static int calls = 0;\n\n  static int expensiveValue() {\n    calls++;\n    return 42;\n  }\n\n  public static void main(String[] args) {\n    int sum = 0;\n    for (int i = 0; i < 5; i++) {\n      sum += expensiveValue();\n    }\n    System.out.println("Calls without saving: " + calls);\n\n    calls = 0;\n    int value = expensiveValue();\n    sum = 0;\n    for (int i = 0; i < 5; i++) {\n      sum += value;\n    }\n    System.out.println("Calls with saving: " + calls);\n    System.out.println("Sum: " + sum);\n  }\n}',
+        output: 'Calls without saving: 5\nCalls with saving: 1\nSum: 210',
+        runnable: true,
+        explain: 'The first loop calls the costly method 5 times. The second saves the value in a variable and calls the method once. Both give the same sum.',
+      },
+      tip: 'Premature optimisation makes code harder to read. Only optimise what a measurement shows is slow.',
+    },
     textbook: {
       definition:
         '**Performance optimisation** is changing a program so that it uses fewer resources for the same observable behaviour. Resources include time, memory, I/O and network round trips. Success is measured against an explicit objective. Measurement guides the work. A **profile** finds the **hotspot**: the part that adds the most to the cost. **Amdahl\'s law** sets a limit on the overall gain you can get by improving that part alone. Optimisations work at several levels. They range from cutting remote and I/O operations, through choosing better **algorithms** and data structures, to reducing allocation and instruction-level work. Each change is checked by measuring the same metric again under the same load.',

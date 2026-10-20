@@ -3,6 +3,24 @@ import type { LessonConcepts } from '@/types/curriculum';
 /** Concept pages for the extra lessons ts-code-quality (module 12) and sp-testing (module 15). */
 export const qualitySpringTestingConcepts: Record<string, LessonConcepts> = {
   'ts-code-quality': {
+    quick: {
+      definition: '**Code quality** is how correct, clear and easy to change your code is. Tools such as static analysis, code coverage and mutation testing help you measure it.',
+      points: [
+        '**Static analysis** reads your code without running it and finds bugs and bad habits.',
+        '**Code coverage** shows which lines your tests run. It does not show whether the tests check anything.',
+        '**Mutation testing** changes your code a little, for example `>` to `>=`. A good test fails when that happens.',
+        'A test with no assertion can give high coverage and still catch nothing.',
+        'Run these checks in your build, so bad code is caught before it is merged.',
+      ],
+      example: {
+        title: 'Coverage is not proof',
+        code: 'class Shop {\n  static int discount(int total) {\n    if (total > 100) {\n      return 10;\n    }\n    return 0;\n  }\n}\n\npublic class Main {\n  public static void main(String[] args) {\n    Shop.discount(150);\n    Shop.discount(50);\n    System.out.println("Weak check: all lines ran");\n\n    int result = Shop.discount(100);\n    System.out.println("discount(100) = " + result);\n    System.out.println(result == 0 ? "PASS" : "FAIL");\n  }\n}',
+        output: 'Weak check: all lines ran\ndiscount(100) = 0\nPASS',
+        runnable: true,
+        explain: 'The first two calls run every line, so coverage is 100%, but they check no result. The last call tests the edge value 100 and checks the answer. If someone changed `>` to `>=`, only this check would fail.',
+      },
+      tip: 'Test the edges, such as 99, 100 and 101. Bugs like to hide at the boundary.',
+    },
     textbook: {
       definition:
         '**Code quality assurance** is the set of practices and tools that judge source code against set criteria of correctness, maintainability and conformance. It works alongside functional testing. **Static analysis** examines a program without running it. It matches the source, syntax tree or bytecode against rules for known defect patterns and conventions. **Code coverage** is a dynamic measure of how much of a program a test suite runs. It counts elements such as lines or branches. **Mutation testing** judges whether a test suite is good enough. It adds small faults (mutants) and measures the share that the tests detect. A **quality gate** is a set of thresholds a change must meet before it is accepted.',
@@ -254,6 +272,23 @@ export const qualitySpringTestingConcepts: Record<string, LessonConcepts> = {
     ],
   },
   'sp-testing': {
+    quick: {
+      definition: 'Spring Boot gives you test tools that start only the part of the app you need. A **slice test** such as `@WebMvcTest` checks a controller without a database or a real server.',
+      points: [
+        'Use plain JUnit tests with no Spring for simple logic. They are the fastest.',
+        'Use `@WebMvcTest` to test controllers, and `MockMvc` to send fake requests.',
+        'Use `@MockitoBean` to replace a dependency, such as a service, with a mock.',
+        'Use `@SpringBootTest` for a full test. It starts the whole app, so it is slower.',
+        'Spring reuses a started context between tests that have the same setup. This saves time.',
+      ],
+      example: {
+        title: 'Test a controller with MockMvc',
+        code: '@WebMvcTest(BookController.class)\nclass BookControllerTest {\n\n  @Autowired\n  private MockMvc mockMvc;\n\n  @MockitoBean\n  private BookService bookService;\n\n  @Test\n  void returnsBook() throws Exception {\n    when(bookService.find(7L)).thenReturn(new Book(7L, "Effective Java"));\n\n    mockMvc.perform(get("/api/books/7"))\n      .andExpect(status().isOk())\n      .andExpect(jsonPath("$.title").value("Effective Java"));\n  }\n}',
+        runnable: false,
+        explain: 'The test loads only the web layer and `BookController`. The mocked `BookService` returns a fixed book. `MockMvc` sends a fake `GET` request and checks the status and the JSON title. This needs Spring Boot and JUnit, so it cannot run alone.',
+      },
+      tip: 'Pick the smallest test that proves the idea. Full `@SpringBootTest` runs are slow, so use them sparingly.',
+    },
     textbook: {
       definition:
         '**Testing a Spring application** means checking its components at different **levels of integration**. These range from isolated units to the fully assembled application. A **unit test** exercises a single class in isolation. **Test doubles** replace its collaborators. An **integration test** exercises several components together. In Spring it typically loads an `ApplicationContext` through the **Spring TestContext Framework**. This framework also injects dependencies into tests, manages test-managed transactions and handles **context caching**. Spring Boot adds **test slices**, which auto-configure only the beans of one application layer. It also adds `@SpringBootTest`, which loads the complete application configuration.',

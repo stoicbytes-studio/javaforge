@@ -217,6 +217,24 @@ export const fundamentalsConcepts: Record<string, LessonConcepts> = {
     ],
   },
   'f-types-operators': {
+    quick: {
+      definition: 'A **type** tells Java what kind of value a variable holds, such as a whole number or text. An **operator** is a symbol, like `+`, that works on values.',
+      points: [
+        'Whole numbers use `int` (or `long` for very big ones). Decimal numbers use `double`.',
+        'A `boolean` is either `true` or `false`. A `char` is one character, and `String` is text.',
+        'Arithmetic operators are `+`, `-`, `*`, `/` and `%` (the remainder).',
+        'Dividing two `int` values gives an `int`, so `7 / 2` is `3`.',
+        'Combine conditions with `&&` (and), `||` (or) and `!` (not).',
+      ],
+      example: {
+        title: 'Types and operators',
+        code: 'public class Main {\n  public static void main(String[] args) {\n    String name = "Ana";\n    int apples = 7;\n    double price = 0.5;\n    boolean fresh = true;\n    char grade = \'A\';\n    System.out.println(name + " buys " + apples + " apples");\n    System.out.println("Total: " + apples * price);\n    System.out.println(apples / 2);\n    System.out.println(apples % 2);\n    System.out.println(fresh && apples > 5);\n    System.out.println(grade);\n  }\n}',
+        output: 'Ana buys 7 apples\nTotal: 3.5\n3\n1\ntrue\nA',
+        runnable: true,
+        explain: 'Each variable has a type that fits its value. `apples * price` is 7 times 0.5. `apples / 2` drops the decimal part, and `apples % 2` is what is left over.',
+      },
+      tip: 'Text goes in double quotes ("Ana"). A single character goes in single quotes (\'A\').',
+    },
     textbook: {
       definition:
         'A **data type** sets which values a variable or expression may hold, and which operations are defined on those values. Java is **statically typed**: every variable and expression has a type known at compile time. Types fall into two groups. The **primitive types** are `boolean` and the numeric types. The numeric types are the integral types `byte`, `short`, `int`, `long` and `char`, and the floating-point types `float` and `double`. The other group is the **reference types**. An **operator** is a symbol applied to one, two or three operands to form an expression. The type of that expression depends on the operand types after **numeric promotion**.',
@@ -468,6 +486,24 @@ export const fundamentalsConcepts: Record<string, LessonConcepts> = {
     ],
   },
   'f-type-conversion': {
+    quick: {
+      definition: 'Type conversion changes a value from one type to another, for example from `int` to `double`. Java does it for you when it is safe, and you ask for it with a cast when it is not.',
+      points: [
+        'Going to a bigger type is safe. Java does it for you, like `int` to `double`.',
+        'Going to a smaller type can lose data. You must write a **cast**, like `(int) price`.',
+        'Casting a decimal to `int` cuts off the decimal part. It does not round.',
+        'In math with mixed types, the smaller type becomes the bigger one first.',
+        'Without the cast, a narrowing assignment will not compile.',
+      ],
+      example: {
+        title: 'Widening and casting',
+        code: 'public class Main {\n  public static void main(String[] args) {\n    int count = 7;\n    double asDecimal = count;\n    double price = 9.99;\n    int whole = (int) price;\n    System.out.println(asDecimal);\n    System.out.println(whole);\n    System.out.println(7 / 2);\n    System.out.println(7 / 2.0);\n  }\n}',
+        output: '7.0\n9\n3\n3.5',
+        runnable: true,
+        explain: '`count` fits into a `double`, so no cast is needed. `(int) price` cuts 9.99 down to 9. In `7 / 2.0` the `int` becomes a `double`, so the result keeps its decimal part.',
+      },
+      tip: 'A cast does not round. `(int) 9.99` is `9`, not `10`.',
+    },
     textbook: {
       definition:
         'A **conversion** changes a value from one type to a related type. It happens either implicitly in a conversion context, or explicitly through a **cast expression**. The JLS defines the kinds of conversion. These include **widening** and **narrowing primitive conversions**, widening and narrowing reference conversions, **boxing** and **unboxing**, and string conversion. The JLS also states which kinds each context allows: assignment, method invocation, casting, string concatenation and numeric promotion. Widening primitive conversions never throw an exception, but may lose precision. Narrowing primitive conversions may lose information about magnitude, precision and sign.',
@@ -698,6 +734,24 @@ export const fundamentalsConcepts: Record<string, LessonConcepts> = {
     ],
   },
   'f-control-flow': {
+    quick: {
+      definition: 'Control flow decides which lines of code run and how many times. You use `if` to choose between paths, and loops to repeat code.',
+      points: [
+        'Use `if`, `else if` and `else` to run code only when a condition is true.',
+        'A `for` loop repeats code a set number of times.',
+        'A `while` loop repeats code as long as its condition stays true.',
+        'Use `switch` to pick one path from many fixed values.',
+        '`break` leaves a loop early, and `continue` skips to the next round.',
+      ],
+      example: {
+        title: 'Choosing and repeating',
+        code: 'public class Main {\n  public static void main(String[] args) {\n    int score = 72;\n    if (score >= 90) {\n      System.out.println("Excellent");\n    } else if (score >= 60) {\n      System.out.println("Pass");\n    } else {\n      System.out.println("Try again");\n    }\n    for (int i = 1; i <= 3; i++) {\n      System.out.println("Round " + i);\n    }\n  }\n}',
+        output: 'Pass\nRound 1\nRound 2\nRound 3',
+        runnable: true,
+        explain: 'Java checks the conditions from top to bottom. 72 is not 90 or more, but it is 60 or more, so it prints `Pass`. The `for` loop starts at 1 and repeats until `i` is bigger than 3.',
+      },
+      tip: 'Use `==` to compare numbers, not `=`. A single `=` stores a value.',
+    },
     textbook: {
       definition:
         '**Control flow** is the order in which a program runs its statements. By default Java runs statements one after another; **control-flow statements** change that order. **Selection statements** (`if`, `switch`) choose one of several paths, based on a condition or a value. **Iteration statements** (`while`, `do`, basic `for` and enhanced `for`) repeat a statement while a condition holds. **Jump statements** (`break`, `continue`, `return`, `yield`, `throw`) move control unconditionally. Every condition must be an expression of type `boolean`. Along every path, the compiler checks reachability: whether each statement can be reached. It also checks definite assignment: whether each variable surely has a value before it is read.',
@@ -918,6 +972,24 @@ export const fundamentalsConcepts: Record<string, LessonConcepts> = {
     ],
   },
   'f-methods': {
+    quick: {
+      definition: 'A method is a named block of code that you can run whenever you need it. It can take input values (parameters) and give back a result.',
+      points: [
+        'Write the return type first, then the name, then the parameters in parentheses.',
+        'Use `return` to send a value back to the caller.',
+        'Use `void` when the method does not return anything.',
+        'Call a method by its name with values in parentheses, like `add(3, 4)`.',
+        'Java passes copies of the arguments, so changing a parameter does not change the caller\'s variable.',
+      ],
+      example: {
+        title: 'Your first methods',
+        code: 'public class Main {\n  static int add(int a, int b) {\n    return a + b;\n  }\n\n  static void greet(String name) {\n    System.out.println("Hello, " + name);\n  }\n\n  public static void main(String[] args) {\n    greet("Ana");\n    int sum = add(3, 4);\n    System.out.println("Sum: " + sum);\n  }\n}',
+        output: 'Hello, Ana\nSum: 7',
+        runnable: true,
+        explain: '`add` takes two `int` values and returns their sum. `greet` only prints, so it is `void`. `main` calls both of them.',
+      },
+      tip: 'A method with a return type like `int` must return a value on every path.',
+    },
     textbook: {
       definition:
         'A **method** is a named unit of executable code, declared in a class or interface. Its declaration has optional modifiers, a result type or `void`, a name, a list of **formal parameters** and an optional `throws` clause. It also has a body, unless the method is abstract or native. The name and the parameter types together form the method\'s **signature**, which must be unique within the class. A **method invocation** first evaluates the arguments. It then binds copies of their values to the parameters in a new stack frame (**call by value**). Then it runs the body, and it may return a single value.',
@@ -1139,6 +1211,24 @@ export const fundamentalsConcepts: Record<string, LessonConcepts> = {
     ],
   },
   'f-arrays-input': {
+    quick: {
+      definition: 'An array stores several values of the same type in one variable. The `Scanner` class reads input that the user types.',
+      points: [
+        'Create an array with a size or with values: `int[] scores = {80, 95, 70};`.',
+        'Positions start at 0. The first item is `scores[0]`.',
+        'The `length` field tells you how many items the array has.',
+        'Using a bad position, like `scores[3]` here, throws an `ArrayIndexOutOfBoundsException`.',
+        'Use `new Scanner(System.in)` to read from the keyboard, then call `next()` or `nextInt()`.',
+      ],
+      example: {
+        title: 'An array and a Scanner',
+        code: 'import java.util.Scanner;\n\npublic class Main {\n  public static void main(String[] args) {\n    int[] scores = {80, 95, 70};\n    scores[2] = 75;\n    int total = 0;\n    for (int s : scores) {\n      total += s;\n    }\n    System.out.println("Length: " + scores.length);\n    System.out.println("Total: " + total);\n\n    Scanner in = new Scanner("Ana 21");\n    String name = in.next();\n    int age = in.nextInt();\n    System.out.println(name + " is " + age);\n  }\n}',
+        output: 'Length: 3\nTotal: 250\nAna is 21',
+        runnable: true,
+        explain: 'The array holds three scores, and we change the last one to 75. The loop adds them up: 80 + 95 + 75. Here the `Scanner` reads from a fixed text, so the output is always the same.',
+      },
+      tip: 'This example reads from a text to stay predictable. For real input, use `new Scanner(System.in)`.',
+    },
     textbook: {
       definition:
         'An **array** is an object that holds a fixed number of **components** of the same type. You access each one by a non-negative integer **index** from 0 to length − 1. The length is set when the array is created and cannot change afterwards. It is available through the final field `length`. Components are initialised to their **default values**, and every access is checked against the bounds at run time. A **multidimensional array** is an array whose components are themselves references to arrays. **Standard input** is the byte stream `System.in`. Programs usually read it through a `Scanner` or a `BufferedReader`.',

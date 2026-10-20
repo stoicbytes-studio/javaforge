@@ -3,6 +3,24 @@ import type { LessonConcepts } from '@/types/curriculum';
 /** Concept pages for module 10 (Files, NIO and Networking), keyed by lesson id. */
 export const ioConcepts: Record<string, LessonConcepts> = {
   'io-files': {
+    quick: {
+      definition: 'File I/O means reading data from files and writing data to files. In modern Java you describe a file location with a `Path` and work on it with the `Files` class.',
+      points: [
+        'A `Path` is just the address of a file or folder. Making one does not touch the disk.',
+        'Use `Files.readString(path)` to read a whole text file, and `Files.writeString(path, text)` to write one.',
+        'Use `Files.readAllLines(path)` to get the lines of a file as a `List`.',
+        'File methods can throw `IOException`, so catch it or declare it.',
+        'Close streams and readers with try-with-resources so the file is always released.',
+      ],
+      example: {
+        title: 'Working with a Path',
+        code: 'import java.nio.file.Path;\n\npublic class Main {\n  public static void main(String[] args) {\n    Path file = Path.of("data", "notes.txt");\n    System.out.println(file.getFileName());\n    System.out.println(file.getParent());\n    System.out.println(file.getNameCount());\n    System.out.println(file.toString().endsWith(".txt"));\n  }\n}',
+        output: 'notes.txt\ndata\n2\ntrue',
+        runnable: true,
+        explain: '`Path.of("data", "notes.txt")` joins the parts into one path. The program then asks for the file name, the parent folder and the number of name parts. No file is opened, so this works even if `data` does not exist.',
+      },
+      tip: 'Prefer `Path` and `Files` over the older `java.io.File` class in new code.',
+    },
     textbook: {
       definition:
         'File I/O in Java is the transfer of data between a program and a **file system**, using the APIs of `java.io` and `java.nio.file`. A **`Path`** is an immutable (unchangeable), system-dependent object that locates a file without accessing it. The utility class **`Files`** performs operations on that file, and reports failure by throwing an `IOException`. Data is read and written as **byte streams**. **Character streams** decode and encode those bytes using a **charset**. Every open stream or channel holds an operating-system resource. It must be closed after use, usually with a try-with-resources statement.',
@@ -224,6 +242,23 @@ export const ioConcepts: Record<string, LessonConcepts> = {
     ],
   },
   'io-http': {
+    quick: {
+      definition: 'The Java HTTP Client lets your program call web servers. You build an `HttpRequest`, send it with an `HttpClient`, and read the `HttpResponse` that comes back.',
+      points: [
+        'Create one `HttpClient` and reuse it for many requests.',
+        'Build a request with `HttpRequest.newBuilder(URI.create(url))`. Call `.GET()` or `.POST(...)`, then `.build()`.',
+        'Use `client.send(request, handler)` to wait for the answer. Use `sendAsync` to carry on while you wait.',
+        'The handler, such as `BodyHandlers.ofString()`, says how to read the body.',
+        'Use `response.statusCode()` for the status, for example 200 for OK.',
+      ],
+      example: {
+        title: 'Send a GET request',
+        code: 'import java.net.URI;\nimport java.net.http.HttpClient;\nimport java.net.http.HttpRequest;\nimport java.net.http.HttpResponse;\n\npublic class Main {\n  public static void main(String[] args) throws Exception {\n    HttpClient client = HttpClient.newHttpClient();\n    HttpRequest request = HttpRequest\n        .newBuilder(URI.create("https://example.com/api/hello"))\n        .GET()\n        .build();\n    HttpResponse<String> response =\n        client.send(request, HttpResponse.BodyHandlers.ofString());\n    System.out.println(response.statusCode());\n    System.out.println(response.body());\n  }\n}',
+        runnable: false,
+        explain: 'This sketch needs a real web server, so it cannot run on its own. The client sends a GET request to the address and waits. It then prints the status code and the text the server returned.',
+      },
+      tip: 'A 404 or 500 status is not an exception. Always check `statusCode()` yourself.',
+    },
     textbook: {
       definition:
         'The Java HTTP Client is the standard API in the **`java.net.http`** module. It sends requests and receives responses over **HTTP/1.1** and **HTTP/2**. An **`HttpClient`** is an immutable, thread-safe object that holds configuration and connection state. Many threads may share it. An **`HttpRequest`** is an immutable description of a method, URI, headers and body. Each exchange runs synchronously (the caller waits) with `send`, or asynchronously with `sendAsync`, which returns a `CompletableFuture`. A **`BodyHandler`** decides how the response body is converted. HTTP error **status codes** come back as ordinary responses. Only transport failures throw an `IOException`.',

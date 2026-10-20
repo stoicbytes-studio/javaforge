@@ -3,6 +3,24 @@ import type { LessonConcepts } from '@/types/curriculum';
 /** Concept pages for the extra lessons o-immutability and p-build-tools, keyed by lesson id. */
 export const immutabilityBuildConcepts: Record<string, LessonConcepts> = {
   'o-immutability': {
+    quick: {
+      definition: 'An **immutable** object cannot change after it is created. To get a different value, you make a new object.',
+      points: [
+        'Make the class `final` so nobody can extend it.',
+        'Make every field `private` and `final`.',
+        'Do not write setter methods.',
+        'If a field holds a mutable object, such as a list, copy it before you store or return it.',
+        '`String` and `Integer` are immutable. So are records, whose fields are final.',
+      ],
+      example: {
+        title: 'An immutable Point',
+        code: 'public class Main {\n  static final class Point {\n    private final int x;\n    private final int y;\n\n    Point(int x, int y) {\n      this.x = x;\n      this.y = y;\n    }\n\n    Point withX(int newX) {\n      return new Point(newX, y);\n    }\n\n    public String toString() {\n      return "(" + x + ", " + y + ")";\n    }\n  }\n\n  public static void main(String[] args) {\n    Point p1 = new Point(1, 2);\n    Point p2 = p1.withX(5);\n    System.out.println(p1);\n    System.out.println(p2);\n  }\n}',
+        output: '(1, 2)\n(5, 2)',
+        runnable: true,
+        explain: '`withX` does not change `p1`. It returns a new `Point` with the new x value. The old object stays the same, so it is safe to share.',
+      },
+      tip: 'Immutable objects are safe to share between threads without any locks.',
+    },
     textbook: {
       definition:
         'An object is **immutable** if its state cannot change after it is constructed. In Java, a class is immutable when it meets four rules. It prevents subclassing. It declares all fields `private` and `final`. It has no methods that change state. And it keeps sole access to any mutable parts through **defensive copying**. A properly constructed immutable object is **thread-safe** by nature. Properly constructed means its `this` reference does not escape during construction. Under the **final field semantics** of the Java Memory Model, every thread sees its initialised state without synchronisation. Immutability is not the same as **unmodifiability**. Unmodifiability only stops one particular reference from writing.',
@@ -310,6 +328,23 @@ export const immutabilityBuildConcepts: Record<string, LessonConcepts> = {
     ],
   },
   'p-build-tools': {
+    quick: {
+      definition: 'A **build tool** such as Maven or Gradle compiles your code, downloads libraries, runs tests and packages the app. You run one command instead of many steps.',
+      points: [
+        'Maven is configured in a `pom.xml` file. Gradle uses `build.gradle`.',
+        'You list the libraries you need as dependencies. The tool downloads them for you.',
+        'Run `mvn test` to compile and test, or `mvn package` to build a `.jar` file.',
+        'Gradle does the same with `gradle test` and `gradle build`.',
+        'Both tools follow the same standard folders, such as `src/main/java`.',
+      ],
+      example: {
+        title: 'A Maven dependency',
+        code: '<!-- pom.xml -->\n<project>\n  <modelVersion>4.0.0</modelVersion>\n  <groupId>com.example</groupId>\n  <artifactId>my-app</artifactId>\n  <version>1.0</version>\n\n  <dependencies>\n    <dependency>\n      <groupId>org.junit.jupiter</groupId>\n      <artifactId>junit-jupiter</artifactId>\n      <version>5.10.2</version>\n      <scope>test</scope>\n    </dependency>\n  </dependencies>\n</project>',
+        runnable: false,
+        explain: 'This `pom.xml` names the project and adds one library, JUnit, for testing. `scope` `test` means the library is used only when running tests. Running `mvn test` downloads it and runs your tests.',
+      },
+      tip: 'Commit the `pom.xml` or `build.gradle` file, so everyone builds the project the same way.',
+    },
     textbook: {
       definition:
         'A **build automation tool** is a program that turns a project\'s source code and declared dependencies into artifacts you can deliver. It runs a defined series of steps, such as compiling, testing, packaging and publishing. It does this in a reproducible way. In the Java ecosystem, **Apache Maven** describes a project with a declarative **Project Object Model**. It runs a fixed **build lifecycle** of ordered phases. **Gradle** instead runs a directed acyclic graph of tasks, configured by a script. Both identify artifacts by **coordinates** (group, artifact, version). Both download them from **repositories**. Both resolve **transitive dependencies** into a single classpath.',

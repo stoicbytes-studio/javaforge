@@ -4,6 +4,23 @@ import type { LessonConcepts } from '@/types/curriculum';
 export const productionConcepts: Record<string, LessonConcepts> = {
   // -------------------------------------------------------------------------
   'prod-observability': {
+    quick: {
+      definition: '**Observability** means you can understand what a running app is doing from the data it sends out. The three main kinds of data are logs, metrics and traces.',
+      points: [
+        '**Logs** are text records of events, such as an error with its message.',
+        '**Metrics** are numbers over time, such as requests per second or memory used.',
+        '**Traces** follow one request as it travels through many services.',
+        'In Spring Boot, Actuator adds ready-made endpoints and Micrometer collects the metrics.',
+        'Health probes tell the platform if your app is alive and ready for traffic.',
+      ],
+      example: {
+        title: 'Turn on Actuator health probes',
+        code: '# application.yml\nmanagement:\n  endpoints:\n    web:\n      exposure:\n        include: health,metrics\n  endpoint:\n    health:\n      probes:\n        enabled: true\n\n# Then ask the running app:\n#   GET /actuator/health/liveness\n#   GET /actuator/health/readiness\n#   GET /actuator/metrics/jvm.memory.used',
+        runnable: false,
+        explain: 'The config exposes the `health` and `metrics` endpoints and turns on the liveness and readiness probes. Liveness says the app is running. Readiness says it can accept requests. This needs a running Spring Boot app with Actuator.',
+      },
+      tip: 'Never put secrets in logs or expose every Actuator endpoint to the internet.',
+    },
     textbook: {
       definition:
         '**Observability** is the property of a system that lets you work out its internal states from its external outputs. The term comes from control theory. In software operations, it means being able to answer any question about a running system from the **telemetry** it emits. Telemetry is mainly **metrics**, **logs** and **traces**, linked by shared context such as a trace identifier. Observability differs from **monitoring**, which checks predefined conditions. Observability data supports **health checks**, which report an instance\'s state to the platform. It also supports **service level objectives** (SLOs), which state target levels of reliability.',
@@ -212,6 +229,25 @@ export const productionConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'prod-resilience': {
+    quick: {
+      definition: '**Resilience** means your service keeps working, or fails gracefully, when something it depends on is slow or broken. A **circuit breaker** stops calling a failing service for a while.',
+      points: [
+        'A circuit breaker has three states: closed (normal), open (calls blocked) and half-open (testing).',
+        'When too many calls fail, the breaker opens. Calls then fail fast, or use a fallback answer.',
+        'A **timeout** stops you from waiting forever for a slow service.',
+        'A **retry** tries again after a failure. Only retry safe calls, and limit the attempts.',
+        'A **bulkhead** limits how many calls run at once, so one slow service cannot use up all your threads.',
+        'Libraries such as Resilience4j give you these tools.',
+      ],
+      example: {
+        title: 'A tiny circuit breaker',
+        code: 'public class Main {\n  static int failures = 0;\n\n  static String callService(boolean serviceUp) {\n    if (failures >= 2) {\n      return "circuit OPEN: fallback answer";\n    }\n    if (!serviceUp) {\n      failures++;\n      return "call failed";\n    }\n    return "real answer";\n  }\n\n  public static void main(String[] args) {\n    for (int i = 1; i <= 4; i++) {\n      System.out.println("Request " + i + ": " + callService(false));\n    }\n  }\n}',
+        output: 'Request 1: call failed\nRequest 2: call failed\nRequest 3: circuit OPEN: fallback answer\nRequest 4: circuit OPEN: fallback answer',
+        runnable: true,
+        explain: 'The service is down, so the first two calls fail and are counted. After two failures the circuit opens. Requests 3 and 4 return a fallback at once and never touch the broken service.',
+      },
+      tip: 'A real breaker also tries again after a wait (half-open). Use a library instead of writing your own.',
+    },
     textbook: {
       definition:
         '**Resilience** is the ability of a system to keep giving acceptable service when faults happen. It does this by detecting, containing and recovering from faults, not just by preventing them. In distributed systems, it comes from **stability patterns** applied at the boundaries between components. **Timeouts** limit waiting. **Retries** with backoff hide transient faults. **Circuit breakers** stop calls to failing dependencies. **Bulkheads** isolate resources, so a fault in one part cannot use up the resources of another. **Fallbacks** give reduced but useful responses. Their aim is to stop a partial failure from becoming a **cascading failure**.',
@@ -421,6 +457,24 @@ export const productionConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'prod-microservices': {
+    quick: {
+      definition: '**Microservices** split one big application into small services. Each service does one job, owns its own data and talks to the others over the network.',
+      points: [
+        'Each service can be built, deployed and scaled on its own.',
+        'A service never reads another service\'s database. It asks that service through an API or a message.',
+        'A network call can fail or be slow, so every call needs a plan for failure.',
+        'There is no single database transaction across services. A **saga** uses a chain of steps, each with an undo step.',
+        'Start with a simple design. Many apps do not need microservices.',
+      ],
+      example: {
+        title: 'Undo a step when another one fails',
+        code: 'public class Main {\n  static boolean stockReserved = false;\n\n  static void reserveStock() {\n    stockReserved = true;\n    System.out.println("Stock service: reserved");\n  }\n\n  static void releaseStock() {\n    stockReserved = false;\n    System.out.println("Stock service: released (undo)");\n  }\n\n  static boolean chargeCard() {\n    System.out.println("Payment service: card declined");\n    return false;\n  }\n\n  public static void main(String[] args) {\n    reserveStock();\n    if (!chargeCard()) {\n      releaseStock();\n    }\n    System.out.println("Stock still reserved? " + stockReserved);\n  }\n}',
+        output: 'Stock service: reserved\nPayment service: card declined\nStock service: released (undo)\nStock still reserved? false',
+        runnable: true,
+        explain: 'An order needs two services: stock and payment. Stock is reserved first. The payment fails, so the code runs the undo step. This undo step is how a saga repairs the data without one big transaction.',
+      },
+      tip: 'Every step that changes data in a saga needs a matching undo step.',
+    },
     textbook: {
       definition:
         'The **microservice architecture** is an architectural style. It structures an application as a set of small, **independently deployable services**. Each service runs in its own process and is built around a **business capability**. Services communicate through lightweight mechanisms, such as HTTP APIs or asynchronous messaging. Each service owns its data (**database per service**) and is run by a single team. Because state is distributed, services stay consistent through **eventual consistency** mechanisms such as **sagas**, not distributed ACID transactions. It contrasts with the **monolithic architecture**, where the application is built and deployed as a single unit.',

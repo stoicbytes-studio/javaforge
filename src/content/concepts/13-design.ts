@@ -3,6 +3,24 @@ import type { LessonConcepts } from '@/types/curriculum';
 /** Concept pages for module 13 (Design principles and patterns), keyed by lesson id. */
 export const designConcepts: Record<string, LessonConcepts> = {
   'd-solid': {
+    quick: {
+      definition: '**SOLID** is a set of five rules of thumb for designing classes that are easy to change. Each letter in the word stands for one rule.',
+      points: [
+        '**S**ingle Responsibility: a class should have one job and one reason to change.',
+        '**O**pen/Closed: add new behaviour by adding new classes, not by editing old code.',
+        '**L**iskov Substitution: a subclass must work anywhere its parent class is expected.',
+        '**I**nterface Segregation: prefer several small interfaces to one big one.',
+        '**D**ependency Inversion: depend on interfaces, not on concrete classes.',
+      ],
+      example: {
+        title: 'Open/Closed with shapes',
+        code: 'import java.util.List;\n\ninterface Shape {\n  int area();\n}\n\nrecord Square(int side) implements Shape {\n  public int area() { return side * side; }\n}\n\nrecord Rectangle(int width, int height) implements Shape {\n  public int area() { return width * height; }\n}\n\npublic class Main {\n  public static void main(String[] args) {\n    List<Shape> shapes = List.of(new Square(3), new Rectangle(2, 5));\n    int total = 0;\n    for (Shape shape : shapes) {\n      total += shape.area();\n    }\n    System.out.println("Total area: " + total);\n  }\n}',
+        output: 'Total area: 19',
+        runnable: true,
+        explain: 'The loop only knows the `Shape` interface. A `record` is a short way to write a small data class. You can add a new shape later without changing this loop.',
+      },
+      tip: 'SOLID rules are guides, not laws. Do not split every class into tiny pieces just to follow them.',
+    },
     textbook: {
       definition:
         '**SOLID** is a set of five object-oriented **design principles**, collected by Robert C. Martin. They govern how classes and modules depend on one another, so that software stays cheap to extend and maintain. They are the **Single Responsibility**, **Open/Closed**, **Liskov Substitution**, **Interface Segregation** and **Dependency Inversion** principles. Together they aim for high **cohesion** inside a module and low **coupling** between modules. They favour reuse through abstractions and **composition** over reuse through implementation inheritance. They are rules of thumb (heuristics) for managing change, not rules the compiler enforces.',
@@ -273,6 +291,24 @@ export const designConcepts: Record<string, LessonConcepts> = {
   },
 
   'd-patterns': {
+    quick: {
+      definition: 'A **design pattern** is a named, proven solution to a problem that shows up again and again in software design. It is a template that you adapt, not ready-made code.',
+      points: [
+        'Every pattern has a name, so teams can talk about a design in one word.',
+        'A pattern describes the problem, the solution and the trade-offs.',
+        'Patterns are grouped as creational, structural and behavioural.',
+        '**Strategy** lets you swap one way of doing something for another.',
+        'Use a pattern only when you have the problem it solves.',
+      ],
+      example: {
+        title: 'The Strategy pattern',
+        code: 'interface Discount {\n  int apply(int price);\n}\n\nclass Checkout {\n  private final Discount discount;\n  Checkout(Discount discount) { this.discount = discount; }\n  int total(int price) { return discount.apply(price); }\n}\n\npublic class Main {\n  public static void main(String[] args) {\n    Checkout regular = new Checkout(price -> price);\n    Checkout sale = new Checkout(price -> price * 90 / 100);\n    System.out.println("Regular: " + regular.total(200));\n    System.out.println("Sale: " + sale.total(200));\n  }\n}',
+        output: 'Regular: 200\nSale: 180',
+        runnable: true,
+        explain: '`Checkout` does not care how the price is reduced. You give it a `Discount`, here a lambda, and it uses it. A different `Discount` gives a different result.',
+      },
+      tip: 'A pattern name is a shared word, not a goal. Simple code that solves the problem is better than a pattern you do not need.',
+    },
     textbook: {
       definition:
         'A **design pattern** is a named, documented description of a general, reusable solution to a recurring problem in object-oriented design, within a particular **context**. Gamma, Helm, Johnson and Vlissides set the standard form. In it, each pattern has four essential parts: a **pattern name**, the **problem** it solves, the **solution** and the **consequences**. The solution is an abstract arrangement of classes and objects that work together. The consequences are its trade-offs. A pattern is not finished code or a library; it is a template you adapt to each situation. The catalogue groups patterns by purpose as **creational**, **structural** or **behavioural**.',

@@ -4,6 +4,24 @@ import type { LessonConcepts } from '@/types/curriculum';
 export const collectionsConcepts: Record<string, LessonConcepts> = {
   // -------------------------------------------------------------------------
   'c-collections-overview': {
+    quick: {
+      definition: 'The **Collections Framework** is a set of ready-made classes for storing groups of objects. The main kinds are lists, sets, queues and maps.',
+      points: [
+        'A `List` keeps items in order and allows duplicates.',
+        'A `Set` holds no duplicates.',
+        'A `Map` stores key-value pairs. It is part of the framework, but it is not a `Collection`.',
+        'Declare variables with the interface type, such as `List`, and create the object with a class, such as `ArrayList`.',
+        'All of these live in the `java.util` package.',
+      ],
+      example: {
+        title: 'List, Set and Map',
+        code: 'import java.util.*;\n\npublic class Main {\n  public static void main(String[] args) {\n    List<String> list = new ArrayList<>();\n    list.add("pear");\n    list.add("apple");\n    list.add("pear");\n\n    Set<String> set = new TreeSet<>(list);\n\n    Map<String, Integer> stock = new HashMap<>();\n    stock.put("pear", 3);\n\n    System.out.println("List: " + list);\n    System.out.println("Set: " + set);\n    System.out.println("Stock of pear: " + stock.get("pear"));\n  }\n}',
+        output: 'List: [pear, apple, pear]\nSet: [apple, pear]\nStock of pear: 3',
+        runnable: true,
+        explain: 'The list keeps both `pear` entries, in the order you added them. The set drops the duplicate, and `TreeSet` sorts what is left. The map looks up the number for the key `pear`.',
+      },
+      tip: 'Pick the interface by what you need: order, no duplicates, or lookup by key.',
+    },
     textbook: {
       definition:
         'The **Java Collections Framework** is a single, unified design in `java.util` for storing and working with groups of objects. It has three parts. **Collection interfaces** are abstract data types: `Collection` with its sub-interfaces `List`, `Set`, `Queue` and `Deque`, plus the separate `Map` hierarchy. **Implementations** are concrete, reusable data structures that implement those interfaces. **Algorithms** are polymorphic methods, such as sorting and searching, in the `Collections` utility class. Client code depends only on the interfaces. So you can swap in an implementation with different performance without changing the client.',
@@ -262,6 +280,24 @@ export const collectionsConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'c-hashmap': {
+    quick: {
+      definition: 'A `HashMap` stores data as key-value pairs. You give it a key, and it finds the matching value very quickly.',
+      points: [
+        'Each key appears only once. Putting the same key again replaces the old value.',
+        'Use `put(key, value)` to add and `get(key)` to read.',
+        '`get` returns `null` when the key is missing.',
+        'Use `containsKey(key)` to check if a key exists.',
+        'A `HashMap` does not promise any order when you loop over it.',
+      ],
+      example: {
+        title: 'Ages by name',
+        code: 'import java.util.*;\n\npublic class Main {\n  public static void main(String[] args) {\n    Map<String, Integer> ages = new HashMap<>();\n    ages.put("Ann", 30);\n    ages.put("Bob", 25);\n    ages.put("Ann", 31);\n\n    System.out.println(ages.get("Ann"));\n    System.out.println(ages.get("Zed"));\n    System.out.println(ages.containsKey("Bob"));\n    System.out.println(ages.size());\n  }\n}',
+        output: '31\nnull\ntrue\n2',
+        runnable: true,
+        explain: 'The second `put` for `Ann` replaces her old age, so `get("Ann")` gives 31. There is no key `Zed`, so `get` returns `null`. The map holds two keys in the end.',
+      },
+      tip: 'Keys need good `equals` and `hashCode` methods. Strings, numbers and records already have them.',
+    },
     textbook: {
       definition:
         '`HashMap` is an implementation of the `Map` interface based on a **hash table**. It stores key-value **mappings** in an array of **buckets**. The key\'s `hashCode()` decides its bucket. Inside a bucket, `equals` tells keys apart. If the hash function spreads keys well, `get` and `put` run in expected constant time. The map allows one `null` key and `null` values. It does not guarantee any iteration order, and it is not synchronised. It automatically **rehashes** into a larger table when the number of entries is more than its **capacity** times its **load factor**.',
@@ -483,6 +519,24 @@ export const collectionsConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'c-sorted': {
+    quick: {
+      definition: 'A `TreeSet` or `TreeMap` keeps its items sorted all the time. You do not have to sort them yourself.',
+      points: [
+        'Items are sorted by natural order, such as numbers from small to large and text from A to Z.',
+        'You can pass a `Comparator` to choose your own order.',
+        '`first()` and `last()` give the smallest and the largest item.',
+        '`higher(x)` and `floor(x)` find the nearest item above or below a value.',
+        'Adding and finding items is a little slower than in a hash-based set.',
+      ],
+      example: {
+        title: 'A sorted set of scores',
+        code: 'import java.util.*;\n\npublic class Main {\n  public static void main(String[] args) {\n    TreeSet<Integer> scores = new TreeSet<>(List.of(70, 95, 82, 70));\n\n    System.out.println(scores);\n    System.out.println(scores.first());\n    System.out.println(scores.last());\n    System.out.println(scores.higher(82));\n    System.out.println(scores.floor(80));\n  }\n}',
+        output: '[70, 82, 95]\n70\n95\n95\n70',
+        runnable: true,
+        explain: 'The duplicate 70 is dropped and the scores come out sorted. `higher(82)` is the next score above 82. `floor(80)` is the biggest score that is 80 or less.',
+      },
+      tip: 'Items in a `TreeSet` must be comparable, or you must give it a `Comparator`.',
+    },
     textbook: {
       definition:
         'An **ordering** in Java is a rule that puts objects of a type into a **total order**. The class itself defines its **natural ordering** by implementing `Comparable<T>` and its `compareTo` method. Any number of other orderings are defined outside the class by `Comparator<T>` objects. Both return a negative integer, zero or a positive integer when the first argument is less than, equal to or greater than the second. Both must be antisymmetric and transitive. **Sorted collections** such as `TreeSet` and `TreeMap` keep their elements in this order. They use the comparison result, not `equals`, to decide whether two elements are the same.',
@@ -708,6 +762,24 @@ export const collectionsConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'c-iteration': {
+    quick: {
+      definition: 'Iteration means going through the items of a collection one by one. The for-each loop is the easiest way to do it.',
+      points: [
+        'Write `for (String name : names)` to visit every item.',
+        'Every collection except `Map` can be used in a for-each loop.',
+        'An `Iterator` has `hasNext()` and `next()` to walk through the items.',
+        'Use `iterator.remove()` to delete an item safely while you loop.',
+        'Calling `list.remove()` inside a for-each loop throws a `ConcurrentModificationException`.',
+      ],
+      example: {
+        title: 'Loop and remove',
+        code: 'import java.util.*;\n\npublic class Main {\n  public static void main(String[] args) {\n    List<String> names = List.of("Ann", "Bob");\n    for (String name : names) {\n      System.out.println(name);\n    }\n\n    List<Integer> numbers = new ArrayList<>(List.of(1, 2, 3, 4, 5, 6));\n    Iterator<Integer> it = numbers.iterator();\n    while (it.hasNext()) {\n      if (it.next() % 2 == 0) {\n        it.remove();\n      }\n    }\n    System.out.println(numbers);\n  }\n}',
+        output: 'Ann\nBob\n[1, 3, 5]',
+        runnable: true,
+        explain: 'The for-each loop prints each name. The iterator checks every number and removes the even ones. Only the odd numbers are left.',
+      },
+      tip: 'To loop over a `Map`, use `map.entrySet()`, `map.keySet()` or `map.values()`.',
+    },
     textbook: {
       definition:
         '**Iteration** means visiting the elements of a collection one after another. Java models it with the `Iterator<E>` interface. Its `hasNext`, `next` and optional `remove` methods let a client visit each element exactly once, without knowing how the collection is built inside. Any type that implements `Iterable<T>` can be used in the **enhanced for statement**. The compiler turns that statement into an iterator loop. Iterators of the general-purpose `java.util` collections are **fail-fast**. On a best-effort basis, they throw `ConcurrentModificationException` if the collection is structurally changed other than through the iterator itself.',
@@ -921,6 +993,24 @@ export const collectionsConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'c-queues-stacks': {
+    quick: {
+      definition: 'A **queue** gives items out in the order they came in: first in, first out. A **stack** gives out the newest item first: last in, first out.',
+      points: [
+        'For a queue, use `offer` to add at the end, `poll` to remove from the front, and `peek` to look at the front.',
+        'For a stack, use `push` to add, `pop` to remove the top, and `peek` to look at the top.',
+        '`ArrayDeque` works well as both a queue and a stack.',
+        'A `PriorityQueue` gives out the smallest item first, not the oldest.',
+        '`poll` returns `null` on an empty queue, but `pop` throws an exception on an empty stack.',
+      ],
+      example: {
+        title: 'A stack and a queue',
+        code: 'import java.util.*;\n\npublic class Main {\n  public static void main(String[] args) {\n    Deque<String> stack = new ArrayDeque<>();\n    stack.push("a");\n    stack.push("b");\n    stack.push("c");\n    System.out.println(stack.pop());\n\n    Queue<String> line = new ArrayDeque<>();\n    line.offer("Ann");\n    line.offer("Bob");\n    System.out.println(line.poll());\n    System.out.println(line.peek());\n  }\n}',
+        output: 'c\nAnn\nBob',
+        runnable: true,
+        explain: 'The stack gives back `c`, the last item pushed. The queue gives back `Ann`, the first person in line. After that, `Bob` is at the front.',
+      },
+      tip: 'Prefer `ArrayDeque` over the old `Stack` class.',
+    },
     textbook: {
       definition:
         'A **queue** is a linear collection that holds elements before they are processed. Elements are removed from its **head**. A **FIFO** queue removes them in the order they were added at the **tail**. A **stack** is a linear collection that follows **LIFO** order: you add and remove at the same end. Java models these with `Queue<E>` and `Deque<E>`. The deque is a double-ended queue: you can add and remove at both ends, so it works as either one. Java also has `PriorityQueue<E>`, an unbounded priority queue based on a binary **heap**. Its head is the least element according to its ordering.',

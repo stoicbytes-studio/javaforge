@@ -3,6 +3,23 @@ import type { LessonConcepts } from '@/types/curriculum';
 /** Concept pages for module 12 (Unit Testing, Debugging and Code Quality), keyed by lesson id. */
 export const testingConcepts: Record<string, LessonConcepts> = {
   'ts-junit': {
+    quick: {
+      definition: '**JUnit** is the most popular tool for writing unit tests in Java. A unit test is a small method that checks that one piece of your code gives the result you expect.',
+      points: [
+        'Mark a method with `@Test` to make it a test.',
+        'Use assertions such as `assertEquals(expected, actual)` to check results.',
+        'A test passes if it finishes normally. It fails if an assertion fails or an exception is thrown.',
+        'Use `@BeforeEach` to run set-up code before every test.',
+        'Keep each test small. Test one thing, and give the test a clear name.',
+      ],
+      example: {
+        title: 'Your first JUnit test',
+        code: 'import org.junit.jupiter.api.Test;\nimport static org.junit.jupiter.api.Assertions.assertEquals;\n\nclass CalculatorTest {\n  @Test\n  void addsTwoNumbers() {\n    Calculator calc = new Calculator();\n    assertEquals(5, calc.add(2, 3));\n  }\n}',
+        runnable: false,
+        explain: 'This needs the JUnit library and a `Calculator` class, so it cannot run alone. The test calls `add(2, 3)` and checks that the answer is 5. A wrong answer would make the test fail.',
+      },
+      tip: 'In `assertEquals`, put the expected value first and the actual value second.',
+    },
     textbook: {
       definition:
         '**Unit testing** is a software verification practice. Automated **test cases** exercise the smallest separately testable parts of a program, its **units**, in isolation. Each test case compares actual outcomes with expected outcomes. **JUnit 5** is the de facto (accepted in practice) standard unit-testing framework for the JVM. It is made up of three parts. The **JUnit Platform** discovers and executes tests through pluggable **test engines**. **JUnit Jupiter** is the programming and extension model for writing tests. **JUnit Vintage** is an engine that runs JUnit 3 and 4 tests. A test succeeds when its method completes normally. A thrown exception makes it unsuccessful. This is typically an `AssertionError` from a failed assertion.',
@@ -213,6 +230,24 @@ export const testingConcepts: Record<string, LessonConcepts> = {
     ],
   },
   'ts-mocking': {
+    quick: {
+      definition: 'A **mock** (or test double) is a fake object that stands in for a real dependency during a test. It lets you test your class without a real database or web service.',
+      points: [
+        'Use a fake when the real dependency is slow, hard to set up or unpredictable.',
+        'A **stub** returns fixed answers. A **mock** also checks how it was called.',
+        'Code that receives its dependencies through the constructor is easy to test.',
+        'Libraries such as Mockito create mocks for you, for example with `mock(Type.class)`.',
+        'You can also write a simple fake by hand, as in the example.',
+      ],
+      example: {
+        title: 'A fake price service',
+        code: 'public class Main {\n  interface PriceService {\n    double priceOf(String item);\n  }\n\n  static class Cart {\n    private final PriceService prices;\n\n    Cart(PriceService prices) {\n      this.prices = prices;\n    }\n\n    double total(String... items) {\n      double sum = 0;\n      for (String item : items) {\n        sum += prices.priceOf(item);\n      }\n      return sum;\n    }\n  }\n\n  public static void main(String[] args) {\n    PriceService fake = item -> 2.50;\n    Cart cart = new Cart(fake);\n    System.out.println("Total: " + cart.total("apple", "pear"));\n  }\n}',
+        output: 'Total: 5.0',
+        runnable: true,
+        explain: 'The `Cart` asks a `PriceService` for each price. In the test we pass a fake that always answers `2.50`. So two items cost `5.0`, and no real price server is needed.',
+      },
+      tip: 'Only fake things you do not own or cannot control. Do not fake the class you are testing.',
+    },
     textbook: {
       definition:
         'A **test double** is any object that replaces a real dependency of the **system under test** during a test. It lets the test control the dependency\'s behaviour and observe how it is used. Following Meszaros, test doubles are classified by what they do. **Dummies** merely fill parameters. **Stubs** supply indirect inputs. **Spies** record indirect outputs. **Mocks** verify expected interactions. **Fakes** provide a simplified working implementation. **Mocking** means creating and using such doubles. This is commonly done through a framework, such as Mockito, that generates them at run time.',
@@ -435,6 +470,24 @@ export const testingConcepts: Record<string, LessonConcepts> = {
     ],
   },
   'ts-debugging': {
+    quick: {
+      definition: '**Debugging** means finding out why your program does something wrong, and then fixing it. The main tools are print statements, stack traces and the debugger in your IDE.',
+      points: [
+        'First, make the bug happen every time. Then it is easier to find.',
+        'Print the values of variables to see where they stop matching what you expect.',
+        'Read the stack trace from the top. It shows which method and line threw the exception.',
+        'In an IDE, set a breakpoint and step through the code one line at a time.',
+        'After the fix, write a test so the bug cannot come back.',
+      ],
+      example: {
+        title: 'Find a bug with print statements',
+        code: 'public class Main {\n  public static void main(String[] args) {\n    int[] scores = {80, 90, 70};\n    int total = 0;\n    for (int i = 1; i < scores.length; i++) {\n      total += scores[i];\n      System.out.println("i=" + i + " total=" + total);\n    }\n    System.out.println("Average: " + total / scores.length);\n  }\n}',
+        output: 'i=1 total=90\ni=2 total=160\nAverage: 53',
+        runnable: true,
+        explain: 'We expect an average of 80, but get 53. The printed lines show that the loop starts at `i=1`, so the first score is skipped. The fix is to start the loop at `i = 0`.',
+      },
+      tip: 'Change one thing at a time when you debug. Then you know which change fixed it.',
+    },
     textbook: {
       definition:
         '**Debugging** is the process of locating, analysing and removing the cause of a **failure**. A failure is an observable difference between a program\'s behaviour and its specification. A failure starts from a **defect** (fault) in the code. When the defect is executed, it produces an **infection**: a wrong program state that is carried forward (propagates) until it becomes visible. Systematic debugging applies the scientific method. The failure is reproduced. **Hypotheses** about its cause are formed and tested by experiment. The defect is corrected, and a regression test confirms the correction. In Java, a **stack trace** records the chain of method calls that were active when an exception was thrown.',

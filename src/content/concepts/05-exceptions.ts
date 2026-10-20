@@ -4,6 +4,24 @@ import type { LessonConcepts } from '@/types/curriculum';
 export const exceptionsConcepts: Record<string, LessonConcepts> = {
   // -------------------------------------------------------------------------
   'e-basics': {
+    quick: {
+      definition: 'An **exception** is an error that happens while a program runs and stops it. With `try` and `catch`, you can deal with the problem and keep going.',
+      points: [
+        'Put risky code inside a `try` block.',
+        'A `catch` block runs only if that kind of exception is thrown.',
+        'A `finally` block always runs, whether or not there was an error.',
+        'Use `throw` to create an exception yourself.',
+        'Checked exceptions must be caught or declared with `throws`. Unchecked ones do not need this.',
+      ],
+      example: {
+        title: 'Catching an exception',
+        code: 'public class Main {\n  public static void main(String[] args) {\n    try {\n      int[] numbers = {1, 2, 3};\n      System.out.println(numbers[5]);\n    } catch (ArrayIndexOutOfBoundsException e) {\n      System.out.println("Oops: " + e.getMessage());\n    } finally {\n      System.out.println("Done");\n    }\n  }\n}',
+        output: 'Oops: Index 5 out of bounds for length 3\nDone',
+        runnable: true,
+        explain: 'The array has three items, so position 5 does not exist. Java throws an exception, and the `catch` block prints its message. The `finally` block runs at the end.',
+      },
+      tip: 'Do not leave a `catch` block empty. At least print or log the problem.',
+    },
     textbook: {
       definition:
         'An **exception** is an event that disrupts the normal flow of execution. In Java, it is represented by an object whose class is `java.lang.Throwable` or one of its subclasses. An exception is **thrown** either explicitly, by a `throw` statement, or implicitly, by the JVM. Control then jumps, possibly across method calls, to the nearest matching **exception handler** that encloses the throw at run time. A matching handler is a `catch` clause whose parameter type the exception\'s class is assignable to. The method calls in between complete abruptly. Exception classes are either **checked** or **unchecked**. The compiler requires checked ones to be caught or declared. Unchecked ones are `RuntimeException`, `Error` and their subclasses.',
@@ -231,6 +249,23 @@ export const exceptionsConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'e-resources': {
+    quick: {
+      definition: '**try-with-resources** closes things like files and connections for you. You open them in the `try (...)` brackets, and Java closes them when the block ends, even after an error.',
+      points: [
+        'The resource must implement `AutoCloseable`.',
+        'You can open more than one resource. Separate them with a semicolon.',
+        'Resources close in reverse order: the last one opened is closed first.',
+        'You do not need a `finally` block just to close a resource.',
+      ],
+      example: {
+        title: 'Resources close by themselves',
+        code: 'public class Main {\n  static class Door implements AutoCloseable {\n    private final String name;\n\n    Door(String name) {\n      this.name = name;\n      System.out.println("Open " + name);\n    }\n\n    public void close() {\n      System.out.println("Close " + name);\n    }\n  }\n\n  public static void main(String[] args) {\n    try (Door a = new Door("A"); Door b = new Door("B")) {\n      System.out.println("Working");\n    }\n  }\n}',
+        output: 'Open A\nOpen B\nWorking\nClose B\nClose A',
+        runnable: true,
+        explain: 'Both doors open in order, then the block runs. When it ends, Java calls `close()` for you. `B` closes before `A`.',
+      },
+      tip: 'Forgetting to close a file or connection leaks resources. Prefer try-with-resources over a manual `close()`.',
+    },
     textbook: {
       definition:
         'The **try-with-resources** statement is a form of the `try` statement that declares one or more **resources**. Resources are objects whose types implement `java.lang.AutoCloseable`. The statement guarantees that each initialized resource is closed when the statement completes, whether normally or abruptly. Resources are initialized from left to right. They are closed in the reverse order, before any `catch` or `finally` clause of the same statement runs. If both the body and a `close` call throw, the exception from `close` is added to the primary exception as a **suppressed exception**.',
@@ -445,6 +480,24 @@ export const exceptionsConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'e-design': {
+    quick: {
+      definition: 'Exception design means choosing how your code reports errors. You can create your own exception class, so each error has a clear name and message.',
+      points: [
+        'Make your own exception by extending `Exception` (checked) or `RuntimeException` (unchecked).',
+        'Give it a clear message that says what went wrong.',
+        'Throw early, when you see bad input. Catch late, where you can really handle it.',
+        'Keep the original error as the cause when you wrap one exception in another.',
+        'Never catch an exception just to ignore it.',
+      ],
+      example: {
+        title: 'A custom exception',
+        code: 'public class Main {\n  static class InvalidAgeException extends Exception {\n    InvalidAgeException(String message) {\n      super(message);\n    }\n  }\n\n  static void setAge(int age) throws InvalidAgeException {\n    if (age < 0) {\n      throw new InvalidAgeException("Age cannot be negative: " + age);\n    }\n    System.out.println("Age set to " + age);\n  }\n\n  public static void main(String[] args) {\n    try {\n      setAge(20);\n      setAge(-5);\n    } catch (InvalidAgeException e) {\n      System.out.println("Error: " + e.getMessage());\n    }\n  }\n}',
+        output: 'Age set to 20\nError: Age cannot be negative: -5',
+        runnable: true,
+        explain: '`InvalidAgeException` is our own exception type. `setAge` throws it when the age is below zero, and `throws` warns callers about this. The first call works. The second one is caught in `main`.',
+      },
+      tip: 'Catch the most specific exception you can. Avoid catching plain `Exception` everywhere.',
+    },
     textbook: {
       definition:
         '**Exception design** is the part of API design that specifies how a component reports failures to its callers. It covers which conditions are signalled by exceptions and which exception types are thrown. It also covers whether they are checked or unchecked, and what information they carry. Sound designs **fail fast**: they check preconditions before changing any state, which keeps **failure atomicity**. They reuse standard exception types where they fit. At abstraction boundaries, they perform **exception translation**. They throw exceptions that suit the higher layer, and keep the original exception as the **cause**.',

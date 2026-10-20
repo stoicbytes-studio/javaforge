@@ -4,6 +4,24 @@ import type { LessonConcepts } from '@/types/curriculum';
 export const functionalConcepts: Record<string, LessonConcepts> = {
   // -------------------------------------------------------------------------
   'fn-lambdas': {
+    quick: {
+      definition: 'A **lambda** is a short piece of code that you can pass around like a value. It is a quick way to write a small function without a name.',
+      points: [
+        'The form is `(parameters) -> result`, for example `x -> x * x`.',
+        'A lambda works where Java expects a functional interface, which has just one abstract method.',
+        '`Function`, `Predicate` and `Runnable` are common functional interfaces.',
+        'A lambda can read local variables only if they are never changed after being set.',
+        'A method reference like `String::length` is a shorter lambda.',
+      ],
+      example: {
+        title: 'Lambdas in action',
+        code: 'import java.util.*;\nimport java.util.function.*;\n\npublic class Main {\n  public static void main(String[] args) {\n    Function<Integer, Integer> square = x -> x * x;\n    System.out.println(square.apply(5));\n\n    List<String> names = new ArrayList<>(List.of("Cara", "Al", "Bob"));\n    names.sort((a, b) -> Integer.compare(a.length(), b.length()));\n    System.out.println(names);\n\n    Runnable hello = () -> System.out.println("Hi");\n    hello.run();\n  }\n}',
+        output: '25\n[Al, Bob, Cara]\nHi',
+        runnable: true,
+        explain: '`square` is a lambda that multiplies a number by itself. The second lambda tells `sort` to order names by length. The last lambda takes no input and just prints.',
+      },
+      tip: 'Keep lambdas short. If one needs many lines, move the code into a normal method.',
+    },
     textbook: {
       definition:
         'A **lambda expression** is an expression for an anonymous function. It has a parameter list and a body, but no name. It evaluates to an instance of a **functional interface**. A lambda expression is a **poly expression** (its type comes from its context). It has no type on its own. It is legal only in an assignment, invocation or casting context whose **target type** is a functional interface. The compiler checks its parameters and result against that interface\'s single abstract method. The body may use local variables of the enclosing scope only if they are final or **effectively final**. A **method reference** is a shorter expression of the same kind. It names an existing method or constructor.',
@@ -222,6 +240,24 @@ export const functionalConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'fn-streams': {
+    quick: {
+      definition: 'A **stream** lets you process a list of items step by step, such as filtering, changing and adding them up. It does not change the original list.',
+      points: [
+        'Start with `list.stream()`.',
+        'Middle steps like `filter` and `map` return a new stream.',
+        'A final step like `toList()`, `sum()` or `count()` produces the result.',
+        'Nothing runs until the final step is called.',
+        'A stream can be used only once.',
+      ],
+      example: {
+        title: 'Filter, map and sum',
+        code: 'import java.util.*;\n\npublic class Main {\n  public static void main(String[] args) {\n    List<Integer> nums = List.of(1, 2, 3, 4, 5, 6);\n\n    List<Integer> result = nums.stream()\n        .filter(n -> n % 2 == 0)\n        .map(n -> n * 10)\n        .toList();\n    System.out.println(result);\n\n    int sum = nums.stream().mapToInt(Integer::intValue).sum();\n    System.out.println(sum);\n  }\n}',
+        output: '[20, 40, 60]\n21',
+        runnable: true,
+        explain: '`filter` keeps the even numbers. `map` multiplies each one by 10, and `toList()` collects them. The second stream adds all six numbers to get 21.',
+      },
+      tip: 'A stream does not store data. It describes the steps, and the final call runs them.',
+    },
     textbook: {
       definition:
         'A **stream** (`java.util.stream.Stream<T>`) is a sequence of elements that supports sequential and parallel aggregate operations. Unlike a collection, a stream stores no elements. It carries elements from a **source** through a **stream pipeline**. The pipeline has the source, zero or more **intermediate operations**, and exactly one **terminal operation**. Each intermediate operation returns a new stream. The terminal operation produces a result or side effect. Intermediate operations are **lazy**: no work is done on the source until the terminal operation starts. Source elements are used only as needed. A stream may be traversed only once.',
@@ -450,6 +486,24 @@ export const functionalConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'fn-optional-modern': {
+    quick: {
+      definition: 'An `Optional` is a box that holds one value or nothing. It makes it clear that a result might be missing, so you do not have to return `null`.',
+      points: [
+        'Create one with `Optional.of(value)` or `Optional.empty()`.',
+        'Use `orElse(other)` to get a default value when the box is empty.',
+        'Use `map` to change the value inside, and `ifPresent` to act on it.',
+        'Use `ifPresentOrElse` (Java 9) to handle both cases, and `isEmpty()` (Java 11) to check for nothing.',
+        'Do not call `get()` without checking first. It throws an exception on an empty box.',
+      ],
+      example: {
+        title: 'A value that may be missing',
+        code: 'import java.util.*;\n\npublic class Main {\n  public static void main(String[] args) {\n    Optional<String> name = Optional.of("Ann");\n    Optional<String> none = Optional.empty();\n\n    System.out.println(none.isEmpty());\n    System.out.println(none.orElse("unknown"));\n    System.out.println(name.map(String::toUpperCase).orElse("none"));\n    name.ifPresentOrElse(\n        n -> System.out.println("Hello " + n),\n        () -> System.out.println("No name"));\n  }\n}',
+        output: 'true\nunknown\nANN\nHello Ann',
+        runnable: true,
+        explain: '`none` is empty, so `orElse` gives the default text. `map` changes `Ann` to capital letters. `ifPresentOrElse` runs the first action because the box has a value.',
+      },
+      tip: 'Use `Optional` for return values. Avoid it for fields and method parameters.',
+    },
     textbook: {
       definition:
         '`java.util.Optional<T>` is a **container object** that may or may not contain a non-null value. An Optional with a value is **present**. One with no value is **empty**. It is a final, immutable, **value-based class**. It is meant mainly as a **method return type**. Use it where there is a clear need to show "no result", and where `null` would likely cause errors. Some methods transform the value only when it is present (`map`, `flatMap`, `filter`). Others give a default or throw an exception when it is absent (`orElse`, `orElseGet`, `orElseThrow`).',

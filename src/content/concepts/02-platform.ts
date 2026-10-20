@@ -3,6 +3,23 @@ import type { LessonConcepts } from '@/types/curriculum';
 /** Concept pages for module 2 (JDK, JRE, JVM and the Java platform), keyed by lesson id. */
 export const platformConcepts: Record<string, LessonConcepts> = {
   'p-jdk-jre-jvm': {
+    quick: {
+      definition: 'The **JDK** is the kit you use to write Java programs. It contains the tools to compile code, and it includes the **JRE** and the **JVM** that run it.',
+      points: [
+        'The JVM (Java Virtual Machine) runs compiled Java code.',
+        'The JRE (Java Runtime Environment) is the JVM plus the standard Java libraries.',
+        'The JDK is the JRE plus developer tools such as `javac` and `jar`.',
+        'To only run a program you need a runtime. To write one you need the JDK.',
+        'Modern JDK downloads include everything, and there is usually no separate JRE.',
+      ],
+      example: {
+        title: 'Two tools from the JDK',
+        code: '# javac is the compiler (a JDK tool)\njavac Main.java\n\n# java starts the JVM and runs the program\njava Main\n\n# check which version is installed\njava -version',
+        runnable: false,
+        explain: '`javac` turns `Main.java` into `Main.class`. `java Main` starts the JVM, which runs that class. `java -version` prints the installed version.',
+      },
+      tip: 'If `javac` is not found, you probably have only a runtime installed. Install a JDK.',
+    },
     textbook: {
       definition:
         'The **Java Virtual Machine (JVM)** is an abstract computing machine defined by the JVM Specification. It loads class files, verifies them and runs them, and it manages memory automatically. The **Java Runtime Environment (JRE)** is a JVM implementation together with the Java SE class libraries. It is the minimum needed to run Java applications. The **Java Development Kit (JDK)** contains everything in the runtime and adds development tools. These include the compiler `javac`, the archiver `jar`, the documentation generator `javadoc` and the linker `jlink`. **OpenJDK** is the open-source reference implementation of the Java SE Platform. Most JDKs are built from it.',
@@ -231,6 +248,23 @@ export const platformConcepts: Record<string, LessonConcepts> = {
     ],
   },
   'p-bytecode': {
+    quick: {
+      definition: 'Bytecode is the set of simple instructions that the Java compiler writes into `.class` files. The JVM reads these instructions and runs them.',
+      points: [
+        '`javac` turns your `.java` source code into bytecode.',
+        'Bytecode does not depend on the computer, so the same `.class` file runs on any JVM.',
+        'The JVM runs bytecode step by step, and it compiles busy parts into machine code to go faster.',
+        'Use the `javap -c` tool to look at the bytecode of a class.',
+        'You never write bytecode by hand. The compiler does it for you.',
+      ],
+      example: {
+        title: 'A method and its bytecode',
+        code: 'static int add(int a, int b) {\n  return a + b;\n}\n\n// javap -c shows this bytecode for add:\n//   iload_0   push a\n//   iload_1   push b\n//   iadd      add the two numbers\n//   ireturn   return the result',
+        runnable: false,
+        explain: 'The method is one line of Java but four bytecode instructions. The JVM pushes `a` and `b` onto a stack, adds them, and returns the sum. We show it as a snippet because `javap` is a command-line tool.',
+      },
+      tip: 'Bytecode is not machine code. The JVM still has to run it on your computer.',
+    },
     textbook: {
       definition:
         '**Bytecode** is the instruction set of the Java Virtual Machine. It is a sequence of instructions. Each one is a one-byte **opcode** followed by zero or more operands. The instructions work on an **operand stack** and an array of local variables in a method\'s frame. Bytecode is stored in the `Code` attribute of each method in a **class file**. A class file is a binary format that does not depend on the platform. It also holds a **constant pool** of literals and symbolic references. Before running the bytecode, the JVM **verifies** it to make sure it is type-safe and correctly structured. Then the JVM interprets it or compiles it to native machine code.',
@@ -472,6 +506,24 @@ export const platformConcepts: Record<string, LessonConcepts> = {
     ],
   },
   'p-packages-classpath': {
+    quick: {
+      definition: 'A **package** is a folder-like group of related classes. The **classpath** is the list of places where Java looks for classes when it runs your program.',
+      points: [
+        'Each class belongs to one package. Declare it on the first line, like `package com.shop;`.',
+        'A class\'s full name is its package plus its name, like `java.util.List`.',
+        'Use `import` so you can write the short name instead of the full name.',
+        'Classes in `java.lang`, such as `String`, are imported for you.',
+        'The classpath tells Java where to find your `.class` files. Set it with `-cp`.',
+      ],
+      example: {
+        title: 'Short names and full names',
+        code: 'import java.util.ArrayList;\n\npublic class Main {\n  public static void main(String[] args) {\n    ArrayList<String> names = new ArrayList<>();\n    names.add("Ana");\n    java.util.List<String> copy = new java.util.LinkedList<>(names);\n    System.out.println(names.getClass().getName());\n    System.out.println(copy.getClass().getPackageName());\n    System.out.println(copy.size());\n  }\n}',
+        output: 'java.util.ArrayList\njava.util\n1',
+        runnable: true,
+        explain: 'The `import` lets us write `ArrayList`. For `List` and `LinkedList` we wrote the full name with the package instead. `getName()` shows the full name, and `getPackageName()` shows only the package.',
+      },
+      tip: 'The package name must match the folder path. `com.shop.Cart` lives in `com/shop/Cart.java`.',
+    },
     textbook: {
       definition:
         'A **package** is a named group of related classes and interfaces. It forms a **namespace** and a unit of access control. Each top-level type has a **fully qualified name**: its package name plus its simple name, such as `java.util.List`. An **import declaration** lets you refer to a type by its simple name within one compilation unit. It has no effect at run time. The **class path** is the ordered list of directories and JAR files that the application class loader searches for class files. Since Java 9, the **module path** locates modules in a similar way.',
@@ -699,6 +751,24 @@ export const platformConcepts: Record<string, LessonConcepts> = {
     ],
   },
   'p-java-releases': {
+    quick: {
+      definition: 'Java gets a new release every six months. Some releases are **LTS** (long-term support) versions, which get updates for many years.',
+      points: [
+        'A new Java version comes out each March and September.',
+        'LTS releases include Java 8, 11, 17, 21 and 25. Most companies use these.',
+        'Other releases get updates for only about six months.',
+        'New releases add features, such as `var`, text blocks and records, and they keep old code working.',
+        'Use the newest LTS for a new project unless your team needs another version.',
+      ],
+      example: {
+        title: 'Features from newer Java versions',
+        code: 'public class Main {\n  record Point(int x, int y) {}\n\n  public static void main(String[] args) {\n    var point = new Point(2, 5);\n    String text = """\n        Hello\n        Java\n        """;\n    String kind = switch (point.x()) {\n      case 2 -> "two";\n      default -> "other";\n    };\n    System.out.println(point);\n    System.out.print(text);\n    System.out.println(kind);\n  }\n}',
+        output: 'Point[x=2, y=5]\nHello\nJava\ntwo',
+        runnable: true,
+        explain: '`var` (Java 10) lets Java work out the type. The `"""` text block (Java 15) holds several lines. `record` (Java 16) makes a small data class. The arrow `switch` (Java 14) gives back a value.',
+      },
+      tip: 'Code written for an older Java usually still runs on a newer one.',
+    },
     textbook: {
       definition:
         'A **Java SE release** is a version of the Java SE Platform specification together with its implementation in OpenJDK. Since Java 10, **feature releases** come out every six months under **time-based version numbers**. Each one is followed by quarterly **update releases** with security and bug fixes. Some feature releases are named **long-term support (LTS)** releases, and vendors provide updates for them for several years. Features that are not yet permanent may first arrive as **preview features**, **incubator modules** or **experimental** virtual-machine features. Later they become final parts of the platform.',

@@ -3,6 +3,24 @@ import type { LessonConcepts } from '@/types/curriculum';
 /** Concept pages for module 9 (Concurrency), keyed by lesson id. */
 export const concurrencyConcepts: Record<string, LessonConcepts> = {
   'cc-threads': {
+    quick: {
+      definition: 'A **thread** is a path of execution inside your program. Threads let several tasks run at the same time.',
+      points: [
+        'Every program starts with one thread, the `main` thread.',
+        'Create a `Thread` with a `Runnable`, then call `start()` to run it.',
+        'Call `start()`, not `run()`. Only `start()` makes a new thread.',
+        'Use `join()` to wait until another thread has finished.',
+        'Threads share the same memory, so they can interfere with each other.',
+      ],
+      example: {
+        title: 'Start a thread and wait for it',
+        code: 'public class Main {\n  public static void main(String[] args) throws InterruptedException {\n    Thread worker = new Thread(() -> {\n      System.out.println("Hello from the worker thread");\n    });\n    worker.start();\n    worker.join();\n    System.out.println("Worker is done");\n  }\n}',
+        output: 'Hello from the worker thread\nWorker is done',
+        runnable: true,
+        explain: 'The lambda is the work the new thread does. `start()` launches the thread. `join()` makes `main` wait, so `Worker is done` always prints last.',
+      },
+      tip: 'Without `join()`, the order of output from two threads can change from run to run.',
+    },
     textbook: {
       definition:
         'A **thread** is a single sequential flow of control within a program. A Java program may have many threads running concurrently. Each thread has its own program counter and JVM stack, while all of them share the heap and the method area. On the Java platform, an instance of `java.lang.Thread` represents a thread, and the thread runs the `run` method of a **task**. There are two kinds of threads. **Platform threads** are each a thin wrapper around an operating-system thread. **Virtual threads** (Java 21) are scheduled by the JVM onto a small pool of **carrier threads**. An **executor service** separates submitting tasks from the threads that run them.',
@@ -225,6 +243,24 @@ export const concurrencyConcepts: Record<string, LessonConcepts> = {
   },
 
   'cc-synchronization': {
+    quick: {
+      definition: '**Synchronization** makes sure only one thread at a time runs a piece of code. It protects data that several threads share.',
+      points: [
+        'Without it, two threads that change the same variable can overwrite each other\'s work.',
+        'Mark a method `synchronized` to let one thread in at a time.',
+        'You can also lock on an object with a `synchronized (obj) { ... }` block.',
+        'A thread that gets the lock also sees the latest values written by other threads.',
+        'Keep synchronized sections short, so threads do not wait long.',
+      ],
+      example: {
+        title: 'Two threads share one counter',
+        code: 'public class Main {\n  static int count = 0;\n\n  static synchronized void increment() {\n    count++;\n  }\n\n  public static void main(String[] args) throws InterruptedException {\n    Runnable task = () -> {\n      for (int i = 0; i < 10000; i++) {\n        increment();\n      }\n    };\n    Thread a = new Thread(task);\n    Thread b = new Thread(task);\n    a.start();\n    b.start();\n    a.join();\n    b.join();\n    System.out.println("Count: " + count);\n  }\n}',
+        output: 'Count: 20000',
+        runnable: true,
+        explain: 'Each thread adds 1 to `count` ten thousand times. `count++` is really three steps (read, add, write), so `synchronized` keeps the threads from mixing them up. The total is always 20000.',
+      },
+      tip: 'If you remove `synchronized`, the result is often less than 20000, and it changes between runs.',
+    },
     textbook: {
       definition:
         '**Synchronization** is the coordination of threads that run concurrently. It makes sure their accesses to shared mutable state are correctly ordered and do not interfere. The Java language provides it mainly through **monitors**. Every object has a monitor that at most one thread can hold at a time. `synchronized` methods and statements acquire and release it. The **Java Memory Model** defines the resulting visibility guarantees through the **happens-before** relation. An unlock of a monitor happens-before every later lock of that monitor. A write to a `volatile` field happens-before every later read of it. A program free of **data races** is sequentially consistent.',
@@ -441,6 +477,24 @@ export const concurrencyConcepts: Record<string, LessonConcepts> = {
   },
 
   'cc-concurrency-utilities': {
+    quick: {
+      definition: 'The `java.util.concurrent` package gives you ready-made tools for threads. The most common one is the `ExecutorService`, which runs tasks on a pool of threads.',
+      points: [
+        'Use an `ExecutorService` instead of creating threads by hand.',
+        'Call `submit()` to give it a task. It returns a `Future` for the result.',
+        'Call `get()` on the `Future` to wait for the result.',
+        'Always call `shutdown()` when you are done, or the program may never exit.',
+        'The package also has thread-safe collections and tools such as `ConcurrentHashMap`, `AtomicInteger` and `CountDownLatch`.',
+      ],
+      example: {
+        title: 'Run tasks on a thread pool',
+        code: 'import java.util.*;\nimport java.util.concurrent.*;\n\npublic class Main {\n  public static void main(String[] args) throws Exception {\n    ExecutorService pool = Executors.newFixedThreadPool(3);\n    List<Future<Integer>> results = new ArrayList<>();\n    for (int n = 1; n <= 3; n++) {\n      final int number = n;\n      results.add(pool.submit(() -> number * number));\n    }\n    for (Future<Integer> f : results) {\n      System.out.println(f.get());\n    }\n    pool.shutdown();\n  }\n}',
+        output: '1\n4\n9',
+        runnable: true,
+        explain: 'The pool has three threads. Each `submit` runs one task that squares a number and returns a `Future`. We read the futures in order with `get()`, so the output is always the same.',
+      },
+      tip: 'Forgetting `shutdown()` is a common mistake. The pool threads keep the program alive.',
+    },
     textbook: {
       definition:
         'The **concurrency utilities** are the classes and interfaces of the `java.util.concurrent` package and its subpackages. They supply reusable, well-tested parts for concurrent programming. They include executors for running tasks, and **blocking queues** for passing elements between threads. They include **synchronizers** that coordinate the progress of threads, such as `CountDownLatch`, `CyclicBarrier`, `Phaser` and `Semaphore`. They also include **concurrent collections** built for many threads to use at once, explicit locks and atomic variables. Each utility documents its **memory consistency effects**: the happens-before relations it sets up between actions in different threads.',
