@@ -3,6 +3,18 @@ import type { LessonConcepts } from '@/types/curriculum';
 /** Concept pages for the extra module-4 lessons: regular expressions, annotations and reflection. */
 export const regexReflectionConcepts: Record<string, LessonConcepts> = {
   't-regex': {
+    textbook: {
+      definition:
+        'A **regular expression** is a string that specifies a set of character sequences in a formal pattern syntax built from literals, character classes, quantifiers, groups, anchors and alternation. In Java, the package `java.util.regex` provides `Pattern`, a **compiled representation** of a regular expression, and `Matcher`, an engine that performs **match operations** on a `CharSequence` by interpreting a pattern. `Pattern` instances are immutable and safe for use by multiple concurrent threads; `Matcher` instances hold match state and are not. The implementation is a **backtracking** matcher, which also supports back-references and look-around assertions.',
+      terms: [
+        { term: 'Pattern', meaning: 'An immutable, thread-safe compiled form of a regular expression, created with `Pattern.compile` and used to create matchers.' },
+        { term: 'Matcher', meaning: 'A stateful object that applies one pattern to one input sequence and reports matches, group boundaries and captured text.' },
+        { term: 'Capturing group', meaning: 'A parenthesised subexpression whose matched text is remembered and can be retrieved by number or by name with `group()`.' },
+        { term: 'Quantifier', meaning: 'A construct such as `*`, `+`, `?` or `{n,m}` that states how often the preceding element may repeat; it can be greedy, reluctant or possessive.' },
+        { term: 'Backtracking', meaning: 'A matching strategy that tries alternatives in order and, on failure, returns to the most recent choice point to try the next alternative.' },
+      ],
+      source: 'Javadoc for java.util.regex.Pattern and java.util.regex.Matcher',
+    },
     interviewDefinition:
       'A **regular expression** is a declarative pattern for text. In Java, `Pattern.compile` parses it once into an immutable, thread-safe `Pattern`; each input gets its own stateful `Matcher`, which answers `matches()` (whole input), `lookingAt()` (prefix) or `find()` (next occurrence) and exposes capturing groups. `java.util.regex` is a **backtracking** engine, so it supports back-references and look-arounds, but ambiguous patterns can take exponential or high-polynomial time on near-miss input (ReDoS).',
     interviewFollowUps: [
@@ -56,6 +68,13 @@ export const regexReflectionConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Three quantifiers, one input',
         caption: 'The same input and almost the same pattern produce three different results. Greedy overshoots to the last >, reluctant stops at the first, and possessive eats the final > and refuses to return it.',
+        explanation: [
+          'All three patterns are applied to the same **Input text**: `<b>bold</b> and <i>it</i>`. Each pattern means a <, then one or more characters, then a >.',
+          '**Greedy <.+>** first grabs everything to the end, then backs off one character at a time until a > can match. It stops at the last >, so the result is the **Whole string**.',
+          '**Reluctant <.+?>** takes as little as possible and extends one character at a time until the next > matches. It stops at the first > and returns **<b>**.',
+          '**Possessive <.++>** grabs everything to the end like greedy, but refuses to give anything back. No character is left for the final >, so the result is **No match**.',
+          'Takeaway: the quantifier flavour decides how far a match reaches. To stop at the first delimiter use a reluctant quantifier, or better, a negated class such as `[^>]+`.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -81,6 +100,13 @@ export const regexReflectionConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'From regex string to matches',
         caption: 'Compilation is the expensive step, so it happens once; Matchers are cheap and created per input. The String convenience methods silently repeat the compile step on every call.',
+        explanation: [
+          'In the **Once per program** group, a **Regex string** from your source is passed to **Pattern.compile**, which parses it into a matcher tree. This is the expensive step.',
+          'The result is a **Pattern**, immutable and thread-safe; the static final label means it should be stored once in a constant and shared everywhere.',
+          'In the **Once per input** group, `pattern.matcher(input)` creates a cheap, stateful **Matcher** for each input, which then calls **find() / matches()** to walk the text.',
+          'When find() returns true, read the match with **group(), start()** and call find() again. When it returns false, the dashed arrow leads to **No more matches**.',
+          'The dashed every call arrow from **String.matches/split** shows the hidden cost: these convenience methods compile the pattern again on each call. Takeaway: compile once, match many times.',
+        ],
         cols: 5,
         rows: 2,
         nodes: [
@@ -112,6 +138,13 @@ export const regexReflectionConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Why one pattern hangs and the other does not',
         caption: 'Both patterns accept the same lines. When a line almost matches, the top pattern retries every way of sharing commas between the 11 groups; the bottom one has exactly one way and fails after a single pass.',
+        explanation: [
+          'The top row starts with the pattern **^(.*?,){11}P**. Because `.*?` can also match commas, a field may swallow a comma that really belongs to the next field.',
+          'That gives **Many splits**: a huge number of ways to share the commas among the 11 groups. On a **Near-miss line**, which almost matches but lacks the final P, the backtracking engine tries them all.',
+          'The number of attempts grows roughly like n to the 11th power, so the result is **CPU pegged**: seconds for short lines, hours for longer ones.',
+          'The bottom row uses **^([^,]*,){11}P**. A field cannot contain a comma, so there is exactly **One split**, and the no ambiguity arrow means there is nothing to retry.',
+          'The same near-miss line now fails after a single pass, in **Linear time** measured in microseconds. Takeaway: make each repeated part unable to match what follows it, and backtracking cannot explode.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -200,6 +233,20 @@ export const regexReflectionConcepts: Record<string, LessonConcepts> = {
           },
         ],
       },
+      {
+        title: 'Kinds of regex constructs',
+        intro: 'The building blocks every pattern is made of, as listed in the Pattern Javadoc. In Java source code each backslash must be written twice.',
+        items: [
+          { name: 'Character classes', summary: 'Match one character from a set: `[abc]`, ranges such as `[a-z]`, negation `[^0-9]`, and predefined classes `\\d`, `\\w`, `\\s` and `.`.', support: 'supported', code: 'Pattern.compile("[A-Z]{3}-\\\\d{4}")' },
+          { name: 'Quantifiers', summary: 'Repeat the preceding element: `*` (zero or more), `+` (one or more), `?` (optional) and `{n,m}`; each comes in greedy, reluctant and possessive forms.', support: 'supported', code: '"a{2,4}"' },
+          { name: 'Anchors and boundaries', summary: '`^` and `$` match the start and end of input (or of each line with MULTILINE) and `\\b` a word boundary; they match a position, not a character.', support: 'supported', code: 'Pattern.compile("^\\\\w+$")' },
+          { name: 'Groups', summary: 'Capturing `( )`, named `(?<name> )` and non-capturing `(?: )` groups bundle parts for quantifiers and alternation; capturing groups also remember the matched text.', support: 'supported', code: 'Pattern.compile("(?<year>\\\\d{4})-(?<month>\\\\d{2})")' },
+          { name: 'Alternation', summary: '`|` matches either the left or the right alternative; alternatives are tried from left to right.', support: 'supported', code: '"cat|dog"' },
+          { name: 'Look-around assertions', summary: 'Look-ahead `(?= )` / `(?! )` and look-behind `(?<= )` / `(?<! )` test what precedes or follows a position without consuming characters.', support: 'supported', note: 'Look-behind needs a bounded maximum length.', code: '"\\\\d+(?=px)"  // digits followed by px' },
+          { name: 'Back-references', summary: '`\\1` or `\\k<name>` match the exact text an earlier group captured; they go beyond regular languages and rely on backtracking.', support: 'supported', code: '"(\\\\w)\\\\1"  // a doubled character' },
+          { name: 'Flags', summary: 'Options such as CASE_INSENSITIVE, MULTILINE, DOTALL and UNICODE_CHARACTER_CLASS, passed to compile or embedded as `(?i)`, `(?m)`, `(?s)` and `(?U)`.', support: 'supported', code: 'Pattern.compile("hello", Pattern.CASE_INSENSITIVE)' },
+        ],
+      },
     ],
     deepDive: [
       {
@@ -234,6 +281,18 @@ export const regexReflectionConcepts: Record<string, LessonConcepts> = {
   },
 
   't-annotations-reflection': {
+    textbook: {
+      definition:
+        'An **annotation** is a modifier, consisting of the name of an annotation interface and zero or more element-value pairs, that associates **metadata** with a program element such as a declaration or a use of a type; it has no direct effect on the operation of the code it annotates. Annotation interfaces are declared with `@interface`, and the meta-annotations `@Retention` and `@Target` determine how long annotations are retained and where they may appear. **Reflection** is the capability, provided by `java.lang.Class` and the package `java.lang.reflect`, for a running program to inspect classes, fields, methods and annotations and to access or invoke them dynamically, subject to access control.',
+      terms: [
+        { term: 'Annotation interface', meaning: 'A specialised interface declared with `@interface`, whose methods define the elements that an annotation of that type may supply.' },
+        { term: 'Retention policy', meaning: 'The `RetentionPolicy` value, SOURCE, CLASS or RUNTIME, that decides whether an annotation is discarded by the compiler, recorded in the class file, or also readable by reflection.' },
+        { term: 'Meta-annotation', meaning: 'An annotation applied to an annotation interface declaration, such as `@Retention`, `@Target`, `@Documented`, `@Inherited` or `@Repeatable`.' },
+        { term: 'Annotation processor', meaning: 'A compiler plug-in, run by `javac` through the `javax.annotation.processing` API, that reads annotations at compile time and may generate new source files.' },
+        { term: 'Reflection', meaning: 'Run-time inspection and use of program structure through objects such as `Class`, `Method`, `Field` and `Constructor`.' },
+      ],
+      source: 'JLS §9.6 and §9.7; Javadoc for java.lang.annotation and java.lang.reflect',
+    },
     interviewDefinition:
       'An **annotation** is typed metadata attached to a declaration or type use; it has no behaviour of its own and matters only to whatever reads it — the compiler, an **annotation processor** at compile time, or a framework at run time via **reflection**. `@Retention` decides how long it lives (`SOURCE`, `CLASS` by default, or `RUNTIME`) and `@Target` decides where it may appear. Reflection treats classes as data — `Class`, `Method`, `Field` — trading compile-time safety and speed for generality, and since Java 16/17 it cannot break into strongly encapsulated JDK internals.',
     interviewFollowUps: [
@@ -292,6 +351,13 @@ export const regexReflectionConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'How far each retention policy survives',
         caption: 'Each bar shows where an annotation still exists. Only RUNTIME annotations reach the running JVM, so only they can drive frameworks through reflection.',
+        explanation: [
+          'The top row shows the three stages of a program: the **.java source** that the compiler reads, the **.class file** on disk produced by javac, and the **Running JVM** after class loading.',
+          'Each bar below shows how far an annotation survives. **SOURCE** annotations such as @Override cover only the source column: javac uses them and then throws them away.',
+          '**CLASS (the default)** reaches the class file, so bytecode tools can see it, but it stops before the running JVM: getAnnotation returns null for it.',
+          '**RUNTIME** stretches across all three stages. Annotations such as @Test, @Component and @JsonProperty are therefore visible to reflection while the program runs.',
+          'Takeaway: a custom annotation that a framework must read at run time needs `@Retention(RetentionPolicy.RUNTIME)`, because the default stops one stage short.',
+        ],
         cols: 3,
         rows: 4,
         nodes: [
@@ -312,6 +378,13 @@ export const regexReflectionConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'How a test framework finds and runs @Test',
         caption: 'This is the loop JUnit (and the lesson\'s mini runner) performs. Notice the two places it can go wrong at run time: a missing RUNTIME retention, and exceptions arriving wrapped.',
+        explanation: [
+          'The runner starts with **Scan class path** to find candidate test classes and loads each one, which gives it a **Class<?> object** to inspect.',
+          'It calls **getDeclaredMethods** to list the methods. Their order is not guaranteed, so a good runner sorts them first, then examines them one at a time, as the for each arrow shows.',
+          'For each method it calls **getAnnotation(Test)**. If the result is null, because the method is not annotated or the annotation lacks RUNTIME retention, the dashed arrow leads to **Skip method**.',
+          'If the annotation is present, the runner creates a fresh instance and calls **Method.invoke**. A test method that returns normally is a **PASS**.',
+          'If the test throws, reflection wraps the exception in InvocationTargetException, so the runner reports **FAIL** and reads getCause() to show the real assertion error.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -339,6 +412,13 @@ export const regexReflectionConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'Compile-time processing vs run-time reflection',
         caption: 'Processors run inside javac and can generate more source; frameworks read RUNTIME annotations later through reflection. Strong encapsulation stops reflection at the JDK\'s module boundary unless a package is opened.',
+        explanation: [
+          'In the **Compile time** group, **Annotated source** goes into **javac**, which runs each **Annotation processor**, such as MapStruct or Dagger, to read the annotations.',
+          'A processor can write **Generated sources**, such as OrderMapperImpl. The next round arrow shows javac compiling them too, repeating until no new files appear.',
+          'javac then emits **.class files** that keep CLASS and RUNTIME annotations. Class loading turns them into **Your loaded classes** inside the **Run time (JVM)** group.',
+          'A **Framework** such as JUnit, Spring or Jackson scans those classes through the **Reflection API**, reading RUNTIME annotations and invoking methods; on hot paths it switches to **MethodHandles**, which are checked once and can be inlined.',
+          'The dashed blocked arrow shows the limit: since Java 16, reflection cannot reach into **JDK internals** unless a package is explicitly opened. Takeaway: prefer compile-time processing and use reflection with care.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -425,6 +505,17 @@ export const regexReflectionConcepts: Record<string, LessonConcepts> = {
           { name: 'MethodHandle', summary: 'Typed handle, access checked when created; inlinable by the JIT when held in a static final field.', support: 'supported', code: 'MethodHandles.lookup().findVirtual(A.class, "m", MethodType.methodType(void.class))' },
           { name: 'LambdaMetafactory', summary: 'Turns a handle into an implementation of a functional interface — how lambdas are linked; used by fast frameworks for getters and setters.', support: 'supported' },
           { name: 'Generated code', summary: 'An annotation processor or build plugin writes ordinary Java; fastest and checked by the compiler.', support: 'supported' },
+        ],
+      },
+      {
+        title: 'Kinds of annotations',
+        intro: 'The classic textbook classification by how many elements an annotation supplies, plus two special roles.',
+        items: [
+          { name: 'Marker annotation', summary: 'Has no elements; its presence alone carries the meaning.', support: 'supported', code: '@Override\n@FunctionalInterface' },
+          { name: 'Single-element annotation', summary: 'Has one element named `value`, so the name can be left out when the annotation is used.', support: 'supported', code: '@SuppressWarnings("unchecked")' },
+          { name: 'Normal (multi-element) annotation', summary: 'Supplies several elements as name = value pairs; elements that declare a default may be omitted.', support: 'supported', code: '@Deprecated(since = "9", forRemoval = true)' },
+          { name: 'Repeatable annotation (Java 8)', summary: 'Declared with `@Repeatable(Container.class)` so it may appear several times on one element; the compiler stores the copies inside the container annotation.', support: 'supported', code: '@Schedule(day = "Mon") @Schedule(day = "Fri")\nvoid report() {}' },
+          { name: 'Meta-annotation', summary: 'An annotation applied to an annotation interface: `@Retention`, `@Target`, `@Documented`, `@Inherited` and `@Repeatable`.', support: 'supported', code: '@Retention(RetentionPolicy.RUNTIME)\n@Target(ElementType.METHOD)\n@interface Test {}' },
         ],
       },
     ],

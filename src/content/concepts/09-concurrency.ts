@@ -233,7 +233,7 @@ export const concurrencyConcepts: Record<string, LessonConcepts> = {
         { term: 'Happens-before', meaning: 'A partial order on actions defined by the JMM; if one action happens-before another, the first is visible to and ordered before the second.' },
         { term: 'Data race', meaning: 'Two accesses to the same variable by different threads, at least one a write, that are not ordered by happens-before.' },
         { term: 'Atomicity', meaning: 'The property that a compound action, such as read-modify-write, appears to other threads to occur as one indivisible step.' },
-        { term: 'volatile field', meaning: 'A field whose reads and writes are never cached or reordered across, so every read sees the most recent write by any thread.' },
+        { term: 'volatile field', meaning: 'A field whose every read sees the most recent write to it in the synchronization order; a volatile write happens-before every later read of that field, but compound actions such as `count++` stay non-atomic.' },
       ],
       source: 'JLS §17.1 (Synchronization) and §17.4 (Memory Model); JLS §8.3.1.4 (volatile Fields)',
     },

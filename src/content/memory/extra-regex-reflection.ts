@@ -11,6 +11,38 @@ export const regexReflectionMemory: Record<string, MemoryAid> = {
       '`matches()` needs the whole input to fit, while `find()` looks for the next part that fits.',
       'Groups in `( )` capture parts of the match, which you read with `group(1)` and so on.',
     ],
+    types: [
+      {
+        title: 'Quantifier kinds',
+        items: [
+          { name: 'Greedy', simple: 'Grabs as much as it can, then hands back bit by bit, like scooping up the whole sweet jar first.' },
+          { name: 'Reluctant (lazy)', simple: 'Takes as little as possible and asks for more, one sweet at a time.' },
+          { name: 'Possessive', simple: 'Grabs everything and never gives any back. Fast, but it can miss a match greedy would find.' },
+          { name: 'Atomic group', simple: 'A group that is locked once it matches; the engine never goes back to try other options inside it.' },
+        ],
+      },
+      {
+        title: 'Matching methods',
+        items: [
+          { name: '`matches()`', simple: 'The whole text must fit the stencil exactly. Use it to check input such as a postcode.' },
+          { name: '`lookingAt()`', simple: 'Only the start of the text must fit; the rest can be anything.' },
+          { name: '`find()`', simple: 'Slides the stencil along the text and stops at each place where it fits.' },
+          { name: '`results()`', simple: 'Hands you every match as a stream, so you can count or collect them.' },
+        ],
+      },
+      {
+        title: 'Kinds of regex constructs',
+        items: [
+          { name: 'Character classes', simple: 'A box of allowed characters for one spot, like `[a-z]`, or `\\d` for any digit.' },
+          { name: 'Quantifiers', simple: 'How many times: `*` any number, `+` at least one, `?` maybe, `{3}` exactly three.' },
+          { name: 'Anchors', simple: '`^` and `$` mean start and end, like saying "the whole line, not just part of it".' },
+          { name: 'Groups', simple: 'Brackets that bundle parts and remember what they matched, like `(\\d{4})` for a year.' },
+          { name: 'Alternation', simple: '`cat|dog` means either one, like choosing from a menu.' },
+          { name: 'Look-arounds', simple: 'Peek ahead or behind without using up characters, like checking that a number is followed by "px".' },
+          { name: 'Back-references', simple: '`\\1` means "the same text again", for example to find doubled letters.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: '`matches()` and `find()`',
       difference: '`matches()` succeeds only if the entire text fits the pattern, while `find()` succeeds if any part of the text fits.',
@@ -45,6 +77,34 @@ export const regexReflectionMemory: Record<string, MemoryAid> = {
       'An annotation is metadata; it changes nothing unless something reads it.',
       '`@Retention(RUNTIME)` keeps it readable by reflection; `SOURCE` drops it after compiling.',
       'Reflection uses `Class`, `Method` and `Field` objects to inspect and call code at run time.',
+    ],
+    types: [
+      {
+        title: 'Retention policies',
+        items: [
+          { name: '`SOURCE`', simple: 'A sticky note for the compiler only. It is peeled off and never reaches the class file.' },
+          { name: '`CLASS` (default)', simple: 'Stamped into the class file but invisible at run time. The classic trap for custom annotations.' },
+          { name: '`RUNTIME`', simple: 'A sign on the door that frameworks read while the program runs, using reflection.' },
+        ],
+      },
+      {
+        title: 'Kinds of annotations',
+        items: [
+          { name: 'Marker annotation', simple: 'Just a tag with nothing inside, like a "Fragile" sticker: `@Override`.' },
+          { name: 'Single-element annotation', simple: 'One value called value, so you write it directly: `@SuppressWarnings("unchecked")`.' },
+          { name: 'Normal annotation', simple: 'Several named values, like a form with fields: `@Deprecated(since = "9", forRemoval = true)`.' },
+          { name: 'Repeatable annotation', simple: 'May appear several times on one thing, like several delivery-day stickers on one parcel.' },
+          { name: 'Meta-annotation', simple: 'A label for labels: `@Retention` and `@Target` describe how another annotation behaves.' },
+        ],
+      },
+      {
+        title: 'Ways to call code dynamically',
+        items: [
+          { name: 'Reflection (`Method.invoke`)', simple: 'Look up a method by name while the program runs and call it. Flexible, but slower and unchecked.' },
+          { name: '`MethodHandle`', simple: 'A pre-checked shortcut to a method that the JIT can make almost as fast as a direct call.' },
+          { name: 'Generated code', simple: 'A tool writes ordinary Java for you at build time, so the compiler checks it and it runs fastest.' },
+        ],
+      },
     ],
     confusion: {
       mixedUpWith: 'annotations and comments',
