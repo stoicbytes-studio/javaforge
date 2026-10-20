@@ -11,6 +11,28 @@ export const oopMoreMemory: Record<string, MemoryAid> = {
       'Make fields `private` by default and expose behaviour through methods.',
       '`protected` also opens the member to the whole package, not just subclasses.',
     ],
+    types: [
+      {
+        title: 'Access levels',
+        items: [
+          { name: '`private`', simple: 'Only this class can see it, like a diary kept in your own bag.' },
+          { name: 'package-private (no keyword)', simple: 'Every class in the same package can see it, like a classroom noticeboard.' },
+          { name: '`protected`', simple: 'The package plus subclasses elsewhere, like sports kit shared with team-mates from other schools.' },
+          { name: '`public`', simple: 'Everyone can see it, like a notice on the school gate.' },
+        ],
+      },
+      {
+        title: 'Non-access modifiers',
+        items: [
+          { name: '`static`', simple: 'Belongs to the class, not to each object, like one shared coffee machine per floor.' },
+          { name: '`final`', simple: 'Set once and never changed, like a name carved in stone.' },
+          { name: '`abstract`', simple: 'Not finished yet; a subclass must fill in the body, like a form with blank fields.' },
+          { name: '`synchronized`', simple: 'Only one thread at a time, like a single changing room with a lock.' },
+          { name: '`volatile`', simple: 'Every thread sees the latest value, like a whiteboard everyone reads instead of private notes.' },
+          { name: '`transient`', simple: 'Skipped when the object is serialised, like leaving the ice cream out of a posted parcel.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: 'access modifiers and `static` or `final`',
       difference: 'Access modifiers say who can see a member. `static` and `final` say how it behaves: shared by the class, or set only once.',
@@ -46,6 +68,18 @@ export const oopMoreMemory: Record<string, MemoryAid> = {
       'An inner (non-static) class keeps a hidden reference to its outer object.',
       'Anonymous classes and lambdas are written inline for one quick job.',
     ],
+    types: [
+      {
+        title: 'Kinds of nested class',
+        items: [
+          { name: 'Static nested class', simple: 'Lives inside the outer class but needs no outer object, like a store department serving everyone.' },
+          { name: 'Inner (member) class', simple: 'Tied to one outer object, like a personal shopper assigned to one customer.' },
+          { name: 'Local class', simple: 'Declared inside a method and used only there, like a helper hired for one task.' },
+          { name: 'Anonymous class', simple: 'Written and created in one go without a name, like a stand-in who leaves after one job.' },
+          { name: 'Lambda', simple: 'A short function for one-method interfaces; not a class, like a quick note instead of a hired helper.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: 'lambdas and anonymous classes',
       difference: 'An anonymous class is a real class, and `this` inside it means itself. A lambda is not a class, and `this` means the enclosing object.',
@@ -79,6 +113,27 @@ export const oopMoreMemory: Record<string, MemoryAid> = {
       'Enum constants are the only instances; `new` cannot create more.',
       'Enums can have fields, constructors and methods, and can implement interfaces.',
       'A `switch` on an enum can cover every constant; `EnumSet` and `EnumMap` are fast collections for enums.',
+    ],
+    types: [
+      {
+        title: 'Ways to give enum constants behaviour',
+        items: [
+          { name: 'Plain constants', simple: 'Just names, like the labels red, amber and green on a traffic light.' },
+          { name: 'Fields and constructor', simple: 'Each constant carries its own data, like each light knowing how many seconds it stays on.' },
+          { name: 'Constant-specific bodies', simple: 'Each constant writes its own version of a method, like each light having its own rule.' },
+          { name: 'Strategy field (lambda)', simple: 'Each constant is handed a small function, like giving each button its own instruction card.' },
+          { name: 'Implementing an interface', simple: 'The enum keeps a promise other code relies on, like buttons that all fit one standard socket.' },
+        ],
+      },
+      {
+        title: 'Built-in methods every enum has',
+        items: [
+          { name: '`values()`', simple: 'Gives you all the constants in order, like reading the whole menu.' },
+          { name: '`valueOf("NAME")`', simple: 'Finds a constant by its exact name, like looking up a word in a dictionary.' },
+          { name: '`name()`', simple: 'The constant\'s name exactly as written, like the label printed on a button.' },
+          { name: '`ordinal()`', simple: 'Its position counting from zero, like a seat number; never store it.' },
+        ],
+      },
     ],
     confusion: {
       mixedUpWith: 'String or int constants',

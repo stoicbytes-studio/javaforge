@@ -11,6 +11,28 @@ export const oopMemory: Record<string, MemoryAid> = {
       'Each `new` creates a fresh object on the heap and runs a constructor to set it up.',
       'Keep fields `private` and change them only through methods that check the rules.',
     ],
+    types: [
+      {
+        title: 'Kinds of constructors',
+        items: [
+          { name: 'Default (compiler-made)', simple: 'If you write no constructor, Java quietly adds an empty one, like a free basic model.' },
+          { name: 'No-arg', simple: 'A constructor with no inputs that sets sensible starting values, like a phone with factory settings.' },
+          { name: 'Parameterised', simple: 'Takes the values the object needs, like ordering a pizza by saying the size and toppings.' },
+          { name: 'Copy-style', simple: 'Builds a new object from an existing one, like photocopying a filled-in form.' },
+          { name: 'Chained with `this(...)`', simple: 'One constructor hands the work to another in the same class, so the checks are written only once.' },
+          { name: 'Private', simple: 'Nobody outside can call it, like a shop that only sells through its own counter (a factory method).' },
+        ],
+      },
+      {
+        title: 'Kinds of variables in a class',
+        items: [
+          { name: 'Instance variable', simple: 'Every object has its own copy, like each house on the street having its own paint colour.' },
+          { name: 'Static variable', simple: 'One copy shared by the whole class, like a single street sign counting all the houses.' },
+          { name: 'Local variable', simple: 'Lives only while its method runs, like a sticky note thrown away afterwards.' },
+          { name: 'Parameter', simple: 'A value handed in when the method is called, like ingredients handed to a cook.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: 'the variable and the object',
       difference: 'A variable only holds a reference, like an address. Copying the variable gives a second address to the same object, not a new object.',
@@ -46,6 +68,19 @@ export const oopMemory: Record<string, MemoryAid> = {
       'An override replaces a parent method with the same signature; the real object decides which one runs.',
       'A Java class can extend only one class; `super` reaches the parent\'s constructor or methods.',
     ],
+    types: [
+      {
+        title: 'What a subclass can do with inherited members',
+        items: [
+          { name: 'Inherit as-is', simple: 'Use the parent\'s methods unchanged, like an e-bike keeping the same bell.' },
+          { name: 'Override', simple: 'Replace a parent method with your own version, like the e-bike\'s motor-assisted pedalling.' },
+          { name: 'Call `super`', simple: 'Do the parent\'s job and then add a bit, like pedalling normally plus a motor boost.' },
+          { name: 'Overload', simple: 'Add a method with the same name but different inputs, like a second pedal mode with a speed setting.' },
+          { name: 'Add new members', simple: 'Bring brand-new parts, like a battery the plain bike never had.' },
+          { name: 'Hide a static method or field', simple: 'A same-named copy that follows the variable\'s type, not the real object; confusing, so avoid it.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: 'overloading',
       difference: 'Overriding replaces a parent method with the same parameters and is chosen at run time. Overloading adds a method with different parameters and is chosen at compile time.',
@@ -78,6 +113,27 @@ export const oopMemory: Record<string, MemoryAid> = {
       'Single, multilevel and hierarchical inheritance all work with classes.',
       'Multiple inheritance of classes is not allowed; a class may implement many interfaces instead.',
       'If two interfaces give the same default method, the class must override it and choose.',
+    ],
+    types: [
+      {
+        title: 'The five types of inheritance',
+        items: [
+          { name: 'Single', simple: 'One child class, one parent class, like a son learning one recipe from his mother.' },
+          { name: 'Multilevel', simple: 'A chain from grandparent to parent to child, like a recipe passed down three generations.' },
+          { name: 'Hierarchical', simple: 'One parent with several children, like siblings who all share the same family name.' },
+          { name: 'Multiple (interfaces only)', simple: 'Several parents at once; Java allows it only through interfaces, like one person earning several badges.' },
+          { name: 'Hybrid (with interfaces)', simple: 'A mix of the shapes above, like one parent plus several badges; it works only through interfaces.' },
+        ],
+      },
+      {
+        title: 'Ways to stop inheritance',
+        items: [
+          { name: '`final` class', simple: 'No class may extend it, like a product line that has been closed for good.' },
+          { name: '`final` method', simple: 'Children inherit it but cannot change it, like a family rule nobody may rewrite.' },
+          { name: '`sealed ... permits`', simple: 'Only the named classes may extend it, like a guest list at the door.' },
+          { name: 'Private constructors', simple: 'Outside classes cannot call the constructor, so they cannot become children at all.' },
+        ],
+      },
     ],
     confusion: {
       mixedUpWith: 'multilevel inheritance',
@@ -115,6 +171,18 @@ export const oopMemory: Record<string, MemoryAid> = {
       'Overriding: a subclass replaces a method; the JVM picks from the real object at run time.',
       'Static methods, private methods and fields are not overridden; they follow the declared type.',
     ],
+    types: [
+      {
+        title: 'Types of polymorphism',
+        items: [
+          { name: 'Compile-time (overloading)', simple: 'Same name, different inputs, and the compiler picks, like a coffee machine with "small" and "large" buttons.' },
+          { name: 'Runtime (overriding)', simple: 'One call, and the real object decides, like one power button turning on each device its own way.' },
+          { name: 'Parametric (generics)', simple: 'One piece of code for any type, like a box that can hold toys, books or shoes.' },
+          { name: 'Subtype', simple: 'A more specific thing can stand in for a general one, like a dog wherever "an animal" is needed.' },
+          { name: 'Coercion', simple: 'Java quietly converts a value to fit, like the `int` 5 becoming the `double` 5.0.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: 'overloading and overriding',
       difference: 'Overloading is picked by the compiler from the argument types. Overriding is picked while running from the actual object\'s class.',
@@ -150,6 +218,27 @@ export const oopMemory: Record<string, MemoryAid> = {
       'Interfaces can have `default`, `static` and `private` methods, but no instance fields.',
       'A `sealed` interface (Java 17) names exactly which types may implement it.',
     ],
+    types: [
+      {
+        title: 'Types of interfaces',
+        items: [
+          { name: 'Normal interface', simple: 'A list of jobs a class promises to do, like a job advert with several duties.' },
+          { name: 'Functional interface', simple: 'Exactly one job, so a short lambda can fill it, like a temp worker hired for one task.' },
+          { name: 'Marker interface', simple: 'No methods at all, just a tag, like a "fragile" sticker on a parcel.' },
+          { name: 'Sealed interface', simple: 'Only the listed classes may implement it, like a club with a fixed member list.' },
+          { name: 'Generic interface', simple: 'One promise that works for any type, like a storage box that fits whatever you put in.' },
+        ],
+      },
+      {
+        title: 'Sealed hierarchy modifiers',
+        items: [
+          { name: '`final`', simple: 'The branch ends here with no more subclasses, like the last stop on a train line.' },
+          { name: '`sealed`', simple: 'The branch continues, but only with its own guest list of subclasses.' },
+          { name: '`non-sealed`', simple: 'Reopens the branch so anyone may extend it, like a door left unlocked.' },
+          { name: 'record or enum', simple: 'Already final by nature, so they need no extra keyword.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: 'an abstract class',
       difference: 'An abstract class can hold instance fields and constructors, and a class extends only one. An interface has no per-object state, and a class can implement many.',
@@ -184,6 +273,19 @@ export const oopMemory: Record<string, MemoryAid> = {
       'Do not change fields used in `hashCode` while the object is a key in a hash collection.',
       'A record (Java 16) writes `equals`, `hashCode` and `toString` for you from its components.',
     ],
+    types: [
+      {
+        title: 'equals and hashCode rules',
+        items: [
+          { name: 'Reflexive', simple: 'Everything equals itself, like a person always matching their own photo.' },
+          { name: 'Symmetric', simple: 'If A equals B, then B equals A, like a handshake that works both ways.' },
+          { name: 'Transitive', simple: 'If A equals B and B equals C, then A equals C, like three identical coins.' },
+          { name: 'Consistent', simple: 'Asking again gives the same answer, as long as nothing has changed.' },
+          { name: 'Non-null', simple: '`x.equals(null)` is simply false; it never crashes.' },
+          { name: 'hashCode agrees with equals', simple: 'Equal objects must get the same pigeonhole number, or the set cannot find them.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: '`==` and `equals`',
       difference: '`==` on objects asks "is this the very same object?". `equals` asks "do these two objects mean the same value?".',
@@ -216,6 +318,18 @@ export const oopMemory: Record<string, MemoryAid> = {
       'S: one reason to change. O: add new code instead of editing old code.',
       'L: a subtype must work anywhere its parent type is expected, with no surprises.',
       'I and D: prefer small interfaces, and depend on interfaces that get injected, not concrete classes.',
+    ],
+    types: [
+      {
+        title: 'The five SOLID principles',
+        items: [
+          { name: 'S: Single Responsibility', simple: 'Each class has one job, like a mechanic who only fixes tyres.' },
+          { name: 'O: Open/Closed', simple: 'Add features by adding new classes, like hiring a new specialist instead of rebuilding the garage.' },
+          { name: 'L: Liskov Substitution', simple: 'A subtype must work wherever its parent works, like any qualified mechanic covering a shift.' },
+          { name: 'I: Interface Segregation', simple: 'Keep interfaces small, like giving each mechanic only the tools for their own job.' },
+          { name: 'D: Dependency Inversion', simple: 'Depend on a job title, not a person, so anyone qualified can be plugged in.' },
+        ],
+      },
     ],
     confusion: {
       mixedUpWith: 'dependency injection and dependency inversion',

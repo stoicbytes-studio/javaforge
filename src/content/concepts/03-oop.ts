@@ -4,6 +4,18 @@ import type { LessonConcepts } from '@/types/curriculum';
 export const oopConcepts: Record<string, LessonConcepts> = {
   // -------------------------------------------------------------------------
   'o-classes-objects': {
+    textbook: {
+      definition:
+        'A **class** is a reference type declaration that specifies the **fields**, **methods**, **constructors** and initialisers shared by a family of objects. An **object** is a class instance, created at run time by a class instance creation expression (`new`) or reflectively; it occupies storage on the heap, has its own copy of every instance field, and is manipulated only through **references**. Static members belong to the class itself rather than to any instance. **Encapsulation** restricts direct access to an object\'s state so that the class\'s own methods can maintain its invariants.',
+      terms: [
+        { term: 'Class instance creation expression', meaning: 'An expression of the form `new C(...)` that allocates a new object of class C, sets its fields to default values and invokes a constructor.' },
+        { term: 'Reference', meaning: 'A value that points to an object, or the special value `null`; variables of a class type hold references, never objects themselves.' },
+        { term: 'Instance field and static field', meaning: 'An instance field has a separate copy in every object; a static field has exactly one copy per class, shared by all its instances.' },
+        { term: 'Constructor', meaning: 'A special member, named after its class and without a return type, that initialises a newly created object; it is invoked only by `new`, `this(...)` or `super(...)`.' },
+        { term: 'Encapsulation', meaning: 'Hiding an object\'s representation behind access control so that only the class\'s own methods can read or change its state.' },
+      ],
+      source: 'JLS §8 (Classes), §12.5 (Creation of New Class Instances) and §15.9',
+    },
     interviewDefinition:
       'A **class** is a type that bundles state (fields) with the behaviour (methods) allowed to change it; an **object** is a runtime instance of that class, allocated on the heap by `new` and reached only through references. Constructors establish the class\'s invariants, and **encapsulation** — private fields plus intention-revealing methods — keeps them true for the object\'s whole life.',
     interviewFollowUps: [
@@ -58,6 +70,14 @@ export const oopConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Variables hold references; objects live on the heap',
         caption: 'a and c point at the same object, so a change through c is visible through a. The static counter exists once, alongside the class, not inside any object.',
+        explanation: [
+          'The **Stack** column holds local variables. **a** and **b** each hold a reference, an address that points to an object, not the object itself.',
+          '**a** points at **BankAccount #1** (Ada, 1500) and **b** at **BankAccount #2** (Linus, 5000). Both objects live on the **Heap**, each with its own copy of every instance field.',
+          'The dashed arrow from **c = a** shows aliasing: assignment copies the reference, not the object, so c and a now point at the same BankAccount #1.',
+          'Because only one object sits behind a and c, a deposit made through c is visible when you read the balance through a.',
+          'In the **Class data** column, **accountsOpened = 2** is a static field. It exists once per class, not inside any object, and counts both accounts.',
+          'Takeaway: variables hold references, objects live on the heap, and static state belongs to the class rather than to any one object.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -84,6 +104,14 @@ export const oopConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'What `new BankAccount("Ada")` does',
         caption: 'The class is initialised once, then every new object is zeroed and built through its constructor chain. If any step throws, no reference escapes.',
+        explanation: [
+          '**Class initialised?** comes first: on the first use of BankAccount the JVM runs its static initialisers once; later `new` expressions skip this step.',
+          '**Allocate on heap** reserves space for every instance field, inherited ones included, because the size is known from the class. **Zero all fields** then sets them to 0, false or null.',
+          'The **Constructor chain** runs next: any `this(...)` call, then `super(...)` up to Object, so the parent part is initialised before this class\'s own fields.',
+          '**Validate + assign** is the constructor body: it checks the arguments and assigns fields. On the valid path the **Reference returned** is stored in the variable.',
+          'The dashed invalid input arrow leads to **Exception thrown**: the constructor throws, `new` completes abruptly, and the caller never receives a reference to the half-built object.',
+          'Takeaway: an object becomes usable only after its whole constructor chain succeeds, which is why constructors are the place to enforce invariants.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -191,6 +219,36 @@ export const oopConcepts: Record<string, LessonConcepts> = {
           },
         ],
       },
+      {
+        title: 'Kinds of variables in a class',
+        intro: 'Where a variable is declared decides where it lives, how long it lasts and whether it gets a default value (JLS §4.12.3).',
+        items: [
+          {
+            name: 'Instance variable (field)',
+            summary: 'Declared in the class body without static. Every object gets its own copy, initialised to a default value (0, false, null).',
+            support: 'supported',
+            code: 'class Account { private long balanceCents; }',
+          },
+          {
+            name: 'Static (class) variable',
+            summary: 'Declared with static. One copy per class (per class loader), shared by all instances and accessed as ClassName.field.',
+            support: 'supported',
+            code: 'static int accountsOpened;',
+          },
+          {
+            name: 'Local variable',
+            summary: 'Declared inside a method, constructor or block. Lives in the stack frame and must be definitely assigned before use; it has no default value.',
+            support: 'supported',
+            code: 'int fee = 30;',
+          },
+          {
+            name: 'Parameter',
+            summary: 'A method or constructor parameter: a local variable initialised with the argument value. Java passes everything by value, including references.',
+            support: 'supported',
+            code: 'void deposit(long cents) { ... }',
+          },
+        ],
+      },
     ],
     deepDive: [
       {
@@ -218,6 +276,17 @@ export const oopConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'o-inheritance': {
+    textbook: {
+      definition:
+        '**Inheritance** is the mechanism by which a class, the **subclass**, is declared as an extension of another class, its direct **superclass**, and thereby acquires the superclass\'s members that are declared public or protected, together with package-access members when both classes are in the same package. Private members, constructors and initialisers are not inherited. A subclass may add members, **hide** inherited fields and static methods, and **override** inherited instance methods. Invocations of overridden methods are resolved by **dynamic dispatch** on the run-time class of the receiver. Every class except `Object` has exactly one direct superclass.',
+      terms: [
+        { term: 'Subclass and superclass', meaning: 'If class C extends class S, then S is the direct superclass of C and C is a direct subclass of S; the subclass relation is transitive.' },
+        { term: 'Override', meaning: 'An instance method in a subclass overrides an inherited instance method when its signature is a subsignature of the inherited method\'s signature.' },
+        { term: 'Hiding', meaning: 'A field, or a static method, declared in a subclass with the same name or signature as one in the superclass hides it; selection then uses the compile-time type.' },
+        { term: 'Dynamic dispatch', meaning: 'Selection at run time of the method implementation to execute, based on the actual class of the receiver object rather than its declared type.' },
+      ],
+      source: 'JLS §8.1.4 (Superclasses and Subclasses) and §8.4.8 (Inheritance, Overriding, and Hiding)',
+    },
     interviewDefinition:
       '**Inheritance** lets a subclass reuse and specialise a superclass through an is-a relationship. **Overriding** replaces an inherited instance method with the same signature, and **dynamic dispatch** makes the JVM run the override belonging to the object\'s *runtime* class, not the variable\'s declared type. Fields, static methods and private methods are bound at compile time, so they are hidden or simply not inherited — never overridden.',
     interviewFollowUps: [
@@ -272,6 +341,14 @@ export const oopConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Declared type versus runtime type',
         caption: 'The declared type decides what you may call and which field you read; the runtime class decides which override runs.',
+        explanation: [
+          'Start at **Animal a**: the variable\'s declared type is Animal, and the references arrow shows it points at a **Dog object** whose runtime class is Dog.',
+          'Calling **a.speak()** follows the dynamic dispatch arrow: the JVM looks at the real object, finds Dog\'s override and returns "Woof".',
+          'The compile-time arrow leads to **a.name**: fields are never overridden, so the compiler reads Animal.name because a is declared as Animal, even if Dog declares its own name.',
+          '**a.kingdom()** calls a static method, which is bound by the declared type, so Animal.kingdom runs. Static methods are hidden, never overridden.',
+          'A cast changes the declared type: **((Dog) a).name** reads Dog.name. The object did not change; only the compiler\'s view of it did.',
+          'Takeaway: the declared type decides fields, statics and which methods may be called; the runtime class decides which override runs.',
+        ],
         cols: 3,
         rows: 2,
         nodes: [
@@ -293,6 +370,14 @@ export const oopConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'How `a.speak()` finds Dog.speak',
         caption: 'javac only records the signature Animal.speak(); the JVM resolves the actual method at runtime through the receiver\'s method table.',
+        explanation: [
+          'In the **Compile time** group, **javac** checks that Animal declares speak() and records only that signature; it cannot know which subclass will turn up.',
+          'The class file contains an **invokevirtual** instruction naming Animal.speak:()String, which is everything the bytecode says about the call.',
+          'At runtime the JVM answers **Receiver class?** by reading the object header, finds Dog, and looks in the **Dog vtable slot** for speak.',
+          'That slot points at Dog\'s override, so **Dog.speak runs** and returns "Woof", although the source code mentioned only Animal.',
+          'The dashed fixed target arrow from **super.speak()** shows the contrast: it compiles to invokespecial, which calls one exact method chosen at compile time, with no vtable lookup.',
+          'Takeaway: the compiler fixes the signature, and the JVM picks the implementation from the receiver\'s class while the program runs.',
+        ],
         cols: 3,
         rows: 2,
         nodes: [
@@ -319,6 +404,13 @@ export const oopConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Initialisation order for `new Child()`',
         caption: 'Statics run once, parent first. Every object is then built top-down: the parent part is complete before any child initialiser runs.',
+        explanation: [
+          '**1 Parent static** runs first, on the first use of Child, because a superclass must be initialised before its subclass.',
+          '**2 Child static** follows. Both static steps happen once per class, not once per object.',
+          'The each new arrow starts object creation: once the super(...) chain reaches the parent, **3 Parent init** runs the parent\'s field initialisers and instance blocks, then **4 Parent ctor body** runs.',
+          'Only then does **5 Child init** run the child\'s field initialisers and instance blocks, followed by **6 Child ctor body**, the code after super(...).',
+          'Takeaway: the parent part is complete before any child code runs, so an overridable method called from a parent constructor sees uninitialised child fields.',
+        ],
         cols: 3,
         rows: 2,
         nodes: [
@@ -385,6 +477,54 @@ export const oopConcepts: Record<string, LessonConcepts> = {
           },
         ],
       },
+      {
+        title: 'What a subclass can do with inherited members',
+        intro: 'The member kind and signature decide which of these applies (JLS §8.3, §8.4.8 and §8.4.9).',
+        items: [
+          {
+            name: 'Inherit as-is',
+            summary: 'Use the parent\'s public, protected and (in the same package) package-private members unchanged.',
+            support: 'supported',
+            code: 'class Dog extends Animal { }\nnew Dog().eat();   // Animal.eat',
+          },
+          {
+            name: 'Override an instance method',
+            summary: 'A method with the same signature replaces the behaviour; chosen at run time by dynamic dispatch.',
+            support: 'supported',
+            code: '@Override String speak() { return "Woof"; }',
+          },
+          {
+            name: 'Extend with super.method()',
+            summary: 'Override and call the parent version to add behaviour before or after it.',
+            support: 'supported',
+            code: '@Override void save() { audit(); super.save(); }',
+          },
+          {
+            name: 'Overload',
+            summary: 'Same name, different parameter types: a new method alongside the inherited one, chosen at compile time.',
+            support: 'supported',
+            code: 'void eat(Food f, int grams) { ... }',
+          },
+          {
+            name: 'Add new members',
+            summary: 'Fields and methods only the subclass has; callable only through a reference of the subclass type.',
+            support: 'supported',
+            code: 'void fetch() { ... }',
+          },
+          {
+            name: 'Hide a field or static method',
+            summary: 'A same-named field or same-signature static method hides the parent\'s; the declared type selects which one is used.',
+            support: 'supported',
+            note: 'Legal but confusing; avoid it in new code.',
+            code: 'static String kingdom() { return "Canids"; }',
+          },
+          {
+            name: 'Inherit constructors',
+            summary: 'Constructors are never inherited; each subclass declares its own and chains to a parent one with super(...).',
+            support: 'not-supported',
+          },
+        ],
+      },
     ],
     deepDive: [
       {
@@ -410,6 +550,18 @@ export const oopConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'o-inheritance-types': {
+    textbook: {
+      definition:
+        '**Types of inheritance** classify the shapes that subtype relationships among classes and interfaces can take: **single** (one direct parent), **multilevel** (a chain of parents), **hierarchical** (several subclasses of one parent), **multiple** (more than one direct parent) and **hybrid** (a combination of these). In Java a class has exactly one direct superclass but may implement any number of **superinterfaces**, and an interface may extend several interfaces. Java therefore supports multiple inheritance of type and, through default methods, of behaviour, but not multiple inheritance of **state**.',
+      terms: [
+        { term: 'Direct superclass', meaning: 'The class named in a class\'s extends clause, or Object when the clause is absent; every class except Object has exactly one.' },
+        { term: 'Superinterface', meaning: 'An interface named in a class\'s implements clause or an interface\'s extends clause, or any interface those interfaces themselves extend.' },
+        { term: 'Multiple inheritance of state', meaning: 'Inheriting instance fields from more than one class. Java forbids it, which avoids duplicated fields in diamond-shaped hierarchies.' },
+        { term: 'Diamond problem', meaning: 'The ambiguity that arises when a type inherits the same member from one ancestor along two different paths through the hierarchy.' },
+        { term: 'Default method', meaning: 'An interface instance method with a body, declared with default, which implementing classes inherit unless a class or more specific interface overrides it.' },
+      ],
+      source: 'JLS §8.1.4, §8.1.5 and §9.4.1; The Java Tutorials, "Multiple Inheritance of State, Implementation, and Type"',
+    },
     interviewDefinition:
       'The classic inheritance types are **single**, **multilevel**, **hierarchical**, **multiple** and **hybrid**. Java classes have exactly one direct superclass (ultimately `Object`), so classes support single, multilevel and hierarchical inheritance only. Multiple and hybrid inheritance are available through **interfaces**: multiple inheritance of type, and since Java 8 of behaviour via default methods — but never of instance state, which is what avoids the diamond problem.',
     interviewFollowUps: [
@@ -465,6 +617,14 @@ export const oopConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Single, multilevel and hierarchical in one tree',
         caption: 'Every class has exactly one parent line up to Object. Car → Vehicle is single, ElectricCar → Car → Vehicle is multilevel, and Car and Truck sharing Vehicle is hierarchical.',
+        explanation: [
+          'At the top sits **Object**, the root of every class. **Vehicle** extends it, so even a class with no extends clause has exactly one parent.',
+          '**Car** extends Vehicle: one class with one parent is single inheritance.',
+          '**Truck** also extends Vehicle. Car and Truck sharing one parent is hierarchical inheritance, which is what the **Hierarchical** group marks.',
+          '**ElectricCar** extends Car, which extends Vehicle: a chain several levels deep is multilevel inheritance, and each level inherits everything above it.',
+          '**final class Money** has no arrows pointing into it: final forbids subclasses, so that branch of the tree stops there.',
+          'Takeaway: every extends arrow points to exactly one parent, so Java classes always form a tree with Object at the root.',
+        ],
         cols: 3,
         rows: 4,
         nodes: [
@@ -488,6 +648,14 @@ export const oopConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'The diamond: forbidden for classes, resolved for interfaces',
         caption: 'For classes, D would get two paths to A\'s fields, so `extends B, C` does not compile. With interfaces there is no state; Duck must override the clashing defaults and may pick one with X.super.',
+        explanation: [
+          'In the **Classes** group, **class B** and **class C** both extend **class A**, which owns the field count.',
+          'The dashed arrows show **class D extends B, C**, which does not compile: D would reach A\'s field count along two paths, so whose copy and whose constructor would apply?',
+          'In the **Interfaces** group, **Flyer** and **Swimmer** each supply a default move() but no instance fields, so there is no state to duplicate.',
+          '**Duck implements both** interfaces legally. Because the two defaults clash, the compiler forces Duck to override move().',
+          'Following the may delegate arrow, Duck\'s override can call **Flyer.super.move()** to reuse one chosen interface default explicitly.',
+          'Takeaway: Java bans the class diamond because of shared state, and turns the interface diamond into a choice you make at compile time.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -519,6 +687,14 @@ export const oopConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Which `move()` does a class get?',
         caption: 'The compiler applies these rules in order. The last box is not a runtime fallback: an unresolved conflict stops compilation.',
+        explanation: [
+          'Start with **Superclass has it?**: if a superclass declares move(), concrete or abstract, the yes arrow leads to **Class wins** and interface defaults are ignored.',
+          'Otherwise ask **More specific interface?**: if one interface extends the other, as Guard extends Animal, then **Sub-interface wins** and its default is used.',
+          'If neither rule applies, the class **Must override** move() itself, because two unrelated defaults are left.',
+          'Inside that override it may call **X.super.move()** to delegate to the default of one chosen direct superinterface.',
+          'The dashed if omitted arrow leads to **Compile error**: a missing override is rejected by javac, never resolved at run time.',
+          'Takeaway: classes beat interfaces, specific interfaces beat general ones, and anything still ambiguous must be settled by you.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -617,6 +793,18 @@ export const oopConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'o-polymorphism-types': {
+    textbook: {
+      definition:
+        '**Polymorphism** is the ability of a single name, expression or operation to denote or act on values of several types. Java provides **ad-hoc polymorphism** through method overloading, resolved at compile time from the declared types of the arguments; **subtype (inclusion) polymorphism**, under which a value of a subtype may be used wherever its supertype is expected, combined with method overriding and **dynamic dispatch** at run time; and **parametric polymorphism** through generic classes and methods, type-checked at compile time and implemented by **erasure**.',
+      terms: [
+        { term: 'Ad-hoc polymorphism', meaning: 'One name bound to separately written implementations for different argument types, such as overloaded methods; the choice is made statically.' },
+        { term: 'Subtype polymorphism', meaning: 'Substitutability of a subtype value where a supertype is expected; in Java it is realised by class extension and interface implementation.' },
+        { term: 'Parametric polymorphism', meaning: 'One implementation, written once with type parameters, that works uniformly for every type argument, such as `List<T>`.' },
+        { term: 'Static and dynamic binding', meaning: 'Static binding fixes a method or field at compile time; dynamic binding selects an instance-method implementation at run time from the receiver\'s class.' },
+        { term: 'Type erasure', meaning: 'The compilation strategy that removes generic type arguments from bytecode, replacing type variables with their bounds and inserting casts where needed.' },
+      ],
+      source: 'Cardelli and Wegner, "On Understanding Types, Data Abstraction, and Polymorphism" (1985); JLS §8.4.8, §8.4.9 and §15.12',
+    },
     interviewDefinition:
       '**Polymorphism** lets one name or interface work with many types. In Java: **compile-time** (static) polymorphism is method overloading, resolved by the compiler from declared argument types; **runtime** (dynamic) polymorphism is overriding, resolved by the JVM from the receiver\'s actual class; **parametric** polymorphism is generics; **subtype** polymorphism lets a subclass stand in for its supertype. Fields, static and private methods are statically bound.',
     interviewFollowUps: [
@@ -670,6 +858,14 @@ export const oopConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'The kinds of polymorphism and when they are decided',
         caption: 'Everything on the left is settled by javac; only overriding defers its choice to the running JVM.',
+        explanation: [
+          '**Polymorphism** at the top branches into four Java mechanisms: **Overloading**, **Generics**, **Subtyping** and **Overriding**.',
+          'Overloading (ad-hoc) is picked by javac from the declared argument types, so its arrow leads to **Compile time**, meaning static binding.',
+          'Generics (parametric) are checked by the compiler and then erased, as the erased arrow says, so they also end at Compile time.',
+          'Subtyping lets a Dog stand where an Animal is expected; the enables arrow shows that this substitution is what makes overriding useful.',
+          'Overriding is the only branch that reaches **Run time**: the JVM picks the implementation from the receiver\'s class while the program runs.',
+          'Takeaway: most polymorphism is settled by the compiler; only calls to overridden instance methods are decided at run time.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -697,6 +893,14 @@ export const oopConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Overload resolution in three phases',
         caption: 'The compiler stops at the first phase with any applicable method, then picks the most specific — so widening beats boxing, and boxing beats varargs.',
+        explanation: [
+          'The call **pick(5)** starts the search with the declared argument type, int; the value at run time plays no part.',
+          '**Phase 1** tries methods applicable without boxing or varargs: exact match, primitive widening and subtyping. If any is found, the found arrow leads to **Most specific wins**.',
+          'If none applies, **Phase 2** also allows boxing and unboxing, so pick(Integer) becomes possible; if still nothing fits, **Phase 3** also allows varargs.',
+          'Among the candidates of the first successful phase, the most specific is chosen; for example pick(int) beats pick(long).',
+          'The dashed arrow to **Ambiguous call** applies when no single candidate is most specific, and **No method found** means even Phase 3 failed. Both are compile errors.',
+          'Takeaway: widening beats boxing and boxing beats varargs, because the compiler stops at the first phase that finds anything.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -723,6 +927,14 @@ export const oopConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'Virtual method tables (conceptual)',
         caption: 'A subclass copies its parent\'s table and replaces the slots it overrides. send() lives in the same slot in both tables, so a call through Notifier is one indexed lookup.',
+        explanation: [
+          'The call **n.send(msg)** compiles to invokevirtual for one method slot; the compiler knows the slot but not which object will be there.',
+          'If the receiver is an **EmailNotifier object**, its header points to its class, whose **Email vtable** maps send to the Email implementation.',
+          'If the receiver is an **SmsNotifier object**, the same slot in the **Sms vtable** maps send to the Sms implementation; toString points at Object\'s version in both.',
+          'Both tables live in the **Class metadata (Metaspace)** group. A subclass copies its parent\'s table and replaces only the slots it overrides, so send sits at the same index in each.',
+          '**Statics and fields** are not in the vtable at all: they are bound at compile time, which is why they are never polymorphic.',
+          'Takeaway: a virtual call costs one header read plus one indexed table lookup, which is why dynamic dispatch is cheap.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -830,6 +1042,17 @@ export const oopConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'o-interfaces': {
+    textbook: {
+      definition:
+        'An **interface** is a reference type whose members are constants, abstract method declarations, default and static methods and, since Java 9, private methods; it declares no instance fields and no constructors. A class that **implements** an interface must provide implementations of its abstract methods or be declared abstract. An **abstract class** is a class that cannot be instantiated and may declare abstract methods alongside fields, constructors and concrete methods. A **sealed** class or interface restricts its direct subtypes to an explicitly **permitted** set.',
+      terms: [
+        { term: 'Abstract method', meaning: 'A method declared without a body; every concrete class that inherits it must provide an implementation.' },
+        { term: 'Default method', meaning: 'An interface method with a body, marked default, inherited by implementing classes that do not override it (Java 8).' },
+        { term: 'Functional interface', meaning: 'An interface with exactly one abstract method, whose instances can be created with lambda expressions or method references.' },
+        { term: 'Sealed type and permits clause', meaning: 'A class or interface declared sealed whose permits clause lists the only classes or interfaces allowed to extend or implement it directly (Java 17).' },
+      ],
+      source: 'JLS §9 (Interfaces), §8.1.1.1 (abstract Classes) and §8.1.1.2 (sealed, non-sealed, and final Classes); JEP 409',
+    },
     interviewDefinition:
       'An **interface** is a contract of public operations that any class may implement, many at once; it carries no instance state but may include `default`, `static` (Java 8) and `private` (Java 9) methods. An **abstract class** is a partial implementation with fields, constructors and any visibility, extended by at most one subclass parent. **Sealed** types (Java 17) restrict which classes may extend or implement them, enabling exhaustive pattern matching.',
     interviewFollowUps: [
@@ -883,6 +1106,13 @@ export const oopConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'A sealed hierarchy',
         caption: 'Shape names its subtypes. Each one must declare how it continues: final (records are implicitly final), sealed again, or non-sealed to reopen its branch.',
+        explanation: [
+          '**sealed interface Shape** at the top lists its only permitted subtypes: Circle, Polygon and Blob. No other class may implement it directly.',
+          '**record Circle** implements Shape and is implicitly final, so its branch ends immediately.',
+          '**sealed Polygon** continues the hierarchy, but only with its own permits list; **final Square** is one of its allowed subtypes and closes that branch.',
+          '**non-sealed Blob** deliberately reopens its branch, so the dashed arrow from **class Splat extends Blob** is allowed without Splat being listed anywhere.',
+          'Takeaway: every permitted subtype must say final, sealed or non-sealed, so the author decides exactly where the hierarchy is closed.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -906,6 +1136,13 @@ export const oopConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'An interface as a component boundary',
         caption: 'CheckoutService depends only on the PaymentGateway contract it owns. Real and fake implementations plug in from outside, and an abstract class shares plumbing between the real ones.',
+        explanation: [
+          '**CheckoutService** holds the business logic and depends on **PaymentGateway**, an interface declaring charge(Money), never on a concrete class.',
+          '**FakeGateway** implements PaymentGateway directly, so tests can run checkout without a network or real money.',
+          '**HttpGateway** is an abstract class that also implements the interface and holds shared plumbing such as retries and authentication.',
+          '**StripeGateway** and **AdyenGateway** extend HttpGateway, inheriting that plumbing and adding only provider-specific code.',
+          'Takeaway: the interface is the boundary that lets implementations be swapped, while the abstract class removes duplication between similar implementations.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -929,6 +1166,13 @@ export const oopConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Why sealed switches need no default',
         caption: 'Because the compiler knows the complete list of subtypes, it can prove a switch covers them all — and flags every switch when the list grows.',
+        explanation: [
+          'The **permits list** tells the compiler every subtype of Shape: Circle, Rectangle and Square.',
+          'A **switch (shape)** with one case per subtype covers them all, so the all covered arrow leads to **Exhaustive**: it compiles with no default branch.',
+          'In the bottom row someone does **Add Triangle** to the permits list. On the next build every switch that lacks a Triangle case becomes a **Compile error**.',
+          'The fix is **Add case Triangle**; the dashed arrow back to Exhaustive shows the switch is complete again.',
+          'Takeaway: a sealed hierarchy turns a forgotten case into a compiler to-do list instead of a production bug.',
+        ],
         cols: 3,
         rows: 2,
         nodes: [
@@ -974,6 +1218,49 @@ export const oopConcepts: Record<string, LessonConcepts> = {
           { name: 'record / enum', summary: 'Implicitly final (enums are implicitly sealed if constants have bodies), so they need no modifier.', support: 'supported', code: 'record Circle(double r) implements Shape { }' },
         ],
       },
+      {
+        title: 'Types of interfaces',
+        intro: 'Java has one interface construct; these are the kinds commonly distinguished by purpose.',
+        items: [
+          {
+            name: 'Normal interface',
+            summary: 'Declares one or more abstract methods (plus optional defaults) that implementing classes must provide.',
+            support: 'supported',
+            code: 'interface Repository<T> {\n    T find(long id);\n    void save(T item);\n}',
+          },
+          {
+            name: 'Functional interface (Java 8)',
+            summary: 'Exactly one abstract method, so lambdas and method references can implement it. @FunctionalInterface is optional but makes the compiler check the rule.',
+            support: 'supported',
+            code: '@FunctionalInterface\ninterface Validator { boolean isValid(String s); }',
+          },
+          {
+            name: 'Marker interface',
+            summary: 'Declares no methods; it tags a class with a property that code or the JVM checks with instanceof.',
+            support: 'supported',
+            note: 'Serializable, Cloneable and RandomAccess. Annotations are the modern alternative for metadata.',
+            code: 'class Order implements Serializable { }',
+          },
+          {
+            name: 'Sealed interface (Java 17)',
+            summary: 'Restricts implementors to a permits list, enabling exhaustive switches over its subtypes.',
+            support: 'supported',
+            code: 'sealed interface Result permits Ok, Err { }',
+          },
+          {
+            name: 'Generic interface',
+            summary: 'Declares type parameters so one contract works for many types.',
+            support: 'supported',
+            code: 'interface Comparable<T> { int compareTo(T other); }',
+          },
+          {
+            name: 'Nested interface',
+            summary: 'Declared inside a class or another interface; it is implicitly static and is used through the outer name.',
+            support: 'supported',
+            code: 'interface Map<K, V> {\n    interface Entry<K, V> { K getKey(); }\n}',
+          },
+        ],
+      },
     ],
     deepDive: [
       {
@@ -1002,6 +1289,17 @@ export const oopConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'o-object-contracts': {
+    textbook: {
+      definition:
+        'The **general contract** of `Object.equals` requires the method to implement an **equivalence relation** on non-null references: it must be reflexive, symmetric and transitive, **consistent** across invocations while the compared state is unchanged, and must return false for a null argument. The contract of `Object.hashCode` requires the value to be consistent within one execution and requires objects that are equal according to `equals` to produce the same **hash code**; unequal objects may share one. `toString` should return a concise, informative textual representation. Hash-based collections depend on both contracts.',
+      terms: [
+        { term: 'Equivalence relation', meaning: 'A relation that is reflexive (x relates to x), symmetric (x to y implies y to x) and transitive (x to y and y to z imply x to z).' },
+        { term: 'Hash code', meaning: 'An int derived from an object\'s state that hash tables use to choose a bucket; equal objects must have equal hash codes.' },
+        { term: 'Consistency', meaning: 'Repeated invocations of equals or hashCode return the same result as long as no information used in the comparison is modified.' },
+        { term: 'Value equality', meaning: 'Comparing objects by their state (logical equality) rather than by identity with `==`; records generate equals and hashCode from all their components.' },
+      ],
+      source: 'Javadoc for java.lang.Object (equals, hashCode, toString); Effective Java, 3rd ed., Items 10-12',
+    },
     interviewDefinition:
       '`equals` must be an **equivalence relation** — reflexive, symmetric, transitive — consistent over time and false for `null`; `hashCode` must return equal values for equal objects. Hash-based collections find the bucket with `hashCode` and only then compare with `equals`, so overriding one without the other silently breaks `HashMap` and `HashSet`. **Records** (Java 16) generate correct value-based `equals`, `hashCode` and `toString` from their components.',
     interviewFollowUps: [
@@ -1057,6 +1355,14 @@ export const oopConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'How a HashSet uses hashCode, then equals',
         caption: 'hashCode only chooses the bucket; equals decides within it. Two equal Points with different hashes land in different buckets and are never compared — producing a duplicate.',
+        explanation: [
+          'The lookup key **new Point(1, 2)** first has its hash computed: **hashCode() → 33**, which the HashSet spreads and reduces to an index for its table size.',
+          'The index arrow leads to **Bucket 1**, which holds Point(1,2) and Point(9,0). The hash only narrows the search to this one bucket.',
+          'Inside the bucket the set calls **equals() per entry**, walking the entries; the true arrow means a match, so the result is **Found**.',
+          'The lower boxes show the bug: with **No hashCode override**, each Point uses its identity hash, so an equal key is sent to an unrelated bucket.',
+          'That lookup searches the wrong place and ends in **Wrong bucket: "not found"**, because equals is never even called on the stored Point.',
+          'Takeaway: hashCode chooses where to look and equals decides what matches, so the two must agree.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -1081,6 +1387,14 @@ export const oopConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Mutating a key strands its entry',
         caption: 'The entry stays in the bucket chosen by the old hash. After the change, every lookup computes the new hash and searches somewhere else.',
+        explanation: [
+          '**set.add(tag)** computes hash h1 from the name "java", and the entry is **Stored in bucket h1**.',
+          'Then **tag.name = "jvm"** changes a field used by hashCode, so the same object now hashes to h2, yet it still sits in bucket h1.',
+          '**set.contains(tag)** recomputes the hash, searches bucket h2 and finds nothing there.',
+          'The answer is **false** even though that very object is in the set; remove() fails for the same reason, so the entry is stranded.',
+          'The dashed prevent with arrow leads to **Immutable keys**: records and classes with final fields cannot change after insertion.',
+          'Takeaway: never mutate fields used by equals and hashCode while the object is a key in a hash collection.',
+        ],
         cols: 3,
         rows: 2,
         nodes: [
@@ -1152,6 +1466,17 @@ export const oopConcepts: Record<string, LessonConcepts> = {
 
   // -------------------------------------------------------------------------
   'o-solid': {
+    textbook: {
+      definition:
+        '**SOLID** is an acronym for five principles of object-oriented class design collected by Robert C. Martin. The **Single Responsibility Principle** states that a module should have one reason to change; the **Open/Closed Principle**, that software entities should be open for extension but closed for modification; the **Liskov Substitution Principle**, that objects of a subtype must be substitutable for objects of their supertype without altering the correctness of the program; the **Interface Segregation Principle**, that clients should not be forced to depend on methods they do not use; and the **Dependency Inversion Principle**, that high-level modules should not depend on low-level modules, both instead depending on abstractions.',
+      terms: [
+        { term: 'Reason to change', meaning: 'A single actor or concern, such as finance rules or presentation, whose changing requirements may force the module to be modified.' },
+        { term: 'Behavioural subtyping', meaning: 'The requirement, formalised by Liskov and Wing, that a subtype preserve its supertype\'s invariants, not strengthen preconditions and not weaken postconditions.' },
+        { term: 'Abstraction (in DIP)', meaning: 'An interface or abstract class, owned by the high-level policy, that states what is needed without naming a concrete implementation.' },
+        { term: 'Dependency injection', meaning: 'A technique in which an object receives its collaborators from outside, typically through constructor parameters, instead of creating them itself.' },
+      ],
+      source: 'Robert C. Martin, "Design Principles and Design Patterns" (2000) and Agile Software Development (2002); Liskov and Wing (1994)',
+    },
     interviewDefinition:
       '**SOLID** is five object-oriented design principles that limit the cost of change: **S**ingle Responsibility (one reason to change), **O**pen/Closed (extend behaviour without editing working code), **L**iskov Substitution (subtypes honour their supertype\'s contract), **I**nterface Segregation (small, client-specific interfaces) and **D**ependency Inversion (high-level policy and low-level detail both depend on abstractions, usually injected through constructors). They are heuristics balanced against simplicity, not laws.',
     interviewFollowUps: [
@@ -1207,6 +1532,13 @@ export const oopConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Dependency inversion flips the arrow',
         caption: 'Before, policy points at a concrete client. After, both policy and detail point at an abstraction owned by the policy side, so the detail can be swapped.',
+        explanation: [
+          'In the **Before** group, **CheckoutService**, the high-level policy, calls new StripeClient() and so points straight at **StripeClient**, a concrete detail it cannot swap or fake.',
+          'In the **After** group, CheckoutService depends on **PaymentGateway**, an interface owned by the policy side that describes only what checkout needs.',
+          '**StripeGateway** implements PaymentGateway, so the arrow from the detail now points up at the abstraction: that reversal is the inversion.',
+          '**FakeGateway** implements the same interface for tests, so checkout can be tested without any payment provider.',
+          'Takeaway: policy and detail both depend on the abstraction, so the detail can be replaced without touching the policy.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -1233,6 +1565,13 @@ export const oopConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'Splitting a god class by reason to change',
         caption: 'Each extracted class answers to one concern. The facade keeps callers unchanged while finance, design and infrastructure changes now touch different files.',
+        explanation: [
+          '**InvoiceService** at the top is a god class mixing totals, PDF layout and email, so finance, design and infrastructure changes all edit the same file.',
+          'The extract arrows split it by reason to change: **InvoiceCalculator** owns finance rules, **InvoiceRenderer** owns layout and branding, and **InvoiceMailer** owns SMTP and retries.',
+          '**InvoiceWorkflow** at the bottom is a facade that receives the three classes through its constructor; the dashed arrows show that it uses them.',
+          'Callers keep calling one entry point, so splitting the class does not ripple out to the rest of the code base.',
+          'Takeaway: each class now answers to one concern, so a change requested by one team touches only one file.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -1256,6 +1595,14 @@ export const oopConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Adding a feature under Open/Closed',
         caption: 'A new discount is a new class registered with the calculator; the tested calculator code is never edited.',
+        explanation: [
+          'A business request arrives: **New rule: loyalty**. The add code arrow shows that the response is new code, not edits to old code.',
+          'The new class **LoyaltyDiscount** implements the DiscountRule interface, so it fits the existing extension point.',
+          '**Register the bean**, or add it to the list, so that it is injected into the calculator.',
+          '**PriceCalculator** simply loops over its List<DiscountRule> and applies each rule; it never names a concrete rule, so it needs no change.',
+          'The dashed arrow from **Existing rules** shows they keep working untouched, and their tests still pass.',
+          'Takeaway: the calculator is open for extension through new rules but closed for modification of its tested code.',
+        ],
         cols: 3,
         rows: 2,
         nodes: [

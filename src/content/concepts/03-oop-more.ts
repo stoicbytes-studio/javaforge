@@ -3,6 +3,18 @@ import type { LessonConcepts } from '@/types/curriculum';
 /** Concept pages for the extra OOP lessons (access modifiers, nested classes, enums), keyed by lesson id. */
 export const oopMoreConcepts: Record<string, LessonConcepts> = {
   'o-access-modifiers': {
+    textbook: {
+      definition:
+        '**Access modifiers** are keywords that implement **access control**, which determines from which code a declared member, constructor or type may be referred to by name. Java defines four levels: `private` (accessible only within the body of the top-level class that encloses the declaration), **package access** (the default when no modifier is given, accessible within the same package), `protected` (package access plus subclasses in other packages, subject to a qualifying-type restriction) and `public` (accessible wherever its enclosing type is, subject to module exports). **Non-access modifiers** such as `static`, `final` and `abstract` specify properties of a declaration rather than its accessibility.',
+      terms: [
+        { term: 'Access control', meaning: 'The compile-time and link-time checks that prevent code from referring to a declaration it is not permitted to access.' },
+        { term: 'Package access', meaning: 'The default accessibility of a member or top-level type declared without public, protected or private: visible only within its own package.' },
+        { term: 'Protected access', meaning: 'Access granted to the whole package and, outside it, to subclass code only through expressions whose type is that subclass or one of its subtypes.' },
+        { term: 'Module export', meaning: 'A directive in module-info.java that makes a package\'s public types accessible to other modules; unexported packages stay encapsulated.' },
+        { term: 'Non-access modifier', meaning: 'A modifier such as static, final, abstract, synchronized, volatile or transient that changes the meaning or behaviour of a declaration, not its visibility.' },
+      ],
+      source: 'JLS §6.6 (Access Control), §8.1.1, §8.3.1 and §7.7 (Module Declarations)',
+    },
     interviewDefinition:
       'Access modifiers control **visibility**: `private` (the declaring top-level class), package-private (same package, no keyword), `protected` (same package plus subclasses, which outside the package may only use it through their own type) and `public` (everyone, subject to module exports). Non-access modifiers describe **nature**: `static` binds a member to the class rather than an instance, `final` forbids reassignment, overriding or subclassing, and `abstract` declares something that must be completed by a subclass.',
     interviewFollowUps: [
@@ -67,6 +79,14 @@ export const oopMoreConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Each access level adds a wider audience',
         caption: 'Read top to bottom: every level includes everyone from the level above it, plus one new group of callers.',
+        explanation: [
+          'Read the left column top to bottom: **private**, **package-private**, **protected** and **public**. Each widen arrow opens the member to more callers.',
+          'The dashed arrow from private leads to **Same class only**: code in the declaring class and its nested classes, nothing else.',
+          'Package-private adds **+ every class in the same package**, which is what you get when you write no keyword at all.',
+          'Protected adds **+ subclasses in other packages**, but those subclasses may use the member only through references of their own type.',
+          'Public adds **+ everyone**, provided the module exports the package that contains the type.',
+          'Takeaway: each level includes everything above it, so choose the narrowest level that works and widen only when needed.',
+        ],
         cols: 3,
         rows: 4,
         nodes: [
@@ -94,6 +114,14 @@ export const oopMoreConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'Who can touch Account\'s members',
         caption: 'Arrows show what each caller can use. The subclass in another package gets protected members, but only through GoldAccount references; an unrelated class there sees only public members.',
+        explanation: [
+          '**Account** in package com.shop.core declares members at all four levels: public, protected, package-private and private.',
+          '**Account methods** sit inside the class itself, so their all members arrow includes even the private ones.',
+          '**Auditor** is in the same package, so it reaches all but private: package-private and protected members are open to the whole package.',
+          'In package com.shop.premium, **GoldAccount** extends Account and gets public and protected members; the asterisk means only through GoldAccount references, not a plain Account.',
+          '**Report**, an unrelated class in the premium package, follows the dashed public only arrow: with no subclassing and no shared package, it sees public members only.',
+          'Takeaway: sharing a package or being a subclass is what earns access beyond the public members.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -119,6 +147,14 @@ export const oopMoreConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Initialisation order for new Child()',
         caption: 'Class initialisation (top row) happens once per class, parent first. Object creation (bottom rows) happens for every new: the parent part is fully built before the child\'s instance initialisers run.',
+        explanation: [
+          '**First use of Child**, such as a new, a static method call or a static field read, triggers class initialisation once, as the once arrow says.',
+          'In the **Once per class** row, **Base static init** runs before **Child static init**, because a superclass must be initialised before its subclass.',
+          'Then **new Child()** starts object creation; its this(...) and super(...) chain climbs up to Object first.',
+          'In the **Every new** rows the parent part is built first: **Base instance init** runs field initialisers and instance blocks, then the **Base constructor body** runs.',
+          'Only then do **Child instance init** and the **Child constructor body** run, and finally the **Reference returned** goes back to the caller.',
+          'Takeaway: statics run once, parent first; instance initialisation repeats for every new, again parent first.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -208,6 +244,18 @@ export const oopMoreConcepts: Record<string, LessonConcepts> = {
   },
 
   'o-nested-classes': {
+    textbook: {
+      definition:
+        'A **nested class** is any class whose declaration occurs within the body of another class or interface; a class that is not nested is a **top-level class**. Nested classes are either static member classes, which have no enclosing instance, or **inner classes**, which comprise non-static member classes, local classes declared in a block, and **anonymous classes** declared and instantiated by a single class instance creation expression. An inner class declared in an instance context has an **immediately enclosing instance**, and may use local variables of enclosing blocks only if they are final or **effectively final**.',
+      terms: [
+        { term: 'Inner class', meaning: 'A nested class that is not explicitly or implicitly static; member, local and anonymous classes are inner classes.' },
+        { term: 'Immediately enclosing instance', meaning: 'The instance of the lexically enclosing class to which an inner class object is bound, accessible in its body as `Outer.this`.' },
+        { term: 'Effectively final', meaning: 'A local variable or parameter that is never assigned after initialisation, so it could be declared final without changing the program.' },
+        { term: 'Anonymous class', meaning: 'A class without a name, declared by a class instance creation expression that both declares and instantiates it.' },
+        { term: 'Top-level class', meaning: 'A class declared directly in a compilation unit, not inside the body of another class or interface.' },
+      ],
+      source: 'JLS §8.1.3 (Inner Classes and Enclosing Instances), §14.3 (Local Class Declarations) and §15.9.5 (Anonymous Class Declarations)',
+    },
     interviewDefinition:
       'Java has four kinds of nested class: **static nested** (no enclosing instance), **inner** member classes (each instance holds an implicit reference to an outer instance, reachable as `Outer.this`), **local** classes (declared in a block) and **anonymous** classes (declared and instantiated in one expression). Local and anonymous classes, like lambdas, may capture only effectively final locals. Prefer static nested classes unless the outer instance is genuinely needed, and lambdas for single-method interfaces.',
     interviewFollowUps: [
@@ -262,6 +310,14 @@ export const oopMoreConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'The four kinds of nested class',
         caption: 'Static nested classes have no enclosing instance; the three inner kinds do (when declared in an instance context). Lambdas cover the single-method anonymous case.',
+        explanation: [
+          '**Class declared inside other code** at the top splits on one question: is the nested class static or not?',
+          'The static arrow leads to **Static nested**: it lives in the outer class\'s namespace but holds no reference to any outer object.',
+          'The non-static arrow leads to **Inner classes**, which carry an Outer.this reference whenever they are declared in an instance context.',
+          'There are three inner kinds: **Member inner**, created with outer.new Inner(); **Local**, declared inside a block; and **Anonymous**, declared and created in one expression.',
+          'The dashed arrow shows that an anonymous class is often replaced by a **Lambda** when the interface has a single abstract method.',
+          'Takeaway: the static or non-static choice decides whether every nested object is tied to an outer object.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -287,6 +343,14 @@ export const oopMoreConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'How an inner listener keeps a closed screen alive',
         caption: 'The GC frees only unreachable objects. A static registry reaches the listener, whose hidden this$0 field reaches the screen and its large data, so none of it can be collected.',
+        explanation: [
+          'Start at the **GC root**, a static EventBus field. The garbage collector keeps alive everything that can be reached from a root.',
+          'The root reaches the **EventBus**, whose listener list holds a strong ref to a **PriceListener**, an instance of an inner class.',
+          'Because PriceListener is an inner class, its hidden this$0 field points at **ReportScreen**, so the closed screen is still reachable.',
+          'The screen in turn holds a **Chart image** of 50 MB, so everything in the **Heap** group stays in memory.',
+          'The dashed fix arrow points to a **Static nested listener**: with no this$0 field, the screen becomes unreachable and the GC frees it.',
+          'Takeaway: an inner class silently keeps its outer object alive, so prefer static nested classes for long-lived callbacks.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -311,6 +375,13 @@ export const oopMoreConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Choosing the right kind',
         caption: 'Start from the cheapest option and move right only when you need more: no outer link, then a lambda, then a named or anonymous class.',
+        explanation: [
+          'Start with **Needs the outer object\'s state?** If no, choose a **Static nested class**, the cheapest option with no hidden outer reference.',
+          'If yes, ask **Single-method interface, no own state?** If yes, write a **Lambda or method ref**, which needs no class declaration at all.',
+          'Otherwise ask **Used in one method only?** If no, the class is shared across the outer class, so declare a **Member inner class**.',
+          'If it is used in one method, ask **Needs a name or reuse in the method?** If yes, declare a **Local class**; if no, use an **Anonymous class**.',
+          'Takeaway: move right only when you need more, because each step adds an outer link or extra syntax.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [
@@ -408,6 +479,17 @@ export const oopMoreConcepts: Record<string, LessonConcepts> = {
   },
 
   'o-enums': {
+    textbook: {
+      definition:
+        'An **enum class** is a special kind of class that defines a fixed set of named instances, its **enum constants**. Each constant is a public static final field initialised, during class initialisation, to the only instance of the class (or of an anonymous subclass) for that name; no other instances can be created by `new`, cloning, reflection or deserialisation. Every enum class implicitly extends `java.lang.Enum`, has only private constructors, and provides the implicit static methods `values()` and `valueOf(String)`. Each constant has a **name** and an **ordinal**, its zero-based position in the declaration.',
+      terms: [
+        { term: 'Enum constant', meaning: 'A named instance declared in an enum body; it may pass arguments to a constructor and may have its own class body.' },
+        { term: 'Ordinal', meaning: 'The zero-based position of a constant in its enum declaration, returned by `ordinal()` and used internally by EnumSet and EnumMap.' },
+        { term: 'Constant-specific class body', meaning: 'A class body attached to one enum constant, making that constant an instance of an anonymous subclass that can override methods.' },
+        { term: 'java.lang.Enum', meaning: 'The common superclass of all enum classes, which supplies name(), ordinal(), compareTo and final, identity-based equals and hashCode.' },
+      ],
+      source: 'JLS §8.9 (Enum Classes); Javadoc for java.lang.Enum',
+    },
     interviewDefinition:
       'An **enum** is a class with a fixed, compile-time set of singleton instances. It implicitly extends `java.lang.Enum`, its constructors are private, and the JVM guarantees one instance per constant, so `==` comparison is safe. Constants can carry fields, methods and constant-specific bodies, enums can implement interfaces, and switch expressions over them are checked for exhaustiveness. Persist `name()` rather than `ordinal()`, and use `EnumSet`/`EnumMap` for compact, fast enum-keyed collections.',
     interviewFollowUps: [
@@ -463,6 +545,14 @@ export const oopMoreConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'An enum is a class with exactly N instances',
         caption: 'Size.class holds three static final fields, each pointing at the only object for that constant. Every variable of type Size points at one of them (or null), which is why == works.',
+        explanation: [
+          '**enum Size** at the top is a final class that extends java.lang.Enum. Each static final arrow points to one of its constants.',
+          '**SMALL**, **MEDIUM** and **LARGE** form the group of the only Size objects that can ever exist; each carries its ordinal, a label and a price.',
+          'The variable **Size order** holds a reference to MEDIUM. The same object arrow means it points at that very constant, not at a copy.',
+          '**Size.valueOf("M")** stands for a lookup by name. A lookup never creates an object; it returns an existing constant, here MEDIUM, so comparing with == is safe.',
+          '**new Size()** is a compile error: enum constructors are private and the language forbids instantiating an enum.',
+          'Takeaway: an enum is a class with exactly N instances, which makes identity comparison and enum singletons safe.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -488,6 +578,14 @@ export const oopMoreConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'From first use to switch',
         caption: 'Constants are created once, in declaration order, during class initialisation. After that, every lookup and switch reuses those same objects.',
+        explanation: [
+          '**First use of Size**, for example reading Size.MEDIUM, triggers **Class initialisation**, which the JVM runs once and thread-safely.',
+          'During it the **Constructor per constant** runs in declaration order: SMALL, then MEDIUM, then LARGE.',
+          'The constants are also stored in the hidden **$VALUES array**; values() returns a fresh copy of it on every call.',
+          '**valueOf("LARGE")** looks a constant up by its name and returns it, or throws IllegalArgumentException for an unknown name.',
+          'That constant can drive a **switch expression** that lists every constant and needs no default, and, as the dashed arrow suggests, can key an **EnumSet / EnumMap** indexed by ordinal.',
+          'Takeaway: constants are built once, and every later lookup or switch reuses those same objects.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -513,6 +611,12 @@ export const oopMoreConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'Why EnumSet and EnumMap are fast',
         caption: 'Because ordinals are small consecutive integers, a set becomes bits in a long and a map becomes a plain array. No hashing, no boxing of keys, iteration in declaration order.',
+        explanation: [
+          '**EnumSet.of(SMALL, LARGE)** is backed by a RegularEnumSet, used whenever the enum has at most 64 constants.',
+          'Its entire state is **long bits = 0b101**: bit 0 for SMALL and bit 2 for LARGE are set, so contains is a single bit test.',
+          '**EnumMap<Size, Integer>** stores its values in **Object[] vals = {2, null, 2}**, where the array slot index is the key\'s ordinal and null means no mapping.',
+          'Takeaway: no hashing and no boxed keys are needed, and iteration always follows declaration order.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -537,6 +641,49 @@ export const oopMoreConcepts: Record<string, LessonConcepts> = {
           { name: 'Constant-specific method bodies', summary: 'Each constant overrides an (often abstract) method.', support: 'supported', note: 'Each such constant becomes a compiler-generated subclass.', code: 'PLUS { int apply(int a, int b) { return a + b; } }' },
           { name: 'Strategy field (lambda)', summary: 'Each constant passes a function to the constructor.', support: 'supported', note: 'Shorter than constant bodies when the behaviour is one expression.', code: 'PLUS("+", (a, b) -> a + b);\nprivate final IntBinaryOperator op;' },
           { name: 'Implementing an interface', summary: 'Callers depend on the interface; the enum is one implementation.', support: 'supported', note: 'Also the way to emulate "extensible enums" (Effective Java Item 38).', code: 'enum BasicOp implements Op { ... }' },
+        ],
+      },
+      {
+        title: 'Built-in methods every enum has',
+        intro: 'Generated by the compiler or inherited from java.lang.Enum (JLS §8.9.3).',
+        items: [
+          {
+            name: 'values()',
+            summary: 'Static; returns a new array of all constants in declaration order.',
+            support: 'supported',
+            note: 'Allocates a copy on every call; cache it in hot loops.',
+            code: 'for (Size s : Size.values()) { ... }',
+          },
+          {
+            name: 'valueOf(String)',
+            summary: 'Static; returns the constant with exactly that name, or throws IllegalArgumentException.',
+            support: 'supported',
+            code: 'Size s = Size.valueOf("LARGE");',
+          },
+          {
+            name: 'name()',
+            summary: 'The constant\'s declared name. It is final, unlike toString(), which may be overridden for display.',
+            support: 'supported',
+            code: 'Size.LARGE.name()   // "LARGE"',
+          },
+          {
+            name: 'ordinal()',
+            summary: 'The zero-based declaration position. Reordering constants changes it, so never persist it.',
+            support: 'supported',
+            code: 'Size.LARGE.ordinal()   // 2',
+          },
+          {
+            name: 'compareTo(E)',
+            summary: 'Enums implement Comparable and are ordered by ordinal.',
+            support: 'supported',
+            code: 'Size.SMALL.compareTo(Size.LARGE)   // negative',
+          },
+          {
+            name: 'getDeclaringClass()',
+            summary: 'Returns the enum class even for a constant with a body, whose getClass() is an anonymous subclass.',
+            support: 'supported',
+            code: 'Op.PLUS.getDeclaringClass()   // Op.class',
+          },
         ],
       },
     ],

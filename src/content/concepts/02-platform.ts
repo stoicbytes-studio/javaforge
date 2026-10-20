@@ -634,6 +634,16 @@ export const platformConcepts: Record<string, LessonConcepts> = {
     ],
     variants: [
       {
+        title: 'Types of packages',
+        intro: 'Textbooks usually divide packages into those that ship with Java and those you write yourself.',
+        items: [
+          { name: 'Built-in (Java API) packages', summary: 'Supplied with the JDK, such as `java.lang`, `java.util`, `java.io` and `java.time`. `java.lang` is imported automatically into every source file.', support: 'supported', code: 'import java.util.ArrayList;' },
+          { name: 'User-defined packages', summary: 'Declared with a `package` statement at the top of a source file. By convention named after a reversed internet domain, such as `com.shop.billing`.', support: 'supported', code: 'package com.shop.billing;' },
+          { name: 'Unnamed (default) package', summary: 'Where classes without a `package` statement belong. Fine for small experiments, but its classes cannot be imported by code in a named package.', support: 'partial', note: 'Avoid in real projects.' },
+          { name: 'Subpackages', summary: '`java.util.function` looks nested inside `java.util`, but Java treats it as an unrelated package: no shared access and no wildcard import across them.', support: 'partial', note: 'The hierarchy exists in names and folders only.' },
+        ],
+      },
+      {
         title: 'Kinds of import declarations',
         intro: '`java.lang` is always imported implicitly. All imports are resolved at compile time.',
         items: [
@@ -689,6 +699,18 @@ export const platformConcepts: Record<string, LessonConcepts> = {
     ],
   },
   'p-java-releases': {
+    textbook: {
+      definition:
+        'A **Java SE release** is a version of the Java SE Platform specification together with its implementation in OpenJDK. Since Java 10, **feature releases** are published every six months under **time-based version numbers**, and each is followed by quarterly **update releases** containing security and bug fixes. Selected feature releases are designated **long-term support (LTS)** releases, for which vendors provide updates for several years. Features that are not yet permanent may be delivered as **preview features**, **incubator modules** or **experimental** virtual-machine features before becoming final parts of the platform.',
+      terms: [
+        { term: 'Feature release', meaning: 'A release that may add language, VM and API features; it increments the FEATURE number of the version, for example from 24 to 25.' },
+        { term: 'Update release', meaning: 'A release, such as 21.0.5, that only fixes security vulnerabilities and bugs in an existing feature release and adds no new features.' },
+        { term: 'Long-term support (LTS)', meaning: 'A designation, made by Oracle and followed by other vendors, that a feature release will receive updates for several years; currently every second year.' },
+        { term: 'Preview feature', meaning: 'A fully specified and implemented but not yet permanent language, VM or API feature, usable only with `--enable-preview` (JEP 12).' },
+        { term: 'Incubator module', meaning: 'A module in the `jdk.incubator` namespace that delivers a non-final API to gather developer feedback (JEP 11).' },
+      ],
+      source: 'JEP 322; JEP 12; JEP 11',
+    },
     interviewDefinition:
       'Since Java 10 the JDK ships a **feature release every six months**, in March and September, with time-based version numbers (JEP 322) and quarterly update releases for security fixes. Some releases are designated **long-term support** — 8, 11 and 17, then every two years: 21 and 25 — and vendors patch them for years. New features mature in stages: **incubator** APIs (JEP 11), **preview** features that need `--enable-preview` (JEP 12) and **experimental** VM features behind `-XX:+UnlockExperimentalVMOptions`, before becoming **final** and permanently covered by Java\'s compatibility promise.',
     interviewFollowUps: [
