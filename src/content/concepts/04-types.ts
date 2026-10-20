@@ -10,7 +10,7 @@ export const typesConcepts: Record<string, LessonConcepts> = {
       terms: [
         { term: 'Immutable object', meaning: 'An object whose visible state cannot change after its constructor finishes. Every change that seems to happen creates a new object instead.' },
         { term: 'UTF-16 code unit', meaning: 'A 16-bit value of type `char`. Characters outside the Basic Multilingual Plane, such as most emoji, need a surrogate pair of two code units.' },
-        { term: 'Interning (string pool)', meaning: 'Keeping only one `String` instance for each distinct content, in a pool shared by the whole JVM. `intern()` returns the pooled instance equal to the string it is called on. If there is none yet, it adds this string first.' },
+        { term: 'Interning (string pool)', meaning: 'Keeping one shared `String` instance for each distinct content in a pool used by the whole JVM. `intern()` returns the pooled instance equal to the string it is called on. If there is none yet, it adds this string first.' },
         { term: 'CharSequence', meaning: 'The read-only interface for sequences of `char` values, implemented by `String`, `StringBuilder`, `StringBuffer` and `CharBuffer`.' },
       ],
       source: 'JLS §3.10.5 and §4.3.3; Javadoc for java.lang.String',
@@ -670,7 +670,7 @@ export const typesConcepts: Record<string, LessonConcepts> = {
       source: 'JLS §14.30 and §14.11.1; JEP 286, JEP 394, JEP 440 and JEP 441',
     },
     interviewDefinition:
-      'Modern Java keeps static typing but needs less boilerplate code. `var` (Java 10) infers a local variable\'s type from its initialiser at compile time. **Pattern matching** combines a type test, a cast and a variable binding. It includes `instanceof` patterns (Java 16), plus type patterns in `switch`, `when` guards and nestable **record patterns** (Java 21). Pattern switches must be exhaustive. They must also reject dominated cases (cases an earlier case already covers). They accept `null` only through an explicit `case null`.',
+      'Modern Java keeps static typing but needs less boilerplate code. `var` (Java 10) infers a local variable\'s type from its initialiser at compile time. **Pattern matching** combines a type test, a cast and a variable binding. It includes `instanceof` patterns (Java 16), plus type patterns in `switch`, `when` guards and nestable **record patterns** (Java 21). Pattern switches must be exhaustive. The compiler also rejects dominated cases (cases that an earlier case already fully covers). They accept `null` only through an explicit `case null`.',
     interviewFollowUps: [
       {
         question: 'Is `var` a keyword?',
@@ -678,7 +678,7 @@ export const typesConcepts: Record<string, LessonConcepts> = {
       },
       {
         question: 'How do sealed types and switch give exhaustiveness without `default`?',
-        answer: 'The compiler knows every permitted subtype, so it can prove that a switch covers them all. Adding a new permitted subtype makes every such switch fail to compile. A class file may change later without the switch being recompiled. Then a fallback that the compiler generated throws `MatchException` at run time.',
+        answer: 'The compiler knows every permitted subtype, so it can prove that a switch covers them all. Adding a new permitted subtype makes every such switch fail to compile. If a class file changes later and the switch is not recompiled, a fallback that the compiler generated throws `MatchException` at run time.',
       },
       {
         question: 'What is flow scoping of pattern variables?',

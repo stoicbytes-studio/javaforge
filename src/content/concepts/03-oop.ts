@@ -282,7 +282,7 @@ export const oopConcepts: Record<string, LessonConcepts> = {
       terms: [
         { term: 'Subclass and superclass', meaning: 'If class C extends class S, then S is the direct superclass of C, and C is a direct subclass of S. The subclass relation is transitive: a subclass of a subclass of S is also a subclass of S.' },
         { term: 'Override', meaning: 'An instance method in a subclass overrides an inherited instance method when its signature is a subsignature of the inherited method\'s signature.' },
-        { term: 'Hiding', meaning: 'A field or static method in a subclass can have the same name or signature as one in the superclass. It then hides that one. Which one is used depends on the compile-time type.' },
+        { term: 'Hiding', meaning: 'A field or static method in a subclass that has the same name or signature as one in the superclass hides that one. Which one is used depends on the compile-time type.' },
         { term: 'Dynamic dispatch', meaning: 'Choosing at run time which method implementation to run. The choice depends on the actual class of the receiver object, not its declared type.' },
       ],
       source: 'JLS §8.1.4 (Superclasses and Subclasses) and §8.4.8 (Inheritance, Overriding, and Hiding)',
@@ -552,7 +552,7 @@ export const oopConcepts: Record<string, LessonConcepts> = {
   'o-inheritance-types': {
     textbook: {
       definition:
-        '**Types of inheritance** name the shapes that subtype relationships among classes and interfaces can take. They are **single** (one direct parent), **multilevel** (a chain of parents) and **hierarchical** (several subclasses of one parent). The others are **multiple** (more than one direct parent) and **hybrid** (a mix of these). In Java, a class has exactly one direct superclass but may implement any number of **superinterfaces**. An interface may extend several interfaces. So Java supports multiple inheritance of type, and of behaviour through default methods. It does not support multiple inheritance of **state**.',
+        '**Types of inheritance** name the shapes that subtype relationships among classes and interfaces can take. There are five. **Single** (one direct parent), **multilevel** (a chain of parents) and **hierarchical** (several subclasses of one parent) are three of them. The other two are **multiple** (more than one direct parent) and **hybrid** (a mix of these). In Java, a class has exactly one direct superclass but may implement any number of **superinterfaces**. An interface may extend several interfaces. So Java supports multiple inheritance of type, and of behaviour through default methods. It does not support multiple inheritance of **state**.',
       terms: [
         { term: 'Direct superclass', meaning: 'The class named in a class\'s extends clause, or Object when there is no extends clause. Every class except Object has exactly one.' },
         { term: 'Superinterface', meaning: 'An interface named in a class\'s implements clause or an interface\'s extends clause. Any interface that those interfaces themselves extend also counts.' },
@@ -1054,7 +1054,7 @@ export const oopConcepts: Record<string, LessonConcepts> = {
       source: 'JLS §9 (Interfaces), §8.1.1.1 (abstract Classes) and §8.1.1.2 (sealed, non-sealed, and final Classes); JEP 409',
     },
     interviewDefinition:
-      'An **interface** is a contract of public operations. Any class may implement it, and a class may implement many at once. It carries no instance state, but it may include `default`, `static` (Java 8) and `private` (Java 9) methods. An **abstract class** is a partial implementation with fields, constructors and any visibility. A class can extend at most one such parent. **Sealed** types (Java 17) limit which classes may extend or implement them. This makes exhaustive pattern matching possible.',
+      'An **interface** is a contract of public operations. Any class may implement it, and a class may implement many at once. It carries no instance state, but it may include `default`, `static` (Java 8) and `private` (Java 9) methods. An **abstract class** is a partial implementation with fields, constructors and any visibility. A class can extend only one class, abstract or not, but it can implement many interfaces. **Sealed** types (Java 17) limit which classes may extend or implement them. This makes exhaustive pattern matching possible.',
     interviewFollowUps: [
       {
         question: 'When would you choose an abstract class over an interface today?',
@@ -1490,7 +1490,7 @@ export const oopConcepts: Record<string, LessonConcepts> = {
       },
       {
         question: 'Can SOLID be overdone?',
-        answer: 'Yes. An interface for every class, one-method classes everywhere and extension points added just in case all add indirection with no benefit. Apply a principle when the change it protects against is actually happening. Keep YAGNI and KISS in balance.',
+        answer: 'Yes. An interface for every class, one-method classes everywhere and just-in-case extension points all add indirection with no benefit. Apply a principle when the change it protects against is actually happening. Keep YAGNI and KISS in balance.',
       },
     ],
     mnemonic: {

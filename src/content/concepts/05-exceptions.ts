@@ -6,7 +6,7 @@ export const exceptionsConcepts: Record<string, LessonConcepts> = {
   'e-basics': {
     textbook: {
       definition:
-        'An **exception** is an event that disrupts the normal flow of execution. In Java, it is represented by an object whose class is `java.lang.Throwable` or one of its subclasses. An exception is **thrown** either explicitly, by a `throw` statement, or implicitly, by the JVM. Control then jumps, possibly across method calls, to the nearest **exception handler** that encloses the throw at run time. That handler is a `catch` clause whose parameter type the exception\'s class is assignable to. The method calls in between complete abruptly. Exception classes are either **checked** or **unchecked**. The compiler requires checked ones to be caught or declared. Unchecked ones are `RuntimeException`, `Error` and their subclasses.',
+        'An **exception** is an event that disrupts the normal flow of execution. In Java, it is represented by an object whose class is `java.lang.Throwable` or one of its subclasses. An exception is **thrown** either explicitly, by a `throw` statement, or implicitly, by the JVM. Control then jumps, possibly across method calls, to the nearest matching **exception handler** that encloses the throw at run time. A matching handler is a `catch` clause whose parameter type the exception\'s class is assignable to. The method calls in between complete abruptly. Exception classes are either **checked** or **unchecked**. The compiler requires checked ones to be caught or declared. Unchecked ones are `RuntimeException`, `Error` and their subclasses.',
       terms: [
         { term: 'Throwable', meaning: 'The superclass of all errors and exceptions. Only its instances can be thrown. Each one records a message, an optional cause and a stack trace.' },
         { term: 'Checked exception', meaning: 'An exception class that is not `RuntimeException`, `Error` or a subclass of either. The compiler requires it to be caught or declared in a `throws` clause.' },
@@ -243,7 +243,7 @@ export const exceptionsConcepts: Record<string, LessonConcepts> = {
       source: 'JLS §14.20.3; Javadoc for java.lang.AutoCloseable and java.lang.Throwable',
     },
     interviewDefinition:
-      '**try-with-resources** (Java 7) declares `AutoCloseable` resources in the `try` header. It guarantees that their `close()` is called on every exit path, in **reverse declaration order**. This happens before any `catch` or `finally` of the same statement runs. If both the body and `close()` throw, the close failure is attached to the primary exception as a **suppressed** exception. It does not mask (hide) the primary one, which was the bug hand-written close-in-finally code often had.',
+      '**try-with-resources** (Java 7) declares `AutoCloseable` resources in the `try` header. It guarantees that their `close()` is called on every exit path, in **reverse declaration order**. This happens before any `catch` or `finally` of the same statement runs. If both the body and `close()` throw, the close failure is attached to the primary exception as a **suppressed** exception. It does not mask (hide) the primary one. Masking it was the bug that hand-written close-in-finally code often had.',
     interviewFollowUps: [
       {
         question: '`AutoCloseable` vs `Closeable`?',
@@ -582,7 +582,7 @@ export const exceptionsConcepts: Record<string, LessonConcepts> = {
           'Start with **Bad argument?** If the caller passed invalid data, the yes arrow leads to **IllegalArgument Exception**, or to `Objects.requireNonNull` for a null.',
           'If not, ask **Wrong state?** For example, calling a method on an object that is already closed leads to **IllegalState Exception**.',
           'Next ask **Expected absence?** A search that finds nothing is not exceptional. So **Return Optional** or an empty result instead of throwing.',
-          'Otherwise ask **Caller can recover?** The direct caller may be able to do something useful, such as ask for another card. Then the yes, locally arrow leads to a **Checked custom exception**.',
+          'Otherwise ask **Caller can recover?** If the direct caller can do something useful, such as ask for another card, the yes, locally arrow leads to a **Checked custom exception**.',
           'If nobody nearby can recover, use an **Unchecked exception**, custom or translated. Takeaway: reuse standard exceptions first. Create custom ones only for outcomes callers must tell apart.',
         ],
         cols: 2,

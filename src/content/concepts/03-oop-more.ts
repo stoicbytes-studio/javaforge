@@ -24,7 +24,7 @@ export const oopMoreConcepts: Record<string, LessonConcepts> = {
       },
       {
         question: 'Does `final` make an object immutable?',
-        answer: 'No. It makes the variable impossible to reassign after initialisation. The referenced object can still change unless its class is itself immutable. `final` fields do get a special guarantee, though. They are safely published (made visible) to other threads once the constructor finishes, as long as `this` did not escape during construction.',
+        answer: 'No. It makes the variable impossible to reassign after initialisation. The referenced object can still change unless its class is itself immutable. `final` fields do get a special guarantee, though. They are safely published to other threads once the constructor finishes, as long as `this` did not escape during construction. Those threads then see the fields\' initialised values.',
       },
       {
         question: 'Why can a static method not be overridden?',
@@ -261,7 +261,7 @@ export const oopMoreConcepts: Record<string, LessonConcepts> = {
     interviewFollowUps: [
       {
         question: 'Why is a non-static inner class a memory-leak risk?',
-        answer: 'It holds a hidden reference to its outer object. Something long-lived (a static registry, a thread, a cache) may keep the inner object. Then the outer object and its whole object graph stay reachable. Effective Java Item 24 recommends making member classes static unless they need the enclosing instance.',
+        answer: 'It holds a hidden reference to its outer object. If something long-lived (a static registry, a thread, a cache) keeps the inner object, then the outer object and its whole object graph stay reachable. Effective Java Item 24 recommends making member classes static unless they need the enclosing instance.',
       },
       {
         question: 'How does `this` differ between a lambda and an anonymous class?',

@@ -5,34 +5,34 @@ export const testingConcepts: Record<string, LessonConcepts> = {
   'ts-junit': {
     textbook: {
       definition:
-        '**Unit testing** is a software verification practice in which the smallest separately testable parts of a program, its **units**, are exercised in isolation by automated **test cases** that compare actual outcomes with expected outcomes. **JUnit 5** is the de facto standard unit-testing framework for the JVM. It is composed of the **JUnit Platform**, which discovers and executes tests through pluggable **test engines**; **JUnit Jupiter**, the programming and extension model for writing tests; and **JUnit Vintage**, an engine that runs JUnit 3 and 4 tests. A test succeeds when its method completes normally; a thrown exception, typically an `AssertionError` from a failed assertion, makes it unsuccessful.',
+        '**Unit testing** is a software verification practice. Automated **test cases** exercise the smallest separately testable parts of a program, its **units**, in isolation. Each test case compares actual outcomes with expected outcomes. **JUnit 5** is the de facto (accepted in practice) standard unit-testing framework for the JVM. It is made up of three parts. The **JUnit Platform** discovers and executes tests through pluggable **test engines**. **JUnit Jupiter** is the programming and extension model for writing tests. **JUnit Vintage** is an engine that runs JUnit 3 and 4 tests. A test succeeds when its method completes normally. A thrown exception makes it unsuccessful. This is typically an `AssertionError` from a failed assertion.',
       terms: [
-        { term: 'Unit', meaning: 'The smallest piece of software that can be tested on its own, in Java usually one class or a small cluster of closely related classes.' },
-        { term: 'Test case', meaning: 'A set of inputs, execution conditions and expected results developed to verify one particular behaviour; in JUnit, one test method.' },
-        { term: 'JUnit Platform', meaning: 'The foundation that launches testing frameworks on the JVM; it defines the `TestEngine` API and the launcher used by build tools and IDEs.' },
-        { term: 'Test engine', meaning: 'An implementation of the `TestEngine` interface that discovers and executes tests written for one programming model, such as Jupiter or Vintage.' },
-        { term: 'Assertion', meaning: 'A statement in a test that checks an expected condition and throws an `AssertionError`, failing the test, when the condition does not hold.' },
+        { term: 'Unit', meaning: 'The smallest piece of software that can be tested on its own. In Java, it is usually one class or a small group of closely related classes.' },
+        { term: 'Test case', meaning: 'A set of inputs, execution conditions and expected results, written to verify one particular behaviour. In JUnit, it is one test method.' },
+        { term: 'JUnit Platform', meaning: 'The foundation that launches testing frameworks on the JVM. It defines the `TestEngine` API and the launcher used by build tools and IDEs.' },
+        { term: 'Test engine', meaning: 'An implementation of the `TestEngine` interface. It discovers and executes tests written for one programming model, such as Jupiter or Vintage.' },
+        { term: 'Assertion', meaning: 'A statement in a test that checks an expected condition. When the condition does not hold, it throws an `AssertionError`, and the test fails.' },
       ],
       source: 'JUnit 5 User Guide; ISO/IEC/IEEE 24765 (systems and software engineering vocabulary)',
     },
     interviewDefinition:
-      'A **unit test** is a fast, deterministic, automated check of one behaviour of a small unit, exercised through its public API. **JUnit 5** is three parts: the **Platform** (the launcher that Maven, Gradle and IDEs call), **Jupiter** (the `@Test`/`Assertions` programming model and extension API) and **Vintage** (runs JUnit 3/4 tests). Jupiter creates a new test-class instance per test method by default, reports a thrown `AssertionError` as a failure and any other exception as an error, and supports parameterised, nested, dynamic and tagged tests.',
+      'A **unit test** is a fast, deterministic (same result every run), automated check of one behaviour of a small unit. It works through the unit\'s public API. **JUnit 5** is three parts. The **Platform** is the launcher that Maven, Gradle and IDEs call. **Jupiter** is the `@Test`/`Assertions` programming model and extension API. **Vintage** runs JUnit 3/4 tests. By default, Jupiter creates a new test-class instance per test method. It reports a thrown `AssertionError` as a failure, and any other exception as an error. It supports parameterised, nested, dynamic and tagged tests.',
     interviewFollowUps: [
       {
         question: 'What replaced JUnit 4 runners and rules?',
-        answer: 'The Jupiter **extension model**: `@ExtendWith` registers extensions that hook into lifecycle callbacks, parameter resolution and exception handling. Unlike `@RunWith`, several extensions compose on one class (for example Mockito and Spring together).',
+        answer: 'The Jupiter **extension model**. `@ExtendWith` registers extensions that hook into lifecycle callbacks, parameter resolution and exception handling. Unlike with `@RunWith`, several extensions can be combined on one class (for example Mockito and Spring together).',
       },
       {
         question: 'Why is `@BeforeAll` static?',
-        answer: 'With the default per-method lifecycle there is no single instance on which to call it — each test gets a new one. Annotating the class with `@TestInstance(Lifecycle.PER_CLASS)` uses one instance for all tests and allows non-static `@BeforeAll`, at the cost of shared instance state.',
+        answer: 'With the default per-method lifecycle, there is no single instance to call it on. Each test gets a new one. Annotating the class with `@TestInstance(Lifecycle.PER_CLASS)` uses one instance for all tests. That allows a non-static `@BeforeAll`, at the cost of shared instance state.',
       },
       {
         question: 'How do you choose test inputs systematically?',
-        answer: 'Equivalence partitioning (one representative per class of inputs that behave alike) plus boundary value analysis (values on and either side of every limit). Bugs cluster at boundaries: `>` versus `>=`, empty versus one element, the maximum value.',
+        answer: 'Use equivalence partitioning: one representative per class of inputs that behave alike. Add boundary value analysis: values on and either side of every limit. Bugs cluster at boundaries: `>` versus `>=`, empty versus one element, the maximum value.',
       },
       {
         question: 'Does 100% line coverage mean the code is well tested?',
-        answer: 'No. Coverage shows which lines ran, not whether anything checked their result. Mutation testing (for example PIT) changes the code and reports surviving mutants — tests that still pass when the code is wrong.',
+        answer: 'No. Coverage shows which lines ran, not whether anything checked their result. Mutation testing (for example PIT) changes the code and reports surviving mutants. These are changes where the tests still pass although the code is wrong.',
       },
     ],
     mnemonic: {
@@ -76,7 +76,7 @@ export const testingConcepts: Record<string, LessonConcepts> = {
         caption: 'The base is wide because unit tests are cheap, fast and precise. Each layer up is slower, more realistic and more brittle, so you need fewer of them.',
         explanation: [
           'Read from the bottom up. **Unit tests** form the wide base: many of them, milliseconds each, no I/O, and a failure points to the exact broken behaviour.',
-          'Moving up the "slower, fewer" arrow, **Integration tests** use a real database, HTTP or framework wiring, often through Testcontainers, so they catch configuration and mapping bugs.',
+          'Moving up the "slower, fewer" arrow, **Integration tests** use a real database, HTTP or framework wiring, often through Testcontainers. So they catch configuration and mapping bugs.',
           '**Contract tests** check the API agreements between services, so a provider cannot break a consumer without a build failing.',
           'At the narrow top, **End-to-end** tests drive a few critical user journeys through the whole system. They are the most realistic but also slow and brittle.',
           'Takeaway: each layer up costs more to run and maintain, so keep many cheap tests at the bottom and only a few at the top.',
@@ -99,10 +99,10 @@ export const testingConcepts: Record<string, LessonConcepts> = {
         id: 'ts1-platform',
         kind: 'architecture',
         title: 'How JUnit 5 is put together',
-        caption: 'Build tools and IDEs only talk to the Platform launcher. Test engines plug in underneath, which is how JUnit 4 tests and other frameworks run in the same build.',
+        caption: 'Build tools and IDEs only talk to the Platform launcher. Test engines plug in underneath. That is how JUnit 4 tests and other frameworks run in the same build.',
         explanation: [
           'At the top, **Maven Surefire**, **Gradle** and the **IDE** are the tools that start tests. None of them knows how to run a test directly.',
-          'They all talk to the **Platform Launcher**, which discovers tests, filters them by tag or name, executes them and reports the results.',
+          'They all talk to the **Platform Launcher**. It discovers tests, filters them by tag or name, executes them and reports the results.',
           'Below the launcher sit the TestEngines. The **Jupiter engine** handles modern JUnit 5 tests with `@Test` and extensions, and it runs **Your test classes**.',
           'The **Vintage engine** runs old JUnit 3 and 4 tests, and **Other engines** such as Cucumber or Spock plug in exactly the same way.',
           'Takeaway: because build tools depend only on the launcher, one build can run tests from several frameworks side by side.',
@@ -140,7 +140,7 @@ export const testingConcepts: Record<string, LessonConcepts> = {
           'Inside the Per test method box, Jupiter first calls **new TestClass()**, creating a brand-new instance for every single test.',
           '**@BeforeEach** then builds fresh fixtures, and the **@Test method** arranges, acts and asserts.',
           '**@AfterEach** runs even if the test failed, so cleanup always happens. Then Jupiter moves on to the **Next test method**.',
-          'The dashed "repeat" arrow loops back to a new instance for each remaining test; when all are done, **@AfterAll** runs once.',
+          'The dashed "repeat" arrow loops back to a new instance for each remaining test. When all are done, **@AfterAll** runs once.',
           'Takeaway: because every test gets its own instance, instance fields cannot leak state from one test into another.',
         ],
         cols: 5,
@@ -215,30 +215,30 @@ export const testingConcepts: Record<string, LessonConcepts> = {
   'ts-mocking': {
     textbook: {
       definition:
-        'A **test double** is any object that replaces a real dependency of the **system under test** during a test, so that the test can control the dependency\'s behaviour and observe how it is used. Following Meszaros, test doubles are classified as **dummies**, **stubs**, **spies**, **mocks** and **fakes**, according to whether they merely fill parameters, supply indirect inputs, record indirect outputs, verify expected interactions, or provide a simplified working implementation. **Mocking** denotes the creation and use of such doubles, commonly through a framework, such as Mockito, that generates them at run time.',
+        'A **test double** is any object that replaces a real dependency of the **system under test** during a test. It lets the test control the dependency\'s behaviour and observe how it is used. Following Meszaros, test doubles are classified by what they do. **Dummies** merely fill parameters. **Stubs** supply indirect inputs. **Spies** record indirect outputs. **Mocks** verify expected interactions. **Fakes** provide a simplified working implementation. **Mocking** means creating and using such doubles. This is commonly done through a framework, such as Mockito, that generates them at run time.',
       terms: [
         { term: 'System under test (SUT)', meaning: 'The class or group of classes whose behaviour a test exercises and verifies, as distinct from the collaborators it depends on.' },
-        { term: 'Indirect input', meaning: 'A value the SUT receives from a dependency rather than from the test, such as a return value; stubs supply it.' },
-        { term: 'Indirect output', meaning: 'A call or value the SUT sends to a dependency rather than returning it to the test; spies and mocks observe it.' },
+        { term: 'Indirect input', meaning: 'A value the SUT receives from a dependency rather than from the test, such as a return value. Stubs supply it.' },
+        { term: 'Indirect output', meaning: 'A call or value the SUT sends to a dependency rather than returning it to the test. Spies and mocks observe it.' },
         { term: 'State verification', meaning: 'Checking the result of an operation, or the state of the SUT and its collaborators afterwards, by assertions on values.' },
         { term: 'Behaviour verification', meaning: 'Checking that the SUT made the expected calls to its collaborators, with the expected arguments and number of times.' },
       ],
       source: 'G. Meszaros, xUnit Test Patterns (2007); M. Fowler, "Mocks Aren\'t Stubs"; Mockito Javadoc',
     },
     interviewDefinition:
-      'A **test double** replaces a real collaborator so a unit can be tested quickly and deterministically. Meszaros\'s taxonomy has five: **dummy**, **stub**, **spy**, **mock** and **fake**. Stubs and fakes support **state verification** (assert on the result); mocks support **behaviour verification** (assert which calls happened). Mockito generates doubles at run time — `when(...).thenReturn(...)` to stub, `verify(...)` to check interactions. Doubles need seams such as constructor-injected interfaces and a `Clock`, and belong at system boundaries, not between every pair of classes.',
+      'A **test double** replaces a real collaborator, so a unit can be tested quickly and deterministically. Meszaros\'s taxonomy (classification) has five: **dummy**, **stub**, **spy**, **mock** and **fake**. Stubs and fakes support **state verification** (assert on the result). Mocks support **behaviour verification** (assert which calls happened). Mockito generates doubles at run time. Use `when(...).thenReturn(...)` to stub and `verify(...)` to check interactions. Doubles need seams (places where a double can be swapped in), such as constructor-injected interfaces and a `Clock`. They belong at system boundaries, not between every pair of classes.',
     interviewFollowUps: [
       {
         question: 'Classicist or mockist testing?',
-        answer: 'Classicists (the "Detroit" school) use real objects where practical and doubles only for awkward dependencies, verifying state. Mockists (the "London" school) mock every collaborator and verify interactions, driving the design outside-in. Classicist tests survive refactoring better; mockist tests pinpoint failures and drive interface design.',
+        answer: 'Classicists (the "Detroit" school) use real objects where practical, and doubles only for awkward dependencies. They verify state. Mockists (the "London" school) mock every collaborator and verify interactions. This drives the design outside-in. Classicist tests survive refactoring better. Mockist tests pinpoint failures and drive interface design.',
       },
       {
         question: 'Why should you not mock types you do not own?',
-        answer: 'A mock of `ResultSet` or an HTTP client encodes your assumptions about how that library behaves — if the assumption is wrong the test still passes. Wrap the library in your own small interface (a port), mock that in unit tests, and test the adapter against the real thing.',
+        answer: 'A mock of `ResultSet` or an HTTP client encodes your assumptions about how that library behaves. If the assumption is wrong, the test still passes. Wrap the library in your own small interface (a port), and mock that in unit tests. Test the adapter against the real thing.',
       },
       {
         question: 'Why does `when(spy.get(0)).thenReturn(x)` misbehave?',
-        answer: 'Stubbing a spy with `when(...)` actually calls the real method first, which can throw or have side effects. Use `doReturn(x).when(spy).get(0)` for spies.',
+        answer: 'Stubbing a spy with `when(...)` actually calls the real method first. That call can throw or have side effects. Use `doReturn(x).when(spy).get(0)` for spies.',
       },
     ],
     mnemonic: {
@@ -279,7 +279,7 @@ export const testingConcepts: Record<string, LessonConcepts> = {
         id: 'ts2-doubles',
         kind: 'concept',
         title: 'The five test doubles and what you assert with them',
-        caption: 'From left to right each double does more. Stubs and fakes feed the unit so you can check its result; spies and mocks record calls so you can check the interaction itself.',
+        caption: 'From left to right, each double does more. Stubs and fakes feed the unit so you can check its result. Spies and mocks record calls so you can check the interaction itself.',
         explanation: [
           'Read from left to right: each double does more than the one before. A **Dummy** only fills a parameter that is never used, so there is **Nothing to assert** about it.',
           'A **Stub** returns canned answers, and a **Fake** is a working shortcut such as an in-memory repository. Both feed inputs to the unit under test.',
@@ -311,12 +311,12 @@ export const testingConcepts: Record<string, LessonConcepts> = {
         id: 'ts2-ports',
         kind: 'architecture',
         title: 'Seams: where doubles plug in',
-        caption: 'The service depends only on interfaces it owns. Production wires real adapters; tests wire doubles into the same constructor. Value objects and pure logic need no doubles at all.',
+        caption: 'The service depends only on interfaces it owns. Production wires real adapters. Tests wire doubles into the same constructor. Value objects and pure logic need no doubles at all.',
         explanation: [
           '**CheckoutService** is the unit under test. It uses only interfaces it owns: **PaymentGateway**, **OrderRepository** and the java.time **Clock**.',
           'In the Production group, the **HTTP payment adapter** implements PaymentGateway, the **JDBC repository** implements OrderRepository, and **Clock.systemUTC()** supplies the real time.',
           'In the Tests group, a **Mockito mock** replaces the payment adapter, so a test can check `verify(never()).charge(...)` without moving any money.',
-          'An **In-memory fake** backed by a HashMap replaces the JDBC repository, and **Clock.fixed(...)** replaces the system clock so time-based logic is deterministic.',
+          'An **In-memory fake** backed by a HashMap replaces the JDBC repository. **Clock.fixed(...)** replaces the system clock, so time-based logic is deterministic.',
           'The dashed "replaces in tests" arrows mean the same constructor receives doubles instead of real adapters. Takeaway: seams at the boundaries make the unit testable without changing its code.',
         ],
         cols: 5,
@@ -353,11 +353,11 @@ export const testingConcepts: Record<string, LessonConcepts> = {
         id: 'ts2-mockito-flow',
         kind: 'flow',
         title: 'Anatomy of a Mockito test',
-        caption: 'Stub only what this test needs (strict stubs fail on unused ones), assert on the result first, and verify interactions only when the side effect is the requirement.',
+        caption: 'Stub only what this test needs (strict stubs fail on unused ones). Assert on the result first. Verify interactions only when the side effect is the requirement.',
         explanation: [
           '**Create doubles** with `@Mock`, and let `@InjectMocks` build the unit under test with those doubles injected into its constructor.',
           '**Stub** only what this test needs with `when(...).thenReturn(...)`. The dashed "never used" arrow leads to **Unused stub**: strict stubs throw UnnecessaryStubbingException.',
-          '**Act** by calling the unit once, then **Assert result** first, because state verification tells you directly whether the outcome is right.',
+          '**Act** by calling the unit once. Then **Assert result** first, because state verification tells you directly whether the outcome is right.',
           '**Verify** interactions only when the side effect is itself the requirement, such as a charge or an email that must be sent.',
           'To inspect exactly what was passed, an **ArgumentCaptor** captures the argument so you can assert on its fields. Takeaway: stub little, assert results, verify sparingly.',
         ],
@@ -437,18 +437,18 @@ export const testingConcepts: Record<string, LessonConcepts> = {
   'ts-debugging': {
     textbook: {
       definition:
-        '**Debugging** is the process of locating, analysing and removing the cause of a **failure**, an observable deviation of a program\'s behaviour from its specification. A failure originates in a **defect** (fault) in the code, which, when executed, produces an **infection**: an erroneous program state that propagates until it becomes visible. Systematic debugging applies the scientific method: the failure is reproduced, **hypotheses** about its cause are formed and tested by experiment, and the defect is corrected and the correction confirmed by a regression test. In Java, a **stack trace** records the chain of method invocations active when an exception was thrown.',
+        '**Debugging** is the process of locating, analysing and removing the cause of a **failure**. A failure is an observable difference between a program\'s behaviour and its specification. A failure starts from a **defect** (fault) in the code. When the defect is executed, it produces an **infection**: a wrong program state that spreads until it becomes visible. Systematic debugging applies the scientific method. The failure is reproduced. **Hypotheses** about its cause are formed and tested by experiment. The defect is corrected, and a regression test confirms the correction. In Java, a **stack trace** records the chain of method calls that were active when an exception was thrown.',
       terms: [
         { term: 'Failure', meaning: 'An externally observable error in a program\'s behaviour, such as a wrong result, an exception or a hang.' },
         { term: 'Defect (fault)', meaning: 'An error in the program code that can cause an infection and, in turn, a failure when it is executed.' },
-        { term: 'Infection', meaning: 'An erroneous program state caused by executing a defect; it may propagate through later states before it appears as a failure.' },
-        { term: 'Hypothesis', meaning: 'A testable explanation of the cause of a failure that predicts the outcome of an experiment, and is either confirmed or refuted by it.' },
-        { term: 'Stack trace', meaning: 'The list of stack frames, innermost first, captured when a `Throwable` is created, together with any chained causes.' },
+        { term: 'Infection', meaning: 'A wrong program state caused by executing a defect. It may spread through later states before it appears as a failure.' },
+        { term: 'Hypothesis', meaning: 'A testable explanation of the cause of a failure. It predicts the outcome of an experiment, and the experiment either confirms or refutes (disproves) it.' },
+        { term: 'Stack trace', meaning: 'The list of stack frames, innermost first, captured when a `Throwable` is created. It also includes any chained causes.' },
       ],
       source: 'A. Zeller, Why Programs Fail (2nd ed., 2009); Javadoc for java.lang.Throwable',
     },
     interviewDefinition:
-      'Debugging is a systematic search for the cause of a gap between expected and actual behaviour: **reproduce** it reliably and minimally, **gather evidence** (stack trace, logs, state), **form a hypothesis and test it** with one change at a time, fix the **cause** rather than the symptom, and keep the reproduction as a regression test. In a Java stack trace the top frame is where the exception was thrown, frames below are its callers, and the last **Caused by** is usually the root cause.',
+      'Debugging is a systematic search for the cause of a gap between expected and actual behaviour. **Reproduce** it reliably and minimally. **Gather evidence** (stack trace, logs, state). **Form a hypothesis and test it**, with one change at a time. Fix the **cause** rather than the symptom. Keep the reproduction as a regression test. In a Java stack trace, the top frame is where the exception was thrown. Frames below are its callers, and the last **Caused by** is usually the root cause.',
     interviewFollowUps: [
       {
         question: 'How do you debug a problem that only happens in production?',
@@ -456,15 +456,15 @@ export const testingConcepts: Record<string, LessonConcepts> = {
       },
       {
         question: 'The application hangs. What do you do?',
-        answer: 'Take several thread dumps a few seconds apart (`jcmd <pid> Thread.print` or `jstack`). Threads stuck in the same frame show where; `BLOCKED` threads and the "Found one Java-level deadlock" section reveal lock cycles; many threads waiting on a pool or socket read point to exhausted resources or missing timeouts.',
+        answer: 'Take several thread dumps a few seconds apart (`jcmd <pid> Thread.print` or `jstack`). Threads stuck in the same frame show where. `BLOCKED` threads and the "Found one Java-level deadlock" section reveal lock cycles. Many threads waiting on a pool or socket read point to exhausted resources or missing timeouts.',
       },
       {
         question: 'What is a Heisenbug?',
-        answer: 'A bug that changes or disappears when you observe it, typically a race condition: breakpoints and even extra logging alter thread timing. Diagnose with reasoning about shared mutable state, stress tests and non-intrusive evidence.',
+        answer: 'A bug that changes or disappears when you observe it. It is typically a race condition: breakpoints and even extra logging alter thread timing. Diagnose it with reasoning about shared mutable state, stress tests and non-intrusive evidence (evidence that does not disturb the program).',
       },
       {
         question: 'How does git bisect work?',
-        answer: 'You mark one known-good and one known-bad commit; Git checks out the midpoint, you (or a script via `git bisect run`) mark it good or bad, and it halves the range each time. About log2(n) steps find the first bad commit.',
+        answer: 'You mark one known-good and one known-bad commit. Git checks out the midpoint. You (or a script via `git bisect run`) mark it good or bad. Each time, Git halves the range. About log2(n) steps find the first bad commit.',
       },
     ],
     mnemonic: {
@@ -505,7 +505,7 @@ export const testingConcepts: Record<string, LessonConcepts> = {
         id: 'ts3-trace-anatomy',
         kind: 'concept',
         title: 'Anatomy of a wrapped stack trace',
-        caption: 'The trace from the lesson\'s example. The top line gives the symptom and context; the last "Caused by" gives the root cause, and the first frame in your own code beneath it is where to look first.',
+        caption: 'The trace from the lesson\'s example. The top line gives the symptom and context. The last "Caused by" gives the root cause. The first frame in your own code beneath it is where to look first.',
         explanation: [
           'The notes on the left explain the trace on the right. **Symptom + context** points at the first line, **IllegalStateException**, whose message says config line 2 is invalid.',
           '**Top-down**: the top frame, **at ConfigLoader.loadPort(Main.java:11)**, is where the wrapper exception was thrown, so it tells you what broke and where.',
@@ -541,12 +541,12 @@ export const testingConcepts: Record<string, LessonConcepts> = {
         id: 'ts3-loop',
         kind: 'flow',
         title: 'The hypothesis loop',
-        caption: 'A refuted hypothesis is progress: it removes a suspect. Change one thing per experiment, and do not stop at "it works now" — stop when a test proves it.',
+        caption: 'A refuted (disproved) hypothesis is progress: it removes a suspect. Change one thing per experiment. Do not stop at "it works now". Stop when a test proves it.',
         explanation: [
-          '**Reproduce** the bug reliably and make the reproduction as small as possible; without it, you cannot tell whether any change helped.',
+          '**Reproduce** the bug reliably and make the reproduction as small as possible. Without it, you cannot tell whether any change helped.',
           '**Read evidence**: the stack trace, the logs and the program state at the moment of failure, before changing anything.',
           'Form a **Hypothesis** that predicts an outcome, then run an **Experiment** that changes only one thing at a time.',
-          'If the prediction is confirmed, **Fix the cause** with a test that fails first and then passes, and **Keep regression test** so the bug cannot return unnoticed.',
+          'If the prediction is confirmed, **Fix the cause** with a test that fails first and then passes. Also **Keep regression test** so the bug cannot return unnoticed.',
           'If the result surprises you, the hypothesis is **Refuted**. That is progress: the dashed arrow loops back to a new hypothesis with one suspect fewer.',
           'Takeaway: stop when a test proves the fix, not when the program merely seems to work now.',
         ],
@@ -580,8 +580,8 @@ export const testingConcepts: Record<string, LessonConcepts> = {
           'Start at **What kind of bug?** The answer decides the tool, because each tool needs different conditions to be useful.',
           'If the bug is **Reproducible locally**, use the **Debugger** with conditional and exception breakpoints to stop exactly where the state goes wrong.',
           'If it happens in **Production only** or intermittently, you cannot pause the system. Gather **Logs, metrics, traces**, then build a local reproduction from that evidence.',
-          'For a **Hang or slowness**, use **Thread dumps, profiler** recordings, such as `jcmd <pid> Thread.print` or Java Flight Recorder, to see what threads are doing or waiting on.',
-          'Takeaway: the debugger is fastest only for local, reproducible bugs; everything else needs evidence gathered while the program runs normally.',
+          'For a **Hang or slowness**, use **Thread dumps, profiler** recordings, such as `jcmd <pid> Thread.print` or Java Flight Recorder. They show what threads are doing or waiting on.',
+          'Takeaway: the debugger is fastest only for local, reproducible bugs. Everything else needs evidence gathered while the program runs normally.',
         ],
         cols: 4,
         rows: 3,
