@@ -3,6 +3,18 @@ import type { LessonConcepts } from '@/types/curriculum';
 /** Concept pages for module 2 (JDK, JRE, JVM and the Java platform), keyed by lesson id. */
 export const platformConcepts: Record<string, LessonConcepts> = {
   'p-jdk-jre-jvm': {
+    textbook: {
+      definition:
+        'The **Java Virtual Machine (JVM)** is an abstract computing machine, defined by the JVM Specification, that loads, verifies and executes class files and manages memory automatically. The **Java Runtime Environment (JRE)** is an implementation of the JVM together with the Java SE class libraries: the minimum needed to run Java applications. The **Java Development Kit (JDK)** is a superset of the runtime that adds development tools such as the compiler `javac`, the archiver `jar`, the documentation generator `javadoc` and the linker `jlink`. **OpenJDK** is the open-source reference implementation of the Java SE Platform from which most JDKs are built.',
+      terms: [
+        { term: 'Java SE Platform', meaning: 'The standard edition of the Java platform, defined by the Java Language Specification, the JVM Specification and the Java SE API specification.' },
+        { term: 'Class library', meaning: 'The standard packages and modules, such as `java.lang` and `java.util` in the `java.base` module, available to every Java program.' },
+        { term: 'HotSpot', meaning: 'The JVM implementation in OpenJDK, combining a bytecode interpreter, the tiered just-in-time compilers C1 and C2, and several garbage collectors.' },
+        { term: 'Runtime image', meaning: 'A directory containing a JVM and a set of modules; since Java 9, `jlink` can build a custom one that holds only the modules an application needs.' },
+        { term: 'TCK', meaning: 'The Technology Compatibility Kit, the test suite an implementation must pass to be certified as compatible with the Java SE specifications.' },
+      ],
+      source: 'JVMS §1.2 and chapter 2; JEP 220; JEP 282',
+    },
     interviewDefinition:
       'The **JVM** is the specification-defined engine that loads, verifies and executes bytecode; the **JRE** is a JVM plus the Java SE class library — enough to run programs; the **JDK** adds development tools such as `javac`, `jar`, `jlink`, `jshell` and diagnostics. All are defined by specifications (JLS, JVMS, Java SE API). **OpenJDK** is the reference implementation with the HotSpot JVM, and vendors such as Eclipse Temurin, Amazon Corretto or Azul Zulu ship certified builds of it. Oracle has not shipped a separate JRE since Java 11; `jlink` builds custom runtimes instead.',
     interviewFollowUps: [
@@ -56,6 +68,13 @@ export const platformConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'JDK ⊃ JRE ⊃ JVM',
         caption: 'Each layer contains the one below. Production needs only the runtime layers; the top row of tools is for building and diagnosing.',
+        explanation: [
+          'Read from the bottom up. The **JVM** row is the engine: the **Class loader** loads and verifies classes, the **Execution engine** interprets and JIT-compiles them, and the **Garbage collector** frees unused memory.',
+          'The middle row adds the class library: **java.base** with `java.lang`, `java.util` and `java.io`, the **Other SE modules** such as `java.sql`, and the **java launcher** that starts the JVM.',
+          'Together those two rows form the **JRE (runtime)**: everything needed to run a program, but nothing for compiling it. The arrow shows the launcher creating the JVM.',
+          'The top row adds developer tools: **javac, jar, javadoc** for building, **jlink, jdeps** for packaging and analysis, and **jshell, jcmd, jfr** for experimenting and diagnosing.',
+          'All three rows together are the **JDK (development kit)**. Takeaway: each layer contains the one below it, and production machines need only the runtime layers.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -84,6 +103,13 @@ export const platformConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'From JDK on the build machine to a slim runtime in production',
         caption: 'The full JDK stays on the build machine. jdeps finds the modules the jar needs, jlink assembles a trimmed runtime, and only that runtime plus the jar ships.',
+        explanation: [
+          'The top row is the **Build (full JDK)** stage. **App sources** are compiled and packaged by **javac + jar** on the CI machine, producing **app.jar** full of bytecode.',
+          '**jdeps** then analyses app.jar and lists exactly which JDK modules it uses, such as `java.base` and `java.sql`.',
+          'That list is passed with `--add-modules` to **jlink**, which assembles a **Custom runtime** containing the JVM plus only the needed modules, often just a few dozen megabytes.',
+          'The bottom row is **Production (runtime only)**. The runtime goes into a **Container image**, and the dashed arrow shows app.jar being copied in beside it.',
+          'The container finally runs **java -jar app.jar**. Takeaway: the compiler and other tools stay on the build machine, so production ships a smaller, safer image.',
+        ],
         cols: 4,
         rows: 2,
         nodes: [
@@ -116,6 +142,13 @@ export const platformConcepts: Record<string, LessonConcepts> = {
         kind: 'architecture',
         title: 'Specifications, implementations and vendor builds',
         caption: 'Specifications define Java; OpenJDK implements them; vendors build and support binaries from it. Alternative JVMs reuse the OpenJDK class library. Every build sold as Java SE must pass the TCK.',
+        explanation: [
+          'At the top, the **Java SE specifications** (the JLS, the JVMS and the API specification) define what Java is. The arrow tested by leads to the **TCK (JCK)**, the compatibility test suite.',
+          'The arrow implemented by leads to **OpenJDK**, the open-source reference implementation that contains the HotSpot JVM.',
+          'Alternative JVMs such as **Eclipse OpenJ9** reuse the OpenJDK class library, as the class library arrow shows. **GraalVM** is also based on OpenJDK and adds the Graal JIT and Native Image.',
+          'The bottom row shows vendor builds made from OpenJDK source: **Eclipse Temurin**, **Amazon Corretto**, **Azul Zulu** and **Oracle JDK**. They differ in licence, support and platforms.',
+          'Takeaway: the specifications define Java and the TCK enforces them, so bytecode behaves the same whichever certified build you choose.',
+        ],
         cols: 4,
         rows: 3,
         nodes: [

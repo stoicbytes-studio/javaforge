@@ -11,6 +11,27 @@ export const immutabilityBuildMemory: Record<string, MemoryAid> = {
       'Copy mutable inputs coming in and mutable data going out, such as lists.',
       'Immutable objects are safe to share between threads and to use as map keys.',
     ],
+    types: [
+      {
+        title: 'Degrees of immutability',
+        items: [
+          { name: 'Deeply immutable', simple: 'Nothing inside can ever change, like a printed book: `String` and `LocalDate` work this way.' },
+          { name: 'Shallowly immutable', simple: 'The labels are glued on, but the boxes they point to can still be refilled, like a record holding a list.' },
+          { name: 'Effectively immutable', simple: 'Could be changed, but nobody ever does after sharing it, like a signed form put in a drawer.' },
+          { name: 'Unmodifiable view', simple: 'A locked shop window: you cannot touch the items, but the owner can still rearrange them.' },
+        ],
+      },
+      {
+        title: 'Ways to copy an object',
+        items: [
+          { name: 'Shallow copy', simple: 'A new folder holding the same papers: change a paper and both folders see it.' },
+          { name: 'Deep copy', simple: 'A new folder with photocopies of every paper, so the two never affect each other.' },
+          { name: 'Copy constructor', simple: 'A constructor that builds a new object from an existing one, choosing how deep to copy each field.' },
+          { name: 'Static copy factory', simple: 'A named method such as `List.copyOf(...)` that makes the copy for you.' },
+          { name: '`clone()`', simple: 'An old built-in copier with tricky rules; fine for arrays, avoid it for your own classes.' },
+        ],
+      },
+    ],
     confusion: {
       mixedUpWith: 'a `final` variable',
       difference: '`final` only stops the variable pointing somewhere else. A `final List` can still have items added unless the list itself is immutable.',
@@ -44,6 +65,36 @@ export const immutabilityBuildMemory: Record<string, MemoryAid> = {
       'Each library is named by coordinates: `groupId:artifactId:version`.',
       'Dependencies bring their own dependencies, called transitive dependencies.',
       'Running `mvn package` first runs the earlier phases, including compile and test.',
+    ],
+    types: [
+      {
+        title: 'Maven lifecycle phases',
+        items: [
+          { name: '`validate`', simple: 'Checks the project description is complete, like reading a recipe before you start.' },
+          { name: '`compile`', simple: 'Turns your Java source code into class files the JVM can run.' },
+          { name: '`test`', simple: 'Runs your unit tests; if one fails, the build stops, like a taste test before serving.' },
+          { name: '`package`', simple: 'Packs the compiled code into one JAR or WAR file, like boxing up a finished cake.' },
+          { name: '`verify`', simple: 'Runs bigger integration tests and quality checks on the packed file.' },
+          { name: '`install`', simple: 'Puts the JAR in your computer\'s local store so your other projects can use it.' },
+          { name: '`deploy`', simple: 'Uploads the JAR to a shared remote store so your whole team can use it.' },
+        ],
+      },
+      {
+        title: 'Maven scopes and Gradle configurations',
+        items: [
+          { name: '`compile` / `implementation`', simple: 'Needed to build and to run your program, like flour for bread.' },
+          { name: '`provided` / `compileOnly`', simple: 'Needed to build, but the server already supplies it when running, like plates at a restaurant.' },
+          { name: '`runtime` / `runtimeOnly`', simple: 'Not needed to build, only to run, such as a database driver.' },
+          { name: '`test` / `testImplementation`', simple: 'Only used for tests and never shipped, like scaffolding taken down after building.' },
+        ],
+      },
+      {
+        title: 'Maven vs Gradle',
+        items: [
+          { name: 'Maven', simple: 'Fixed, step-by-step recipe written in XML; every project builds the same predictable way.' },
+          { name: 'Gradle', simple: 'A flexible script of tasks in Kotlin or Groovy, with caching that skips work already done.' },
+        ],
+      },
     ],
     confusion: {
       mixedUpWith: 'Maven versus Gradle',

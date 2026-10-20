@@ -1122,6 +1122,18 @@ export const fundamentalsConcepts: Record<string, LessonConcepts> = {
     ],
   },
   'f-arrays-input': {
+    textbook: {
+      definition:
+        'An **array** is an object that contains a fixed number of **components** of the same type, each accessed by a non-negative integer **index** from 0 to length − 1. The length is established when the array is created, cannot change afterwards and is available through the final field `length`. Components are initialised to their **default values**, and every access is checked against the bounds at run time. A **multidimensional array** is an array whose components are themselves references to arrays. **Standard input** is the byte stream `System.in`, which programs typically read through a `Scanner` or a `BufferedReader`.',
+      terms: [
+        { term: 'Component', meaning: 'One of the unnamed variables contained in an array, all of the same component type, accessed by an index expression such as `a[i]`.' },
+        { term: 'Index', meaning: 'An `int` value selecting a component; valid indexes run from 0 to length − 1, and any other value throws `ArrayIndexOutOfBoundsException`.' },
+        { term: 'Default value', meaning: 'The initial value of each new component: zero for numeric types, `false` for boolean, `\'\\u0000\'` for char and `null` for reference types.' },
+        { term: 'Array type', meaning: 'A reference type written `T[]`; every array is an object, created with `new` or an initializer, and assignable to `Object`, `Cloneable` and `Serializable`.' },
+        { term: 'Standard input', meaning: 'The stream `System.in`, an `InputStream` of raw bytes that is usually connected to the keyboard or to redirected input.' },
+      ],
+      source: 'JLS chapter 10; Javadoc for java.lang.System and java.util.Scanner',
+    },
     interviewDefinition:
       'A Java array is a fixed-length, zero-indexed **object** on the heap whose elements share one type. Its length is set at creation, every element starts at its default value (`0`, `false`, `\'\\u0000\'`, `null`), and every access is bounds-checked. Multi-dimensional arrays are arrays of arrays, so rows may be **jagged**. Arrays are **covariant** (`String[]` is an `Object[]`), enforced at run time by `ArrayStoreException`. Input arrives through `System.in`, read with `Scanner` (convenient, regex-based) or `BufferedReader` (fast, line-based).',
     interviewFollowUps: [
@@ -1177,6 +1189,13 @@ export const fundamentalsConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'A jagged 2-D array is an array of arrays',
         caption: 'grid holds one reference to an outer array of three references; each points to its own row object with its own length. That is why rows can differ in length and why clone() of the outer array shares the rows.',
+        explanation: [
+          'On the **Stack**, the local variable **grid** holds just one reference, not the numbers themselves.',
+          'That reference points into the **Heap** at **int[][] (outer)**, an array of length 3 whose components are themselves references to other arrays.',
+          'The arrows labelled [0], [1] and [2] lead to three separate row objects: **{1, 2, 3}** with length 3, **{4, 5}** with length 2 and **{6}** with length 1.',
+          'Because each row is its own object with its own length, rows can differ in size. That is exactly what makes the array jagged.',
+          'Takeaway: `grid.clone()` copies only the outer array of references, so the copy still shares the same row objects.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -1202,6 +1221,13 @@ export const fundamentalsConcepts: Record<string, LessonConcepts> = {
         kind: 'concept',
         title: 'Aliasing vs copying',
         caption: 'alias = nums copies only the reference, so both names reach one array. Arrays.copyOf creates a second, independent array object.',
+        explanation: [
+          'In the **Variables** column, **nums** holds a reference to the heap array **int[] {7, 0, 0}**.',
+          'The line `int[] alias = nums;` copies only that reference, so **alias** points to the very same object. A change made through either name is seen through both.',
+          '**copy** was created by `Arrays.copyOf(nums, 3)`, which builds a second, independent array. The dashed arrow shows the elements being copied once, at that moment.',
+          'Later changes, such as setting the second element of the copy to 9, affect only **int[] {7, 9, 0}** and never the original.',
+          'Takeaway: assignment shares an array, while `clone()` or `Arrays.copyOf` duplicates it.',
+        ],
         cols: 3,
         rows: 3,
         nodes: [
@@ -1227,6 +1253,13 @@ export const fundamentalsConcepts: Record<string, LessonConcepts> = {
         kind: 'flow',
         title: 'Reading numbers fast from standard input',
         caption: 'Each layer does one job: bytes become characters, characters are buffered into lines, lines are split into tokens, and tokens are parsed into ints.',
+        explanation: [
+          'Input begins at **System.in**, a stream of raw bytes coming from the keyboard or from a redirected file.',
+          '**InputStreamReader** decodes those bytes into characters using a charset, because one character may take several bytes.',
+          '**BufferedReader** reads characters in large blocks and hands out one line at a time with `readLine()`, which is far faster than reading character by character.',
+          'Each line goes to **StringTokenizer**, or to `line.split(" ")`, which cuts it into tokens. **Integer.parseInt** then turns each token into an `int`.',
+          'The numbers end up in **int[] values**, ready to process. Takeaway: each layer does one job, and together they read large inputs quickly.',
+        ],
         cols: 3,
         rows: 2,
         nodes: [
