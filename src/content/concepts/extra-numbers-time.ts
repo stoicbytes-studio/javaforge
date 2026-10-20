@@ -17,9 +17,9 @@ export const numbersTimeConcepts: Record<string, LessonConcepts> = {
         code: 'public class Main {\n  public static void main(String[] args) {\n    System.out.println(Math.max(3, 9));\n    System.out.println(Math.pow(2, 10));\n    System.out.println(Math.sqrt(49));\n    System.out.println(Math.round(2.5));\n    System.out.println(Math.abs(-7));\n    System.out.println(7 / 2);\n    System.out.println(0.1 + 0.2);\n  }\n}',
         output: '9\n1024.0\n7.0\n3\n7\n3\n0.30000000000000004',
         runnable: true,
-        explain: '`Math.pow` and `Math.sqrt` return a `double`, so you see `.0`. Dividing the `int` values `7 / 2` gives `3`. The last line shows the small error that `double` can have.',
+        explain: '`Math.pow` and `Math.sqrt` return a `double`, so you see `.0`. Dividing the `int` values `7 / 2` gives `3`. `Math.round(2.5)` gives `3` because `.5` rounds up. The last line shows the small error that `double` can have.',
       },
-      tip: 'Never compare decimals with `==`. Check whether they are close enough instead.',
+      tip: 'Avoid comparing decimals with `==`. Check whether they are close enough instead.',
     },
     textbook: {
       definition:

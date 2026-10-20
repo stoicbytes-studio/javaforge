@@ -6,7 +6,7 @@ export const regexReflectionConcepts: Record<string, LessonConcepts> = {
     quick: {
       definition: 'A **regular expression** (regex) is a pattern that describes text. You use it to search, check or replace parts of a String.',
       points: [
-        '`\\d` matches a digit, `\\w` a letter or digit, and `.` any character.',
+        '`\\d` matches a digit, `\\w` a letter, digit or underscore, and `.` any character except a line break.',
         '`+` means one or more, `*` means zero or more, and `{4}` means exactly four.',
         '`Pattern.compile` builds the pattern. `matcher(text)` applies it to some text.',
         'Call `find()` to get the next match, and `group()` to read it.',
@@ -313,7 +313,7 @@ export const regexReflectionConcepts: Record<string, LessonConcepts> = {
         code: 'import java.lang.annotation.*;\nimport java.lang.reflect.Method;\nimport java.util.*;\n\npublic class Main {\n  @Retention(RetentionPolicy.RUNTIME)\n  @Target(ElementType.METHOD)\n  @interface Run {}\n\n  static class Tests {\n    @Run public void first() { System.out.println("first ran"); }\n    public void helper() { System.out.println("helper ran"); }\n    @Run public void second() { System.out.println("second ran"); }\n  }\n\n  public static void main(String[] args) throws Exception {\n    Tests tests = new Tests();\n    Method[] methods = Tests.class.getDeclaredMethods();\n    Arrays.sort(methods, Comparator.comparing(Method::getName));\n    for (Method m : methods) {\n      if (m.isAnnotationPresent(Run.class)) {\n        m.invoke(tests);\n      }\n    }\n  }\n}',
         output: 'first ran\nsecond ran',
         runnable: true,
-        explain: '`@Run` is our own label, kept at run time. The loop looks at every method of `Tests` and calls only those with `@Run`. `helper` has no label, so it is skipped.',
+        explain: '`@Run` is our own label, kept at run time. The code sorts the methods by name, because `getDeclaredMethods()` gives no fixed order. Then it calls only the methods with `@Run`. `helper` has no label, so it is skipped.',
       },
       tip: 'Without `RetentionPolicy.RUNTIME`, reflection cannot see your annotation.',
     },
