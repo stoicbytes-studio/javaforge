@@ -95,8 +95,11 @@ test.describe('make it stick', () => {
     await expect(page.getByRole('heading', { name: 'In plain English' })).toBeVisible();
     await expect(page.getByText('Remember just these three things')).toBeVisible();
     await expect(page.getByText('Ways to run a Java program, in simple words')).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Formal definition' })).toBeVisible();
-    await expect(page.getByText('Key terms')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Formal definition', exact: true })).toBeVisible();
+    // The formal definition starts closed so the simple parts come first.
+    await expect(page.getByText('Key terms', { exact: true })).toHaveCount(0);
+    await page.getByRole('button', { name: 'Show the formal definition and key terms' }).click();
+    await expect(page.getByText('Key terms', { exact: true })).toBeVisible();
     await expect(page.getByText('How to read this diagram').first()).toBeAttached();
     await expect(page.getByRole('img', { name: /One recipe card, every kitchen/ })).toBeAttached();
     const reveal = page.getByRole('button', { name: 'Reveal answer 1' });

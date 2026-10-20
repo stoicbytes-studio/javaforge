@@ -3,6 +3,7 @@ import { Linking, Pressable, StyleSheet, View, type LayoutChangeEvent } from 're
 
 import { Badge } from '@/components/Card';
 import { CodeBlock } from '@/components/CodeBlock';
+import { Collapsible } from '@/components/Collapsible';
 import { DiagramView } from '@/components/DiagramView';
 import { IllustrationView } from '@/components/IllustrationView';
 import { Icon, type IconName } from '@/components/Icon';
@@ -29,7 +30,12 @@ export function ConceptPanel({ concepts, memory }: { concepts: LessonConcepts; m
       {concepts.quick ? <QuickSection quick={concepts.quick} step={next()} /> : null}
       {memory ? (
         <View style={{ gap: spacing.lg }}>
-          <SectionTitle step={next()} icon="lightbulb" title="In plain English" subtitle="The simple version first: one big idea, a story and three things to keep." />
+          <SectionTitle
+            step={next()}
+            icon="lightbulb"
+            title="In plain English"
+            subtitle="The simple version first: one big idea, a story and three things to keep."
+          />
           <PlainEnglish memory={memory} />
         </View>
       ) : null}
@@ -38,7 +44,9 @@ export function ConceptPanel({ concepts, memory }: { concepts: LessonConcepts; m
       <MnemonicSection concepts={concepts} step={next()} />
       <BreakdownSection items={concepts.breakdown} step={next()} />
       <VisualsSection concepts={concepts} memory={memory} step={next()} />
-      {concepts.variants?.map((v) => <VariantSection key={v.title} group={v} />)}
+      {concepts.variants?.map((v) => (
+        <VariantSection key={v.title} group={v} />
+      ))}
       <DeepDiveSection concepts={concepts} step={next()} />
       {memory ? (
         <View style={{ gap: spacing.lg }}>
@@ -77,7 +85,12 @@ function QuickSection({ quick, step }: { quick: QuickDefinition; step: number })
   const { example } = quick;
   return (
     <View style={{ gap: spacing.lg }}>
-      <SectionTitle step={step} icon="lightbulb" title="What is it?" subtitle="A short definition, the rules to remember and a small example." />
+      <SectionTitle
+        step={step}
+        icon="lightbulb"
+        title="What is it?"
+        subtitle="A short definition, the rules to remember and a small example."
+      />
       <View style={[styles.quick, { backgroundColor: colors.brandMuted, borderColor: colors.brandStrong }]}>
         <Inline text={quick.definition} variant="title" />
       </View>
@@ -95,7 +108,10 @@ function QuickSection({ quick, step }: { quick: QuickDefinition; step: number })
         <Text variant="heading">{`Example: ${example.title}`}</Text>
         <CodeBlock code={example.code} showLineNumbers={false} />
         {example.runnable && example.output !== undefined ? (
-          <View style={[styles.output, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]} accessibilityLabel={`Output: ${example.output}`}>
+          <View
+            style={[styles.output, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}
+            accessibilityLabel={`Output: ${example.output}`}
+          >
             <Text variant="caption" color="textSubtle">
               Output
             </Text>
@@ -122,29 +138,36 @@ function TextbookSection({ textbook, step }: { textbook: TextbookDefinition; ste
   const { colors } = useTheme();
   return (
     <View style={{ gap: spacing.lg }}>
-      <SectionTitle step={step} icon="book" title="Formal definition" subtitle="The precise version, as a textbook or the language specification words it." />
-      <View style={[styles.textbook, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-        <Text variant="caption" color="primary">
-          Definition
-        </Text>
-        <Markdown source={textbook.definition} />
-        {textbook.source ? (
-          <Text variant="small" color="textSubtle">
-            {`Source: ${textbook.source}`}
+      <SectionTitle
+        step={step}
+        icon="book"
+        title="Formal definition"
+        subtitle="The precise version, for exams, interviews and reading the specification. Open it when you want it."
+      />
+      <Collapsible title="Show the formal definition and key terms" icon="book">
+        <View style={[styles.textbook, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Text variant="caption" color="primary">
+            Definition
           </Text>
-        ) : null}
-      </View>
-      <View style={{ gap: spacing.sm }}>
-        <Text variant="small" weight="700" color="textMuted">
-          Key terms
-        </Text>
-        {textbook.terms.map((t) => (
-          <View key={t.term} style={[styles.term, { borderColor: colors.border, backgroundColor: colors.surface }]}>
-            <Inline text={t.term} variant="heading" />
-            <Inline text={t.meaning} variant="body" color="textMuted" />
-          </View>
-        ))}
-      </View>
+          <Markdown source={textbook.definition} />
+          {textbook.source ? (
+            <Text variant="small" color="textSubtle">
+              {`Source: ${textbook.source}`}
+            </Text>
+          ) : null}
+        </View>
+        <View style={{ gap: spacing.sm }}>
+          <Text variant="small" weight="700" color="textMuted">
+            Key terms
+          </Text>
+          {textbook.terms.map((t) => (
+            <View key={t.term} style={[styles.term, { borderColor: colors.border, backgroundColor: colors.surface }]}>
+              <Inline text={t.term} variant="heading" />
+              <Inline text={t.meaning} variant="body" color="textMuted" />
+            </View>
+          ))}
+        </View>
+      </Collapsible>
     </View>
   );
 }
@@ -280,11 +303,18 @@ function VisualsSection({ concepts, memory, step }: { concepts: LessonConcepts; 
   // The picture sits next to the first flow (or architecture) diagram: the everyday
   // scene and the technical steps together, so one explains the other. Side by side
   // only when both stay readable; otherwise the picture goes directly above it.
-  const paired = memory ? (concepts.diagrams.find((d) => d.kind === 'flow') ?? concepts.diagrams.find((d) => d.kind === 'architecture')) : undefined;
+  const paired = memory
+    ? (concepts.diagrams.find((d) => d.kind === 'flow') ?? concepts.diagrams.find((d) => d.kind === 'architecture'))
+    : undefined;
   const sideBySide = width >= 1100;
   return (
     <View style={{ gap: spacing.lg }} onLayout={(e: LayoutChangeEvent) => setWidth(e.nativeEvent.layout.width)}>
-      <SectionTitle step={step} icon="grid" title="See it" subtitle="A picture to remember, then illustrations, flows and architecture diagrams." />
+      <SectionTitle
+        step={step}
+        icon="grid"
+        title="See it"
+        subtitle="A picture to remember, then illustrations, flows and architecture diagrams."
+      />
       {concepts.diagrams.map((d) =>
         d === paired && memory ? (
           <View key={d.id} style={sideBySide ? styles.pair : { gap: spacing.lg }}>
@@ -406,7 +436,14 @@ const styles = StyleSheet.create({
   followUpHead: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
   mnemonic: { borderWidth: 1.5, borderRadius: radius.lg, padding: spacing.xl, gap: spacing.lg },
   expansionRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md },
-  keyChip: { minWidth: 34, height: 30, paddingHorizontal: spacing.sm, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
+  keyChip: {
+    minWidth: 34,
+    height: 30,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   grid: { gap: spacing.lg },
   breakdownCard: { borderWidth: 1, borderTopWidth: 4, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.sm },
   variant: { borderWidth: 1, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.sm },
