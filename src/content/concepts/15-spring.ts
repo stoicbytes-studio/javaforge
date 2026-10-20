@@ -6,34 +6,34 @@ export const springConcepts: Record<string, LessonConcepts> = {
   'sp-ioc-boot': {
     textbook: {
       definition:
-        '**Inversion of control** (IoC) is a design principle in which the creation, configuration and lifecycle of objects are delegated to an external **container** rather than controlled by the objects themselves. **Dependency injection** is the form of IoC in which the container supplies an object\'s collaborators through constructor arguments, setter methods or fields. In the Spring Framework the container is the `ApplicationContext`, which builds **beans** from bean definitions, resolves their dependencies and manages their scope and lifecycle. **Spring Boot** extends this with starter dependencies, conditional **auto-configuration** and externalised configuration.',
+        '**Inversion of control** (IoC) is a design principle. An external **container** creates and configures objects and manages their lifecycle, instead of the objects doing it themselves. **Dependency injection** is the form of IoC in which the container supplies an object\'s collaborators. It passes them in through constructor arguments, setter methods or fields. In the Spring Framework the container is the `ApplicationContext`. It builds **beans** from bean definitions, resolves their dependencies and manages their scope and lifecycle. **Spring Boot** extends this with starter dependencies, conditional **auto-configuration** and externalised configuration.',
       terms: [
-        { term: 'Bean', meaning: 'An object that is instantiated, assembled and managed by the Spring IoC container according to a bean definition.' },
-        { term: 'Bean definition', meaning: 'Metadata describing how to create a bean: its class or factory method, scope, dependencies, initialisation and destruction callbacks.' },
-        { term: 'ApplicationContext', meaning: 'The central Spring container interface; it extends `BeanFactory` with eager singleton creation, events, the `Environment`, resource loading and message resolution.' },
-        { term: 'Auto-configuration', meaning: 'Spring Boot configuration classes that are applied only when their conditions match, such as a class being present or a bean being missing.' },
-        { term: 'Externalised configuration', meaning: 'Property values supplied from outside the code (files, environment variables, command-line arguments) and bound to beans through the `Environment`.' },
+        { term: 'Bean', meaning: 'An object that the Spring IoC container creates, puts together and manages, following a bean definition.' },
+        { term: 'Bean definition', meaning: 'Metadata that describes how to create a bean. It gives the class or factory method, the scope, the dependencies, and the initialisation and destruction callbacks.' },
+        { term: 'ApplicationContext', meaning: 'The main Spring container interface. It extends `BeanFactory` with eager singleton creation, events, the `Environment`, resource loading and message resolution.' },
+        { term: 'Auto-configuration', meaning: 'Spring Boot configuration classes that apply only when their conditions match. For example, a class must be present or a bean must be missing.' },
+        { term: 'Externalised configuration', meaning: 'Property values that come from outside the code, such as files, environment variables or command-line arguments. They are bound to beans through the `Environment`.' },
       ],
       source: 'Spring Framework reference, Core Technologies: The IoC Container; Spring Boot reference documentation',
     },
     interviewDefinition:
-      '**Inversion of control** means an object no longer creates or looks up its collaborators; it declares them, and a container supplies them. **Dependency injection** is the mechanism: Spring\'s `ApplicationContext` collects bean definitions (component scanning, `@Bean` methods, auto-configuration), resolves the dependency graph, instantiates beans in order, injects them — preferably through constructors — and may wrap them in proxies for transactions or security. **Spring Boot** adds starters, conditional auto-configuration and externalised configuration, so sensible defaults appear automatically and back off when you define your own beans.',
+      '**Inversion of control** means an object no longer creates or looks up its collaborators. It declares them, and a container supplies them. **Dependency injection** is how this works. Spring\'s `ApplicationContext` collects bean definitions (component scanning, `@Bean` methods, auto-configuration) and resolves the dependency graph. It creates beans in order and injects them, preferably through constructors. It may also wrap them in proxies for transactions or security. **Spring Boot** adds starters, conditional auto-configuration and externalised configuration. So sensible defaults appear automatically, and they back off when you define your own beans.',
     interviewFollowUps: [
       {
         question: 'Why is constructor injection preferred over field injection?',
-        answer: 'Dependencies can be `final`, the object is never half-built, required collaborators are visible in the signature, and a unit test just calls the constructor with fakes — no container or reflection. Field injection hides dependencies and lets an object exist without them.',
+        answer: 'Dependencies can be `final`, and the object is never half-built. Required collaborators are visible in the signature. A unit test just calls the constructor with fakes, with no container or reflection. Field injection hides dependencies and lets an object exist without them.',
       },
       {
         question: 'What is the difference between `BeanFactory` and `ApplicationContext`?',
-        answer: '`BeanFactory` is the core container that creates and wires beans. `ApplicationContext` extends it with eager pre-instantiation of singletons, automatic registration of post-processors, events, the `Environment` (profiles and properties), resource loading and i18n messages. Applications always use an `ApplicationContext`.',
+        answer: '`BeanFactory` is the core container that creates and wires beans. `ApplicationContext` extends it with more features: eager creation of singletons before they are requested, automatic registration of post-processors, events, the `Environment` (profiles and properties), resource loading and i18n messages. Applications always use an `ApplicationContext`.',
       },
       {
         question: 'How does Spring Boot decide which auto-configurations apply?',
-        answer: 'Candidates are listed in `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`; each is guarded by conditions such as `@ConditionalOnClass`, `@ConditionalOnProperty` and `@ConditionalOnMissingBean`. Run with `--debug` to print the condition evaluation report.',
+        answer: 'Candidates are listed in `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`. Each one is guarded by conditions such as `@ConditionalOnClass`, `@ConditionalOnProperty` and `@ConditionalOnMissingBean`. Run with `--debug` to print the condition evaluation report.',
       },
       {
         question: 'What happens with a circular dependency?',
-        answer: 'With constructor injection Spring cannot build either bean and fails at start-up; since Spring Boot 2.6 circular references are prohibited by default even for field injection. The fix is a design change — extract the shared logic into a third bean or publish an event.',
+        answer: 'With constructor injection, Spring cannot build either bean, so it fails at start-up. Since Spring Boot 2.6, circular references are not allowed by default, even for field injection. The fix is a design change: move the shared logic into a third bean, or publish an event.',
       },
     ],
     mnemonic: {
@@ -78,7 +78,7 @@ export const springConcepts: Record<string, LessonConcepts> = {
           'The left group, **Without IoC**, shows an **OrderService** that creates what it needs: it calls `new SmtpMailer()` itself, so the concrete **SmtpMailer** is hard-wired into its code.',
           'The dashed arrow leads to the consequence: **Tests send real email**. There is no seam where a test could hand in a fake, because the service decides the implementation on its own.',
           'The right group, **With IoC**, starts at the **ApplicationContext**. It creates both objects itself, in dependency order, so the mailer exists before the service that needs it.',
-          'The **Mailer bean**, either the real SmtpMailer or a FakeMailer, is passed into the second **OrderService** as a constructor argument and stored in a `private final Mailer` field.',
+          'The **Mailer bean** is either the real SmtpMailer or a FakeMailer. It is passed into the second **OrderService** as a constructor argument and stored in a `private final Mailer` field.',
           'Takeaway: because only the container chooses the implementation, you can **Swap by profile or test** while the OrderService code never changes.',
         ],
         cols: 4,
@@ -109,11 +109,11 @@ export const springConcepts: Record<string, LessonConcepts> = {
         id: 'sp-ioc-boot-startup',
         kind: 'flow',
         title: 'What happens inside SpringApplication.run',
-        caption: 'Configuration is read and filtered by conditions before any bean exists; beans are then created in dependency order, initialised, and only afterwards wrapped in proxies — which is why @PostConstruct runs on the raw object.',
+        caption: 'Configuration is read and filtered by conditions before any bean exists. Then beans are created in dependency order and initialised. Only after that are they wrapped in proxies. That is why @PostConstruct runs on the raw object.',
         explanation: [
-          '**Start**: calling `SpringApplication.run` first prepares the **Environment**, which gathers properties and active profiles from files, environment variables and command-line arguments.',
+          '**Start**: calling `SpringApplication.run` first prepares the **Environment**. It gathers properties and active profiles from files, environment variables and command-line arguments.',
           'Next the context collects **Candidates**: classes found by component scanning, `@Bean` methods and auto-configuration classes. These two steps form the configuration phase, where no beans exist yet.',
-          '**Conditions** then decide which candidates to keep and which back off; only matched ones become **Bean definitions**, which together describe the dependency graph.',
+          '**Conditions** then decide which candidates to keep and which back off. Only matched ones become **Bean definitions**. Together these describe the dependency graph.',
           '**Instantiate + inject** calls constructors in dependency order, then **Initialise** runs `@PostConstruct` and other init callbacks on the raw objects.',
           '**Post-process** comes after initialisation: bean post-processors wrap beans in AOP proxies for transactions, security or caching.',
           'Only then is the context **Ready**: the web server starts and runners execute. Takeaway: code in `@PostConstruct` runs before proxies exist, so transactional advice does not apply there.',
@@ -153,7 +153,7 @@ export const springConcepts: Record<string, LessonConcepts> = {
           '**DataSource config** is one such candidate. Its `@ConditionalOnClass` check passes because the starter put the needed classes on the classpath.',
           'It then asks **Bean missing?** through `@ConditionalOnMissingBean`. This question decides whether Boot or you provide the DataSource.',
           'If yes, Boot creates the **Default DataSource**, a HikariCP pool, and **application.yml** binds its `spring.datasource.*` settings onto it.',
-          'If no, the configuration backs off: **Your @Bean wins** and the default is skipped. Takeaway: auto-configuration gives defaults that step aside as soon as you define your own bean.',
+          'If no, the configuration backs off: **Your @Bean wins** and the default is skipped. Takeaway: auto-configuration gives defaults that step aside once you define your own bean.',
         ],
         cols: 3,
         rows: 3,
@@ -262,34 +262,34 @@ export const springConcepts: Record<string, LessonConcepts> = {
   'sp-rest': {
     textbook: {
       definition:
-        '**Representational State Transfer** (REST) is an architectural style for distributed hypermedia systems, defined by a set of constraints: client-server separation, **statelessness**, cacheability, a **uniform interface**, a layered system and optional code on demand. In a REST API over HTTP, each **resource** is identified by a URI and manipulated by transferring **representations** of its state using standard methods whose safety and idempotency are defined by HTTP semantics. In Spring MVC, a **`@RestController`** is a component whose handler methods are mapped to requests and whose return values are serialised directly into the response body.',
+        '**Representational State Transfer** (REST) is an architectural style for distributed hypermedia systems. It is defined by a set of constraints: client-server separation, **statelessness**, cacheability, a **uniform interface**, a layered system and optional code on demand. In a REST API over HTTP, a URI identifies each **resource**. Clients work with a resource by transferring **representations** of its state. They use standard methods, and HTTP semantics define whether each method is safe and idempotent. In Spring MVC, a **`@RestController`** is a component whose handler methods are mapped to requests. Their return values are serialised directly into the response body.',
       terms: [
-        { term: 'Resource', meaning: 'Any named concept that can be the target of a hypertext reference, identified by a URI, such as a book or an order.' },
-        { term: 'Representation', meaning: 'Data that reflects a resource\'s past, current or desired state, transferred in a format identified by a media type such as `application/json`.' },
-        { term: 'Uniform interface', meaning: 'The REST constraint that all resources are manipulated through the same generic operations, which in HTTP are the standard methods and status codes.' },
-        { term: 'Safe method', meaning: 'A request method whose semantics are essentially read-only; the client does not request any change of server state.' },
-        { term: 'Idempotent method', meaning: 'A request method for which the intended effect on the server of several identical requests equals the effect of a single one.' },
+        { term: 'Resource', meaning: 'Any named concept that a hypertext link can point to, such as a book or an order. A URI identifies it.' },
+        { term: 'Representation', meaning: 'Data that shows a resource\'s past, current or desired state. It is sent in a format named by a media type, such as `application/json`.' },
+        { term: 'Uniform interface', meaning: 'The REST constraint that all resources are handled through the same generic operations. In HTTP, these are the standard methods and status codes.' },
+        { term: 'Safe method', meaning: 'A request method that is in effect read-only. The client does not ask for any change to server state.' },
+        { term: 'Idempotent method', meaning: 'A request method where sending several identical requests has the same intended effect on the server as sending one.' },
       ],
       source: 'Fielding, Architectural Styles and the Design of Network-based Software Architectures (2000), chapter 5; RFC 9110 §9.2',
     },
     interviewDefinition:
-      'A REST API models the domain as **resources** identified by URIs and manipulated through a uniform interface: HTTP methods whose semantics — safe, idempotent, cacheable — are defined by RFC 9110, with status codes and representations (usually JSON) carrying the outcome. In Spring MVC, the `DispatcherServlet` routes each request to a `@RestController` method; `HttpMessageConverter`s (Jackson) translate bodies, Bean Validation guards the input, and a `@RestControllerAdvice` turns exceptions into RFC 9457 `ProblemDetail` responses.',
+      'A REST API models the domain as **resources**, each identified by a URI. Clients use them through a uniform interface. This means HTTP methods whose meaning (safe, idempotent, cacheable) is defined by RFC 9110. Status codes and representations (usually JSON) carry the outcome. In Spring MVC, the `DispatcherServlet` routes each request to a `@RestController` method. `HttpMessageConverter`s (Jackson) translate bodies, and Bean Validation guards the input. A `@RestControllerAdvice` turns exceptions into RFC 9457 `ProblemDetail` responses.',
     interviewFollowUps: [
       {
         question: 'What is the difference between PUT, PATCH and POST?',
-        answer: 'PUT replaces the resource at a known URI and is idempotent. PATCH applies a partial change and is not guaranteed to be idempotent (an "increment" patch is not). POST asks the target to process the representation — typically creating a subordinate resource with a server-chosen id — and is neither safe nor idempotent.',
+        answer: 'PUT replaces the resource at a known URI and is idempotent. PATCH applies a partial change and is not guaranteed to be idempotent (an "increment" patch is not). POST asks the target to process the representation. Typically it creates a child resource with an id the server chooses. POST is neither safe nor idempotent.',
       },
       {
         question: 'Is DELETE still idempotent if the second call returns 404?',
-        answer: 'Yes. Idempotency is about the effect on server state, not the response: after one or many DELETEs the resource is gone. Status codes may differ.',
+        answer: 'Yes. Idempotency is about the effect on server state, not the response. After one or many DELETEs, the resource is gone. Status codes may differ.',
       },
       {
         question: 'What does "stateless" mean in REST?',
-        answer: 'Each request carries everything the server needs to process it (credentials, identifiers); the server keeps no client conversation state between requests. That lets any instance serve any request, which makes horizontal scaling and retries simple.',
+        answer: 'Each request carries everything the server needs to process it, such as credentials and identifiers. The server keeps no client conversation state between requests. So any instance can serve any request, which makes horizontal scaling and retries simple.',
       },
       {
         question: 'How do you prevent lost updates when two clients edit the same resource?',
-        answer: 'Optimistic concurrency: return an `ETag` (or version) with the resource and require `If-Match` on updates; if it no longer matches, respond **412 Precondition Failed**. In JPA, back it with a `@Version` column.',
+        answer: 'Use optimistic concurrency. Return an `ETag` (or version) with the resource, and require `If-Match` on updates. If it no longer matches, respond **412 Precondition Failed**. In JPA, back it with a `@Version` column.',
       },
     ],
     mnemonic: {
@@ -330,13 +330,13 @@ export const springConcepts: Record<string, LessonConcepts> = {
         id: 'sp-rest-method-semantics',
         kind: 'concept',
         title: 'Safe, idempotent, neither',
-        caption: 'Every safe method is also idempotent; PUT and DELETE are idempotent but change state; POST and PATCH are neither, so retrying them needs an idempotency key.',
+        caption: 'Every safe method is also idempotent. PUT and DELETE are idempotent but change state. POST and PATCH are neither, so retrying them needs an idempotency key.',
         explanation: [
           'The left column, **Safe + idempotent**, holds **GET**, **HEAD** and **OPTIONS**. They only read: GET fetches a representation, HEAD only headers, OPTIONS the allowed methods for CORS.',
           'The middle column, **Idempotent only**, holds **PUT** and **DELETE**. They change state, but sending them twice leaves the same end state as sending them once.',
           'That is why the arrow from DELETE leads to **Safe to retry**: a client or proxy can repeat these requests after a timeout without causing a second effect.',
           'The right column, **Neither**, holds **POST** (create or process) and **PATCH** (partial change). Repeating them may create a second order or apply an increment twice.',
-          'The arrow from PATCH to **Needs a key to retry** is the takeaway: non-idempotent requests can only be retried safely with an `Idempotency-Key` header that the server remembers.',
+          'The arrow from PATCH to **Needs a key to retry** is the takeaway. Requests that are not idempotent can only be retried safely with an `Idempotency-Key` header that the server remembers.',
         ],
         cols: 3,
         rows: 3,
@@ -365,13 +365,13 @@ export const springConcepts: Record<string, LessonConcepts> = {
         id: 'sp-rest-mvc-flow',
         kind: 'flow',
         title: 'A request through Spring MVC',
-        caption: 'Filters run before the DispatcherServlet; arguments are converted and validated before your method runs; any exception, including a validation failure, is turned into one consistent problem response.',
+        caption: 'Filters run before the DispatcherServlet. Arguments are converted and checked before your method runs. Any exception, including a validation failure, becomes one consistent problem response.',
         explanation: [
           'The **Client** sends `POST /api/books`. The request first passes the servlet **Filter chain**, where security and logging run before Spring MVC sees it.',
           'The **DispatcherServlet** is the front controller. It asks the **HandlerMapping** which controller method matches this path and HTTP method.',
-          '**Argument resolvers** turn the JSON body into a DTO and run `@Valid`. Only valid arguments reach your **@RestController** method, which is then invoked.',
-          'The method\'s return value goes to a **Message converter** (Jackson), which writes it as JSON, producing **201 Created** with a Location header and body.',
-          'The dashed arrows are the failure paths: invalid input (400) or an exception from the controller goes to the **ControllerAdvice**, which builds a **ProblemDetail** response.',
+          '**Argument resolvers** turn the JSON body into a DTO and run `@Valid`. Only valid arguments reach your **@RestController** method, which Spring then calls.',
+          'The method\'s return value goes to a **Message converter** (Jackson). It writes the value as JSON and produces **201 Created** with a Location header and body.',
+          'The dashed arrows are the failure paths. Invalid input (400) or an exception from the controller goes to the **ControllerAdvice**. It builds a **ProblemDetail** response.',
           'Takeaway: your controller only handles the happy path; conversion, validation and error formatting are pluggable steps around it.',
         ],
         cols: 4,
@@ -405,10 +405,10 @@ export const springConcepts: Record<string, LessonConcepts> = {
         id: 'sp-rest-idempotency',
         kind: 'flow',
         title: 'Idempotency key on a retried POST',
-        caption: 'The first request with a key does the work and stores the response; any retry with the same key gets the stored response, so the card is charged once.',
+        caption: 'The first request with a key does the work and stores the response. Any retry with the same key gets the stored response, so the card is charged once.',
         explanation: [
-          'The **Client** sends a POST with an `Idempotency-Key` header, a unique value it generates once per logical payment and reuses on every retry.',
-          'The **Payment endpoint** reads the key and looks it up in the **Key table**, which has a unique constraint on the key and an expiry time.',
+          'The **Client** sends a POST with an `Idempotency-Key` header. This is a unique value it creates once per logical payment and reuses on every retry.',
+          'The **Payment endpoint** reads the key and looks it up in the **Key table**. This table has a unique constraint on the key and an expiry time.',
           'On a miss it is a **New key**: the server charges the card, stores the response under the key and replies **201 Created**.',
           'On a hit the request was **Seen before**: the server does not charge again but replays the stored response, shown by the dashed arrow.',
           'Takeaway: the client gets the same body every time, so a lost response and a retry can never charge the customer twice.',
@@ -499,34 +499,34 @@ export const springConcepts: Record<string, LessonConcepts> = {
   'sp-data-tx': {
     textbook: {
       definition:
-        'A **transaction** is a unit of work on a resource such as a database that satisfies the **ACID** properties: it is atomic, leaves data consistent, is isolated from concurrent transactions and is durable once committed. **Jakarta Persistence** (JPA) is the standard Java API for object-relational mapping, in which **entities** are mapped to tables and managed by a **persistence context** that synchronises their state with the database. Spring\'s **declarative transaction management** applies transaction boundaries to methods annotated with `@Transactional` through AOP proxies, delegating to a `PlatformTransactionManager` according to the method\'s propagation, isolation and rollback rules.',
+        'A **transaction** is a unit of work on a resource, such as a database, that has the **ACID** properties. It is atomic, leaves data consistent, is isolated from concurrent transactions and is durable once committed. **Jakarta Persistence** (JPA) is the standard Java API for object-relational mapping. It maps **entities** to tables. A **persistence context** manages the entities and keeps their state in sync with the database. Spring\'s **declarative transaction management** adds transaction boundaries to methods annotated with `@Transactional`. It does this through AOP proxies. They hand the work to a `PlatformTransactionManager`, following the method\'s propagation, isolation and rollback rules.',
       terms: [
-        { term: 'ACID', meaning: 'Atomicity, consistency, isolation and durability: the four guarantees a database transaction provides.' },
-        { term: 'Entity', meaning: 'A lightweight persistent domain object, annotated with `@Entity`, whose state is mapped to rows of a relational table.' },
-        { term: 'Persistence context', meaning: 'A set of managed entity instances in which, for each persistent identity, there is exactly one instance; changes are flushed to the database.' },
-        { term: 'Propagation', meaning: 'The rule that decides whether a transactional method joins an existing transaction, starts a new one, or runs without one.' },
-        { term: 'Rollback rule', meaning: 'The rule deciding which exceptions roll a transaction back; by default unchecked exceptions and errors do, checked exceptions do not.' },
+        { term: 'ACID', meaning: 'Atomicity, consistency, isolation and durability. These are the four guarantees a database transaction gives.' },
+        { term: 'Entity', meaning: 'A lightweight domain object that is saved in the database. It is annotated with `@Entity`, and its state is mapped to rows of a relational table.' },
+        { term: 'Persistence context', meaning: 'A set of managed entity instances. It holds exactly one instance for each persistent identity. Changes are flushed (written) to the database.' },
+        { term: 'Propagation', meaning: 'The rule that decides what a transactional method does: join an existing transaction, start a new one, or run without one.' },
+        { term: 'Rollback rule', meaning: 'The rule that decides which exceptions roll a transaction back. By default, unchecked exceptions and errors do, and checked exceptions do not.' },
       ],
       source: 'Jakarta Persistence specification; Spring Framework reference, Data Access: Transaction Management',
     },
     interviewDefinition:
-      '**JPA** (Jakarta Persistence, usually implemented by Hibernate) maps entities to tables; a **persistence context** tracks managed entities and flushes their changes at commit through dirty checking. **Spring Data JPA** generates repository implementations from interfaces. `@Transactional` is applied by an AOP proxy that asks a `PlatformTransactionManager` to begin, join, suspend, commit or roll back according to its **propagation** and **rollback rules** — so it only applies to calls that pass through the proxy, and by default rolls back only on unchecked exceptions.',
+      '**JPA** (Jakarta Persistence, usually implemented by Hibernate) maps entities to tables. A **persistence context** tracks managed entities. At commit it uses dirty checking (finding changed entities) and flushes their changes. **Spring Data JPA** generates repository implementations from interfaces. An AOP proxy applies `@Transactional`. The proxy asks a `PlatformTransactionManager` to begin, join, suspend, commit or roll back. It follows the method\'s **propagation** and **rollback rules**. So it only applies to calls that pass through the proxy. By default it rolls back only on unchecked exceptions.',
     interviewFollowUps: [
       {
         question: 'Why does `@Transactional` sometimes do nothing?',
-        answer: 'The proxy is bypassed: a self-call via `this`, a `private` or `final` method, an object created with `new`, or a call made from `@PostConstruct` before proxying. Also, a checked exception commits by default, and a caught exception that is not rethrown looks like success.',
+        answer: 'The call skips the proxy. This happens with a self-call via `this`, a `private` or `final` method, an object created with `new`, or a call made from `@PostConstruct` before proxying. Also, a checked exception commits by default. A caught exception that is not rethrown looks like success.',
       },
       {
         question: 'REQUIRES_NEW vs NESTED?',
-        answer: '`REQUIRES_NEW` suspends the caller\'s transaction and runs a completely independent one on a second connection — it commits even if the outer one later rolls back. `NESTED` stays in the same physical transaction and sets a JDBC savepoint, so the inner part can roll back alone, but nothing commits until the outer transaction does.',
+        answer: '`REQUIRES_NEW` suspends the caller\'s transaction and runs a fully separate one on a second connection. It commits even if the outer one later rolls back. `NESTED` stays in the same physical transaction and sets a JDBC savepoint. So the inner part can roll back alone, but nothing commits until the outer transaction does.',
       },
       {
         question: 'Do you need to call `save()` after changing a loaded entity?',
-        answer: 'No. A managed entity inside a transaction is dirty-checked; Hibernate compares it with the snapshot taken at load time and issues the UPDATE at flush. `save()` matters for new (transient) entities, and calling `save()` on a detached one performs a merge.',
+        answer: 'No. Inside a transaction, a managed entity is dirty-checked. Hibernate compares it with the snapshot taken at load time and issues the UPDATE at flush. `save()` matters for new (transient) entities. Calling `save()` on a detached one performs a merge.',
       },
       {
         question: 'What is `UnexpectedRollbackException`?',
-        answer: 'An inner `REQUIRED` method threw a runtime exception, which marked the shared transaction rollback-only. The outer method caught the exception and tried to commit; Spring rolls back and throws `UnexpectedRollbackException` so the caller knows its "success" did not persist.',
+        answer: 'An inner `REQUIRED` method threw a runtime exception. This marked the shared transaction rollback-only. The outer method caught the exception and tried to commit. Spring rolls back and throws `UnexpectedRollbackException`, so the caller knows its "success" was not saved.',
       },
     ],
     mnemonic: {
@@ -565,12 +565,12 @@ export const springConcepts: Record<string, LessonConcepts> = {
         id: 'sp-data-tx-entity-states',
         kind: 'concept',
         title: 'Entity states in the persistence context',
-        caption: 'Only managed entities are tracked and flushed. merge() does not reattach the detached object — it copies its state onto a managed instance and returns that.',
+        caption: 'Only managed entities are tracked and flushed. merge() does not reattach the detached object. It copies its state onto a managed instance and returns that.',
         explanation: [
           'A **Transient** object is one you just created with `new Order()`. JPA does not know about it, so nothing is saved.',
           'Calling `persist()` makes it **Managed**: it now lives inside the **Persistence context** group, where every change is tracked by dirty checking.',
           'The two-way arrow to the **Database** shows that `find` loads rows into managed entities and that flush writes their changes back as SQL.',
-          'When the context closes, a managed entity becomes **Detached**: it still has an id, but its changes are no longer tracked. `merge()` copies its state onto a managed instance.',
+          'When the context closes, a managed entity becomes **Detached**. It still has an id, but its changes are no longer tracked. `merge()` copies its state onto a managed instance.',
           '`remove()` moves an entity to **Removed**, and the DELETE reaches the database at flush. Takeaway: only managed entities are tracked and saved automatically.',
         ],
         cols: 3,
@@ -595,10 +595,10 @@ export const springConcepts: Record<string, LessonConcepts> = {
         id: 'sp-data-tx-proxy-flow',
         kind: 'flow',
         title: 'What the transactional proxy does',
-        caption: 'The proxy binds one connection and persistence context to the thread for the whole method; the exception type that escapes decides commit or rollback.',
+        caption: 'The proxy binds one connection and persistence context to the thread for the whole method. The type of exception that escapes decides commit or rollback.',
         explanation: [
           'The **Controller** calls `orderService`, but what it holds is a **Proxy**, a CGLIB subclass generated by Spring, not your class.',
-          'The proxy asks the **Tx manager** to begin a transaction, which binds one database connection and persistence context to the current thread.',
+          'The proxy asks the **Tx manager** to begin a transaction. This binds one database connection and persistence context to the current thread.',
           'The proxy then invokes the **Real OrderService**. Your business code calls **Repositories**, which reuse the same connection and context.',
           'When the method finishes, **How did it end?** decides the outcome: a normal return or a checked exception leads to **Commit**, which flushes and then commits.',
           'An unchecked exception (RuntimeException or Error) leads to **Rollback**. Takeaway: the proxy, not your code, starts and ends the transaction, based on how the method exits.',
@@ -629,13 +629,13 @@ export const springConcepts: Record<string, LessonConcepts> = {
         id: 'sp-data-tx-self-invocation',
         kind: 'architecture',
         title: 'The proxy boundary',
-        caption: 'Only calls that arrive through a proxy get transaction advice. A call on this stays inside the target object, so REQUIRES_NEW on audit() is ignored; moving audit() to another bean fixes it.',
+        caption: 'Only calls that arrive through a proxy get transaction advice. A call on this stays inside the target object, so REQUIRES_NEW on audit() is ignored. Moving audit() to another bean fixes it.',
         explanation: [
           'The **Caller** calls through the **OrderService proxy**, which applies transaction advice before forwarding an advised call to **placeOrder()**.',
           'Inside the **Target object** group, `placeOrder()` calls `this.audit()`. That call never leaves the object, so the proxy is not involved.',
-          'As a result **audit()** runs with its REQUIRES_NEW setting ignored; it simply joins the outer transaction.',
+          'As a result, **audit()** runs with its REQUIRES_NEW setting ignored. It simply joins the outer transaction.',
           'If `audit()` lives in a separate bean that is injected, the call goes through the **AuditService proxy**, so REQUIRES_NEW is applied.',
-          'Takeaway: transaction annotations only work on calls that cross a proxy boundary, so move methods with different settings into another bean.',
+          'Takeaway: transaction annotations only work on calls that cross a proxy boundary. So move methods with different settings into another bean.',
         ],
         cols: 3,
         rows: 2,
@@ -719,34 +719,34 @@ export const springConcepts: Record<string, LessonConcepts> = {
   'sp-security': {
     textbook: {
       definition:
-        '**Application security** in this context comprises two distinct controls: **authentication**, the process of verifying the identity claimed by a principal, and **authorization**, the decision whether an authenticated principal may perform a requested operation on a resource. **Spring Security** is a framework that implements both for Java applications. In a servlet application it operates as a chain of filters, selected per request by `FilterChainProxy`, which establish an `Authentication` in the **SecurityContext** and enforce access rules on URLs and, optionally, on methods. It also provides protections against common exploits, such as CSRF and insecure password storage.',
+        '**Application security** here means two separate controls. **Authentication** is the process of checking the identity a principal claims. **Authorization** is the decision whether an authenticated principal may perform a requested operation on a resource. **Spring Security** is a framework that implements both for Java applications. In a servlet application it works as a chain of filters. `FilterChainProxy` selects the chain for each request. The filters set up an `Authentication` in the **SecurityContext**. They enforce access rules on URLs and, optionally, on methods. Spring Security also protects against common attacks, such as CSRF and unsafe password storage.',
       terms: [
-        { term: 'Principal', meaning: 'The user, device or system whose identity is being verified and on whose behalf a request is made.' },
-        { term: 'Authentication', meaning: 'In Spring Security, the object holding the principal, its credentials and its granted authorities once identity has been verified.' },
-        { term: 'Granted authority', meaning: 'A permission assigned to a principal, such as `ROLE_ADMIN` or `SCOPE_orders.read`, which authorization rules check.' },
-        { term: 'SecurityContext', meaning: 'The holder of the current `Authentication`, by default stored per thread by `SecurityContextHolder`.' },
-        { term: 'SecurityFilterChain', meaning: 'An ordered list of security filters together with a request matcher deciding which requests the chain applies to.' },
+        { term: 'Principal', meaning: 'The user, device or system whose identity is being checked, and for whom a request is made.' },
+        { term: 'Authentication', meaning: 'In Spring Security, the object that holds the principal, its credentials and its granted authorities once its identity has been checked.' },
+        { term: 'Granted authority', meaning: 'A permission given to a principal, such as `ROLE_ADMIN` or `SCOPE_orders.read`. Authorization rules check it.' },
+        { term: 'SecurityContext', meaning: 'The holder of the current `Authentication`. By default, `SecurityContextHolder` stores it per thread.' },
+        { term: 'SecurityFilterChain', meaning: 'An ordered list of security filters, together with a request matcher. The matcher decides which requests the chain applies to.' },
       ],
       source: 'Spring Security reference documentation (Servlet Architecture); RFC 6749 (OAuth 2.0)',
     },
     interviewDefinition:
-      'Spring Security protects an application with a chain of servlet filters in front of the `DispatcherServlet`: `FilterChainProxy` picks the first matching `SecurityFilterChain`, whose filters **authenticate** the request (session, HTTP Basic, bearer token, OAuth2 login), store the resulting `Authentication` in the `SecurityContext`, and then **authorize** it against URL rules — plus method rules with `@EnableMethodSecurity`. Failures become **401** (not authenticated) or **403** (authenticated but not allowed). It is deny-by-default, uses adaptive password encoders, and enables CSRF protection and security headers out of the box.',
+      'Spring Security protects an application with a chain of servlet filters in front of the `DispatcherServlet`. `FilterChainProxy` picks the first matching `SecurityFilterChain`. Its filters **authenticate** the request (session, HTTP Basic, bearer token, OAuth2 login). They store the resulting `Authentication` in the `SecurityContext`. Then they **authorize** it against URL rules, plus method rules with `@EnableMethodSecurity`. Failures become **401** (not authenticated) or **403** (authenticated but not allowed). It denies by default and uses adaptive password encoders. It turns on CSRF protection and security headers out of the box.',
     interviewFollowUps: [
       {
         question: 'How do you revoke a JWT?',
-        answer: 'You mostly cannot: it is valid until `exp` because resource servers verify it offline. Keep access tokens short-lived (minutes), revoke refresh tokens at the authorization server, and for instant revocation use opaque tokens with introspection or a deny-list of token ids (`jti`) — accepting the lookup cost.',
+        answer: 'Mostly you cannot. It stays valid until `exp`, because resource servers check it offline. Keep access tokens short-lived (minutes). Revoke refresh tokens at the authorization server. For instant revocation, use opaque tokens with introspection, or a deny-list of token ids (`jti`). Both mean accepting the lookup cost.',
       },
       {
         question: 'Why can a bearer-token API disable CSRF protection?',
-        answer: 'CSRF exploits credentials the browser attaches automatically — cookies. An `Authorization: Bearer` header is added explicitly by client code, and a malicious site cannot make the browser add it. If the token is stored in a cookie, CSRF protection is needed again.',
+        answer: 'CSRF abuses credentials that the browser attaches automatically, which means cookies. Client code adds an `Authorization: Bearer` header on purpose, and a malicious site cannot make the browser add it. If the token is stored in a cookie, CSRF protection is needed again.',
       },
       {
         question: 'What is the difference between OAuth 2.0 and OpenID Connect?',
-        answer: 'OAuth 2.0 is delegated **authorization**: it issues access tokens that grant scopes to a client. OpenID Connect is an identity layer on top that adds **authentication**: an ID token (a JWT) describing who logged in, plus a userinfo endpoint and discovery metadata.',
+        answer: 'OAuth 2.0 is delegated **authorization**. It issues access tokens that grant scopes to a client. OpenID Connect is an identity layer on top that adds **authentication**. It adds an ID token (a JWT) that says who logged in, plus a userinfo endpoint and discovery metadata.',
       },
       {
         question: 'Where does Spring keep the current user, and what breaks it?',
-        answer: 'In the `SecurityContextHolder`, which by default uses a `ThreadLocal`. Work handed to another thread (executors, `@Async`, `CompletableFuture`) does not see it unless you propagate it, e.g. with `DelegatingSecurityContextExecutor`.',
+        answer: 'In the `SecurityContextHolder`, which uses a `ThreadLocal` by default. Work handed to another thread (executors, `@Async`, `CompletableFuture`) does not see it. You must pass it on, for example with `DelegatingSecurityContextExecutor`.',
       },
     ],
     mnemonic: {
@@ -786,7 +786,7 @@ export const springConcepts: Record<string, LessonConcepts> = {
         id: 'sp-security-authn-authz',
         kind: 'concept',
         title: 'Two questions, two failure codes',
-        caption: 'Authentication must succeed before authorization is even asked. A missing or invalid credential is a 401; a valid user without permission is a 403.',
+        caption: 'Authentication must succeed before authorization is even asked. A missing or invalid credential gives a 401. A valid user without permission gets a 403.',
         explanation: [
           'A **Request** arrives carrying a credential, such as a session cookie or a Bearer token.',
           '**Authentication** asks "who are you?". If the credential is missing or invalid, the dashed arrow leads to **401 Unauthorized**, meaning the server does not know the caller.',
@@ -816,12 +816,12 @@ export const springConcepts: Record<string, LessonConcepts> = {
         id: 'sp-security-filter-chain',
         kind: 'architecture',
         title: 'Where Spring Security sits',
-        caption: 'Security runs as servlet filters before any controller. The authenticated user is stored in the SecurityContext; access-denied exceptions are turned into 401 or 403 by ExceptionTranslationFilter; method security adds a second line of defence behind the controller.',
+        caption: 'Security runs as servlet filters before any controller. The SecurityContext stores the authenticated user. ExceptionTranslationFilter turns access-denied exceptions into 401 or 403. Method security adds a second line of defence behind the controller.',
         explanation: [
           'The **Servlet container** (Tomcat) runs its filter list. **DelegatingFilterProxy** is a plain servlet filter that bridges into Spring and hands the request to the **FilterChainProxy** bean.',
           'FilterChainProxy picks the first matching **SecurityFilterChain**. Its early filters, **CSRF + headers**, reject forged requests and add headers such as HSTS.',
           '**Authentication** filters read the session, Basic credentials or bearer token and store the user in the **SecurityContext**, a thread-local holder.',
-          'The **AuthorizationFilter** checks URL rules in order. If allowed, the request reaches the **DispatcherServlet**; if it throws, the dashed arrow leads to **Exception translation**, which answers 401 or 403.',
+          'The **AuthorizationFilter** checks URL rules in order. If allowed, the request reaches the **DispatcherServlet**. If it throws, the dashed arrow leads to **Exception translation**, which answers 401 or 403.',
           'Behind the controller, **Method security** checks `@PreAuthorize` through a proxy before the **Service** runs, where ownership can be checked.',
           'Takeaway: security happens before any controller code, and method security adds a second line of defence.',
         ],
@@ -858,11 +858,11 @@ export const springConcepts: Record<string, LessonConcepts> = {
         id: 'sp-security-jwt-flow',
         kind: 'flow',
         title: 'How a resource server trusts a JWT',
-        caption: 'The API never sees the password. It verifies the token signature with the issuer\'s public keys (fetched once and cached), checks expiry and issuer, and maps scopes to authorities.',
+        caption: 'The API never sees the password. It checks the token signature with the issuer\'s public keys, which it fetches once and caches. It checks expiry and issuer, and maps scopes to authorities.',
         explanation: [
           'The **Client** logs in at the **Authorization server** (for example Keycloak or Okta) and receives a signed token. The API never sees the password.',
           'The authorization server publishes its public keys as a **JWK Set**, which the API fetches once and caches.',
-          'The client sends the token as a **Bearer token** in the Authorization header. The **JwtDecoder** verifies the signature with those keys (the dashed arrow) and checks expiry and issuer.',
+          'The client sends the token as a **Bearer token** in the Authorization header. The **JwtDecoder** checks the signature with those keys (the dashed arrow). It also checks expiry and issuer.',
           'The token\'s claims are converted into **Authorities** such as `SCOPE_orders.read`, which **Authorize** rules like `hasAuthority(...)` then check.',
           'Takeaway: the API trusts the token by checking its signature locally, without calling the authorization server on every request.',
         ],
