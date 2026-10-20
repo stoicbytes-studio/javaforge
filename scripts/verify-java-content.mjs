@@ -107,9 +107,27 @@ function track(kind, id, file) {
   seenIds.set(key, file);
 }
 
-function collect(value, file) {
+function collect(value, file, key) {
   if (Array.isArray(value)) return value.forEach((v) => collect(v, file));
   if (!value || typeof value !== 'object') return;
+
+  // Concept page "What is it?" example: a complete program that must print its `output`.
+  if (value.quick && typeof value.quick === 'object' && value.quick.example?.runnable && typeof value.quick.example.code === 'string') {
+    const ex = value.quick.example;
+    const label = `quick example ${key ?? ex.title}`;
+    track('quick', key ?? ex.title, file);
+    jobs.push({
+      label,
+      file,
+      fn: async () => {
+        const r = await execute(ex.code);
+        if (r.compileError) return `does not compile:\n${r.compileError}`;
+        if (r.code !== 0) return `exit ${r.code}: ${r.stderr}`;
+        if (NON_ASCII.test(ex.output ?? '')) return 'output contains non-ASCII characters';
+        if (normalize(r.stdout) !== normalize(ex.output ?? '')) return `output mismatch\n--- expected\n${ex.output}\n--- actual\n${r.stdout}${r.stderr}`;
+      },
+    });
+  }
 
   // Lesson
   if (Array.isArray(value.examples) && Array.isArray(value.checks) && value.moduleId) {
@@ -228,7 +246,7 @@ function collect(value, file) {
   }
   if (typeof value.prompt === 'string' && value.modelAnswer) track('interview', value.id, file);
 
-  for (const v of Object.values(value)) collect(v, file);
+  for (const [k, v] of Object.entries(value)) collect(v, file, k);
 }
 
 async function verifyOutputQuestion(q) {

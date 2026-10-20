@@ -1,4 +1,4 @@
-import type { Diagram, DiagramNode, LessonConcepts } from '@/types/curriculum';
+import type { Diagram, DiagramNode, LessonConcepts, QuickDefinition } from '@/types/curriculum';
 
 /** Grid geometry shared by the SVG renderer and the content tests. */
 export const CELL_W = 168;
@@ -165,6 +165,42 @@ export function describeDiagram(d: Diagram): string {
   return parts.join(' ').replace(/`/g, '');
 }
 
+const sentenceList = (s: string) => s.replace(/`[^`]+`/g, 'code').split(/(?<=[.!?:])\s+/).filter((x) => /\w/.test(x));
+
+/** Rules for the tutorial-style "What is it?" part: short, plain, with a small example. */
+export function quickProblems(lessonId: string, q: QuickDefinition | undefined): string[] {
+  if (!q) return [`${lessonId}: needs a quick definition with an example`];
+  const p: string[] = [];
+  const dw = countWords(q.definition);
+  if (dw < 8 || dw > 40) p.push(`${lessonId}: quick definition should be 8-40 words (has ${dw})`);
+  if (sentenceList(q.definition).length > 2) p.push(`${lessonId}: quick definition should be at most 2 sentences`);
+  if (q.points.length < 3 || q.points.length > 6) p.push(`${lessonId}: quick points need 3-6 items (has ${q.points.length})`);
+  for (const s of [q.definition, ...q.points, q.example.explain, q.tip ?? '']) {
+    for (const x of sentenceList(s)) {
+      const w = countWords(x);
+      if (w > 22) p.push(`${lessonId}: quick text sentence has ${w} words (max 22): "${x.slice(0, 60)}..."`);
+    }
+  }
+  q.points.forEach((x, i) => {
+    const w = countWords(x);
+    if (w < 3 || w > 30) p.push(`${lessonId}: quick point ${i + 1} should be 3-30 words (has ${w})`);
+  });
+  const e = q.example;
+  const lines = e.code.trim().split('\n').length;
+  if (!e.title.trim() || e.title.length > 50) p.push(`${lessonId}: example title should be 1-50 characters`);
+  if (lines < 2 || lines > 30) p.push(`${lessonId}: example code should be 2-30 lines (has ${lines})`);
+  const ew = countWords(e.explain);
+  if (ew < 8 || ew > 70) p.push(`${lessonId}: example explanation should be 8-70 words (has ${ew})`);
+  if (e.runnable) {
+    if (!/public\s+class\s+Main\b/.test(e.code) || !/static\s+void\s+main/.test(e.code)) p.push(`${lessonId}: a runnable example must be a complete program with public class Main and a main method`);
+    if (!e.output?.trim()) p.push(`${lessonId}: a runnable example needs its output`);
+  } else if (e.output !== undefined) {
+    p.push(`${lessonId}: only runnable examples show output`);
+  }
+  if (q.tip && countWords(q.tip) > 40) p.push(`${lessonId}: tip should be at most 40 words`);
+  return p;
+}
+
 /**
  * Every rule a lesson's concept page must satisfy. Used by the content tests and
  * by scripts/check-concepts.mjs. Returns human-readable problems; empty when sound.
@@ -172,6 +208,7 @@ export function describeDiagram(d: Diagram): string {
 export function conceptProblems(lessonId: string, c: LessonConcepts | undefined): string[] {
   if (!c) return [`${lessonId}: no concept page`];
   const p: string[] = [];
+  p.push(...quickProblems(lessonId, c.quick));
   if (!c.textbook) p.push(`${lessonId}: needs a textbook definition`);
   else {
     const tw = countWords(c.textbook.definition);

@@ -128,6 +128,7 @@ function lessonDocs(m: CurriculumModule, l: Lesson): SearchDoc[] {
         l.summary,
         ...l.objectives,
         c?.interviewDefinition ?? '',
+        c?.quick?.definition ?? '',
         c?.textbook?.definition ?? '',
         ...(c?.textbook?.terms.map((t) => t.term) ?? []),
         ...(l.memory?.types?.flatMap((g) => g.items.map((t) => t.name)) ?? []),

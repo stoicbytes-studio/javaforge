@@ -204,6 +204,30 @@ export interface DeepDiveItem {
   sources?: { label: string; url?: string }[];
 }
 
+/**
+ * The short, tutorial-style explanation shown first on every concept page: one plain
+ * definition, a few points, and a small example with its output (like a W3Schools page).
+ */
+export interface QuickDefinition {
+  /** 1-2 short sentences that start with what the thing is, e.g. "A loop runs the same code again and again". */
+  definition: string;
+  /** 3-6 short sentences: how it works, or the rules to remember. */
+  points: string[];
+  example: {
+    /** Short label, e.g. "Your first program". */
+    title: string;
+    /** Java code. When `runnable`, a complete program with `public class Main` that is run on a real JDK. */
+    code: string;
+    /** What the program prints. Required, and verified by scripts/verify-java-content.mjs, when `runnable`. */
+    output?: string;
+    runnable: boolean;
+    /** 1-3 sentences explaining the example line by line, in plain words. */
+    explain: string;
+  };
+  /** One short "Tip" or "Note" (common mistake, rule of thumb). */
+  tip?: string;
+}
+
 /** The formal definition a textbook or specification gives, with its key terms. */
 export interface TextbookDefinition {
   /** Precise, formal definition (40-130 words). */
@@ -215,6 +239,8 @@ export interface TextbookDefinition {
 }
 
 export interface LessonConcepts {
+  /** Short, tutorial-style definition with an example, shown first. */
+  quick?: QuickDefinition;
   /** Formal, textbook-level definition with the key terms defined. */
   textbook?: TextbookDefinition;
   /** Crisp interview-ready definition (2-4 sentences). */

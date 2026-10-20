@@ -3,6 +3,23 @@ import type { LessonConcepts } from '@/types/curriculum';
 /** Concept pages for module 1 (Fundamentals), keyed by lesson id. */
 export const fundamentalsConcepts: Record<string, LessonConcepts> = {
   'f-first-program': {
+    quick: {
+      definition: 'A Java program is written in a `.java` file. The compiler (`javac`) turns it into bytecode, and the Java Virtual Machine (JVM) runs that bytecode.',
+      points: [
+        'Write your code in a file named `Main.java`.',
+        'Compile it with `javac Main.java`. This creates a file named `Main.class`.',
+        'Run it with `java Main`. The JVM starts at the `main` method.',
+        'The file name must match the name of the `public` class.',
+      ],
+      example: {
+        title: 'Your first program',
+        code: 'public class Main {\n  public static void main(String[] args) {\n    System.out.println("Hello World");\n  }\n}',
+        output: 'Hello World',
+        runnable: true,
+        explain: 'Every Java program has a class, here named `Main`. Running starts in the `main` method. `System.out.println` prints a line of text on the screen.',
+      },
+      tip: 'Java is case-sensitive. `Main` and `main` are two different names.',
+    },
     textbook: {
       definition:
         'A Java **program** is one or more classes. You write them in source files, called **compilation units**. The Java compiler turns them into **class files** that hold JVM bytecode. To run the program, the Java launcher starts a **Java Virtual Machine**. The JVM loads the first class, **links** it and **initialises** it, and then calls its `main` method. It runs the bytecode in two ways: by interpreting it, and by just-in-time compiling it to native machine code.',

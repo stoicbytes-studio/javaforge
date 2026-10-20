@@ -10,12 +10,12 @@ import { Inline, Markdown } from '@/components/Markdown';
 import { Text } from '@/components/Text';
 import { useLayout, useTheme } from '@/theme/ThemeProvider';
 import { radius, spacing } from '@/theme/tokens';
-import type { BreakdownItem, LessonConcepts, MemoryAid, TextbookDefinition, VariantGroup } from '@/types/curriculum';
+import type { BreakdownItem, LessonConcepts, MemoryAid, QuickDefinition, TextbookDefinition, VariantGroup } from '@/types/curriculum';
 import { PlainEnglish, QuickRecall } from './MemoryParts';
 
 /**
  * The concept page every lesson opens with. It goes from simple to formal to
- * spoken: plain English (a story before the formal definition), textbook
+ * spoken: a short "What is it?" with an example, plain English (a story before the formal definition), textbook
  * definition, interview-level definition, mnemonic, contextual breakdown, visuals
  * (the picture beside the first flow diagram, every diagram explained step by
  * step), the "types of" sections, deep dive and quick recall (retrieval practice).
@@ -26,6 +26,7 @@ export function ConceptPanel({ concepts, memory }: { concepts: LessonConcepts; m
   const next = () => ++step;
   return (
     <View style={{ gap: spacing.xxl }}>
+      {concepts.quick ? <QuickSection quick={concepts.quick} step={next()} /> : null}
       {memory ? (
         <View style={{ gap: spacing.lg }}>
           <SectionTitle step={next()} icon="lightbulb" title="In plain English" subtitle="The simple version first: one big idea, a story and three things to keep." />
@@ -71,11 +72,57 @@ function SectionTitle({ step, title, subtitle, icon }: { step: number; title: st
   );
 }
 
+function QuickSection({ quick, step }: { quick: QuickDefinition; step: number }) {
+  const { colors } = useTheme();
+  const { example } = quick;
+  return (
+    <View style={{ gap: spacing.lg }}>
+      <SectionTitle step={step} icon="lightbulb" title="What is it?" subtitle="A short definition, the rules to remember and a small example." />
+      <View style={[styles.quick, { backgroundColor: colors.brandMuted, borderColor: colors.brandStrong }]}>
+        <Inline text={quick.definition} variant="title" />
+      </View>
+      <View style={{ gap: spacing.sm }}>
+        {quick.points.map((point, i) => (
+          <View key={i} style={styles.pointRow}>
+            <View style={[styles.dot, { backgroundColor: colors.brandStrong }]} />
+            <View style={{ flex: 1 }}>
+              <Inline text={point} variant="body" />
+            </View>
+          </View>
+        ))}
+      </View>
+      <View style={{ gap: spacing.sm }}>
+        <Text variant="heading">{`Example: ${example.title}`}</Text>
+        <CodeBlock code={example.code} showLineNumbers={false} />
+        {example.runnable && example.output !== undefined ? (
+          <View style={[styles.output, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]} accessibilityLabel={`Output: ${example.output}`}>
+            <Text variant="caption" color="textSubtle">
+              Output
+            </Text>
+            <Text mono variant="small">
+              {example.output}
+            </Text>
+          </View>
+        ) : null}
+        <Inline text={example.explain} variant="body" color="textMuted" />
+      </View>
+      {quick.tip ? (
+        <View style={[styles.tip, { backgroundColor: colors.successMuted, borderColor: colors.success }]}>
+          <Icon name="info" size={16} color={colors.success} />
+          <View style={{ flex: 1 }}>
+            <Inline text={quick.tip} variant="small" />
+          </View>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
 function TextbookSection({ textbook, step }: { textbook: TextbookDefinition; step: number }) {
   const { colors } = useTheme();
   return (
     <View style={{ gap: spacing.lg }}>
-      <SectionTitle step={step} icon="book" title="Textbook definition" subtitle="The precise, formal definition, with every key term defined." />
+      <SectionTitle step={step} icon="book" title="Formal definition" subtitle="The precise version, as a textbook or the language specification words it." />
       <View style={[styles.textbook, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         <Text variant="caption" color="primary">
           Definition
@@ -347,6 +394,11 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   sectionTitle: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md },
   stepBadge: { width: 36, height: 36, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', marginTop: 2 },
+  quick: { borderWidth: 1.5, borderRadius: radius.lg, padding: spacing.xl },
+  pointRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md },
+  dot: { width: 8, height: 8, borderRadius: radius.pill, marginTop: 9 },
+  output: { borderWidth: 1, borderRadius: radius.md, padding: spacing.md, gap: 2 },
+  tip: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, borderWidth: 1, borderRadius: radius.md, padding: spacing.md },
   textbook: { borderWidth: 1, borderRadius: radius.lg, padding: spacing.xl, gap: spacing.sm },
   term: { borderWidth: 1, borderRadius: radius.md, padding: spacing.md, gap: 4 },
   quote: { borderWidth: 1, borderLeftWidth: 5, borderRadius: radius.lg, padding: spacing.xl },

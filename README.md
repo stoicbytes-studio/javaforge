@@ -15,7 +15,9 @@ demonstrated and what to practise next.
   platform, OOP, types, exceptions, collections and functional Java to JVM
   runtime internals, concurrency and virtual threads, I/O, JDBC, testing,
   design patterns, DSA, Spring Boot, performance and production engineering.
-  Every lesson opens with a **concept page**: a textbook definition with
+  Every lesson opens with a **concept page**: a short tutorial-style
+  "What is it?" (one-line definition, rules to remember and a small example
+  with its output, run on a real JDK to check it), a formal definition with
   its key terms, an interview-level
   definition with follow-up questions, a memory mnemonic, analogies and
   real-world breakdowns, SVG illustrations plus flow and architecture
